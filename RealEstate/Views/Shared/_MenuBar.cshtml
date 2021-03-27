@@ -1,0 +1,74 @@
+﻿@using RealEstate.Helpers
+@using Microsoft.AspNetCore.Mvc.Infrastructure;
+
+<div class="main-tab-wrapper">
+    <div class="content-bg">
+        <div class="row justify-content-between">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       asp-action="LeadFlow" asp-controller="Admin" role="tab" aria-controls="pills-all-people"
+                       aria-selected="true">Lead Flow</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-todays-leads-tab" data-toggle="pill"
+                       href="#" role="tab" aria-controls="pills-todays-leads"
+                       aria-selected="false">Groups</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "Team,AddAgents"))" id="pills-clients-tab" asp-action="Team" asp-controller="Admin"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Team</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AdminUser"))" id="pills-clients-tab" asp-action="AdminUser" asp-controller="Admin"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Admin User</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Action Plans</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Automation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Ponds</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Email Templates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Text Templates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Import</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Custom Fields</a>
+                </li>
+            </ul>
+            @{
+                string actionName = this.ViewContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ViewContext.RouteData.Values["controller"].ToString();
+                if (actionName == "Team" && controllerName == "Admin")
+                {
+                    <div class="list-button-wrapper mr-4">
+                        <a asp-action="AddAgents" class="btn btn-primary mr-2">+ Add User</a>
+                    </div>
+                }
+
+                if (actionName == "AdminUser" && controllerName == "Admin")
+                {
+                    <div class="list-button-wrapper mr-4">
+                        <a asp-action="AddAdminUser" class="btn btn-primary mr-2">+ Add Admin User</a>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>

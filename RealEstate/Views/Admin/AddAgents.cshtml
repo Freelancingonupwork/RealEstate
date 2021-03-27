@@ -1,0 +1,62 @@
+﻿@model AgentViewModel
+@{
+    ViewData["Title"] = "AddAgents";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/js/phone.js"></script>
+<script src="~/SiteJavascripts/AddAgents.js"></script>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header top-header">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="m-b-0 text-white">Add User</h4>
+                        <a asp-action="Team" asp-controller="Admin" class="btn btn-primary"><i class="fa fa-backward"></i>&nbsp;Back</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" role="form">
+                    <div class="form-body">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Full Name:</label>
+                                <input type="text" asp-for="FullName" placeholder="Enter Full Name" class="form-control" style="width:80%" />
+                                <span asp-validation-for="FullName" class="text-danger" ></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Email Address:</label>
+                                <input type="text" asp-for="EmailAddress" placeholder="Enter Email Address" class="form-control" style="width:80%" />
+                                <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Phone:</label>
+                                <input type="text" asp-for="CellPhone" onkeydown="javascript:backspacerDOWN(this,event);"
+                                       onkeyup="javascript:backspacerUP(this,event);" class="form-control" placeholder="Enter Phone" style="width:80%" />
+                                <span asp-validation-for="CellPhone" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <div class="form-checkbox-group">
+                                    <input type="checkbox" asp-for="IsActive" value="true" id="IsActive">
+                                    <label for="IsActive"> Is Active </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <input type="submit" value="Submit" name="AddAgent" class="btn btn-success" />
+                                <a asp-action="Team" asp-controller="Admin" title="Click here to get List" class="btn btn-primary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

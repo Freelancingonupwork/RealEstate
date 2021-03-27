@@ -1,0 +1,61 @@
+﻿
+@{
+    ViewData["Title"] = "LeadFlow";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-tab-wrapper">
+    <div class="content-bg">
+        <div class="row justify-content-between">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="pills-all-people-tab" data-toggle="pill"
+                       href="#" role="tab" aria-controls="pills-all-people"
+                       aria-selected="true">Lead Flow</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-todays-leads-tab" data-toggle="pill"
+                       href="#" role="tab" aria-controls="pills-todays-leads"
+                       aria-selected="false">Groups</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" asp-action="Team" asp-controller="Admin"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Team</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Action Plans</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Automation</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Ponds</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Email Templates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Text Templates</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Import</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                       role="tab" aria-controls="pills-clients" aria-selected="false">Custom Fields</a>
+                </li>
+            </ul>
+            <div class="list-button-wrapper mr-4">
+                <button class="btn btn-primary mr-2">Update List</button>
+                <button class="btn btn-primary">Manage List</button>
+            </div>
+        </div>
+    </div>
+</div>
+

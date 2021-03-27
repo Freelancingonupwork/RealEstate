@@ -1,0 +1,132 @@
+﻿
+@{
+    ViewData["Title"] = "NewLead";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="modal fade" id="CRMSelector" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Which CRM are you coming from?</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card custom-card" style="height:271px;">
+                            <div class="card-header">
+                                <div class="text-center profile-details">
+                                    <h4 style="margin-top:20px">From Zillow</h4><br />
+                                    <img src="~/image/zillow.jpg" width="170" height="80" style="margin-bottom:20px;" />
+                                </div>
+                                <div class="card-footer row">
+                                    <a class="btn btn-primary" href="">Go</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 ">
+                        <div class="card custom-card" style="height:271px;">
+                            <div class="card-header">
+                                <div class="text-center profile-details">
+                                    <h4 style="margin-top:20px">From HubSpot</h4><br />
+                                    <img src="~/image/hubspot.jpeg" width="170" height="80" style="margin-bottom:20px;" />
+                                </div>
+                                <div class="card-footer row">
+                                    <a class="btn btn-primary" href="@Url.Action("GetLeadsFromHubSpot")">Go</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-lg-6 col-xl-4 box-col-6">
+        <div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+        <div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+        <div class="card custom-card" style="height:364px;">
+            <div class="card-header">
+                <div class="text-center profile-details">
+                    <h4 style="margin-top:20px">From File</h4>
+                    <form asp-controller="Lead" asp-action="Upload" method="post" enctype="multipart/form-data">
+
+                        <div class="input-group my-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" style="width: auto; height: 35px; font-size: 14px;">Upload</span>
+                            </div>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="postedFile" name="postedFile">
+                                <label class="custom-file-label">Choose file</label>
+                            </div>
+                        </div>
+
+                        @*<input type="file" class="form-control" name="postedFile" />*@
+                        <input type="submit" value="Submit" class="btn btn-primary" style="float:left" /> <br /><br />
+                        <a href="~/SampleExcel/sample.xlsx" target="_blank">Download Sample File</a>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    You can import up to 1000 records through an .xls, .xlsx, .vcf, or .csv file.
+                    To import more than 1000 records at a time, use csv file
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-6 col-xl-4 box-col-6">
+        <div class="card custom-card" style="height:364px;">
+            <div class="card-header">
+                <div class="text-center profile-details">
+                    <h4 style="margin-top:20px">From Other CRM</h4><br />
+                    @*<h6><a href="@Url.Action("getData","Lead")">Which CRM are you coming from?</a></h6>*@
+                    <button style="margin-bottom:30px" type="button" class="btn btn-primary" data-toggle="modal" data-target="#CRMSelector">
+                        Which CRM are you coming from?
+                    </button>
+                </div>
+                <div class="card-footer">
+                    <p>
+                        Choose a CRM from which you would like to import.
+                        Importing data from other CRMs is made easy.
+                        It is just a click away.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-6 col-xl-4 box-col-6">
+        <div class="card custom-card" style="height:364px;">
+            <div class="card-header">
+                <div class="text-center profile-details">
+                    <h4 style="margin-top:20px">Add Manually</h4>
+
+                    <div style="padding-top:20px;margin-bottom:30px;">
+                        <a class="btn btn-primary" asp-action="AddNewLead" asp-controller="Lead" title="Click to add lead manually.">Click Here</a>
+                    </div>
+                    <div class="card-footer row">
+                        <p>
+                            Go to the form by clicking on "Clieck Here" Button.
+                            Provide all the intended datta.
+                            And you will be able to add new leads from there.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        setTimeout(function () {
+            $("#divAlert").hide('blind', {}, 500)
+        }, 5000);
+        /*document.getElementById("liLead").classList.add("active");*/
+    });
+</script>
