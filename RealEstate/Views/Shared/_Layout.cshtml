@@ -236,15 +236,18 @@
     </header>
     <div class="content-wrapper">
         <div class="container-fluid">
+            <div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+            <div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+            <div class="alert alert-warning" id="WarningMsg" role="alert" style="display:none;"></div>
             @RenderBody()
         </div>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - Estajo
-        </div>
-    </footer>
+    @*<footer class="border-top footer text-muted">
+            <div class="container">
+                &copy; @DateTime.Now.Year - Estajo
+            </div>
+        </footer>*@
 
 </body>
 </html>
@@ -275,6 +278,14 @@
                 jQuery('#ErrorMsg').show();
                 setTimeout(function () {
                     jQuery('#ErrorMsg').fadeOut();
+                }, 5000);
+            }
+
+            if (messageType == "warning") {
+                jQuery("#WarningMsg").html(message);
+                jQuery('#WarningMsg').show();
+                setTimeout(function () {
+                    jQuery('#WarningMsg').fadeOut();
                 }, 5000);
             }
 

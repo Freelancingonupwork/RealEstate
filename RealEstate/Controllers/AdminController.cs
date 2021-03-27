@@ -109,6 +109,7 @@ namespace RealEstate.Controllers
                     oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
                     oData.EmailAddress = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
                     oData.CellPhone = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
+                    oData.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
                     oData.IsActive = model.IsActive;
                     oData.CreatedDate = DateTime.Now;
 
@@ -418,6 +419,8 @@ namespace RealEstate.Controllers
                     return Json(new { success = false, message = "Email address is already in use! Try another email address!" });
 
                 TblUser user = _dbContext.TblUsers.Where(x => x.UserId == intAdminID).FirstOrDefault();
+                if (user.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString()))
+                    return Json(new { success = false, message = "You can not change your own details!" });
                 user.FullName = strfullName;
                 user.EmailAddress = stremailAddress;
                 _dbContext.Entry(user).State = EntityState.Modified;

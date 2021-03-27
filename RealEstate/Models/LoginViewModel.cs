@@ -26,6 +26,7 @@ namespace RealEstate.Models
     {
         Admin = 1, 
         GoogleAccount = 2, 
-        MicrosoftAccount = 3
+        MicrosoftAccount = 3,
+        Manual = 4
     }
 }

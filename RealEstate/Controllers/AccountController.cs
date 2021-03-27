@@ -90,58 +90,74 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
+                        var resultForAdmin = DB.TblUsers.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
+                                                       u.Password.Equals(Encryption.EncryptText(model.Password)) &&
+                                                       u.IsActive == true).FirstOrDefault();
 
-                        var result = _dbContext.TblUsers.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
-                                                   u.Password.Equals(Encryption.EncryptText(model.Password)) &&
-                                                   u.IsActive == true).FirstOrDefault();
-                        if (result != null)
+                        ClaimsIdentity identity = null;
+                        if (resultForAdmin != null)
                         {
-                            if (result.UserLoginTypeId == (int)UserLoginType.GoogleAccount)
-                            {
-                                //ShowErrorMessage("You Were Logged In With Google Account. Please Use Google Account For Loging In.", true);
-                                ShowWarningMessage("You were logged in with google account. Please use google account for loging in.", true);
-                                return View(model);
-                            }
-                            if (result.UserLoginTypeId == (int)UserLoginType.MicrosoftAccount)
-                            {
-                                //ShowErrorMessage("You Were Logged In With Microsoft Account. Please Use Microsoft Account For Loging In.", true);
-                                ShowWarningMessage("You were logged in with microsoft account. Please use microsoft account for loging in.", true);
-                                return View(model);
-                            }
-                            if (result.UserLoginTypeId == (int)UserLoginType.Admin)
-                            {
-                                //SetCookie("EmailAddress", result.EmailAddress, 1);
-                                //SetCookie("FullName", result.FullName, 1);
-                                //SetCookie("UserLoginTypeId", result.UserLoginTypeId.ToString(), 1);
 
-                                ClaimsIdentity identity = null;
-                                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, result.EmailAddress), new Claim(ClaimTypes.Role, "Admin") }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                            if (resultForAdmin.UserLoginTypeId == UserLoginType.Admin.GetHashCode())
+                            {
+                                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAdmin.EmailAddress), new Claim(ClaimTypes.Role, "Admin") }, CookieAuthenticationDefaults.AuthenticationScheme);
                                 var prinicpal = new ClaimsPrincipal(identity);
                                 var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                                SetCookie("EmailAddress", result.EmailAddress, 1);
-                                SetCookie("FullName", result.FullName, 1);
-                                SetCookie("UserLoginTypeId", result.UserLoginTypeId.ToString(), 1);
-                                return RedirectToAction("Index", "Lead");
+                                SetCookie("EmailAddress", resultForAdmin.EmailAddress, 1);
+                                SetCookie("FullName", resultForAdmin.FullName, 1);
+                                SetCookie("UserLoginTypeId", resultForAdmin.UserLoginTypeId.ToString(), 1);
+                                return RedirectToAction("Index", "Lead", new { area = "" });
                             }
                         }
                         else
                         {
-                            ShowErrorMessage("User credentials are not mathced please try again!", true);
-                            return View(model);
+                            var resultForAgent = DB.TblAgents.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
+                                                           u.IsActive == true).FirstOrDefault();
+
+                            if (resultForAgent != null)
+                            {
+                                if (string.IsNullOrEmpty(resultForAgent.Password))
+                                {
+                                    TempData["EmailAddress"] = resultForAgent.EmailAddress;
+                                    TempData.Keep();
+                                    return RedirectToAction("SetPassword", "Account", new { area = "" });
+                                }
+                                else
+                                {
+                                    if (resultForAgent.Password.Equals(Encryption.EncryptText(model.Password)))
+                                    {
+                                        if (resultForAgent.UserLoginTypeId != UserLoginType.Admin.GetHashCode())
+                                        {
+                                            identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAgent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                                            var prinicpal = new ClaimsPrincipal(identity);
+                                            var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
+                                            SetCookie("EmailAddress", resultForAgent.EmailAddress, 1);
+                                            SetCookie("FullName", resultForAgent.FullName, 1);
+                                            SetCookie("UserLoginTypeId", resultForAgent.UserLoginTypeId.ToString(), 1);
+                                            return RedirectToAction("Index", "Lead", new { area = "" });
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ShowErrorMessage("User credentials are not mathced please try again!", true);
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                ShowErrorMessage("User credentials are not mathced please try again!", true);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    return View(model);
                 }
             }
             catch (Exception ex)
             {
                 ViewBag.Message = ex.Message;
                 ErrorLog.log("Account Controller AuthenticateAccount:-" + ex);
-                //return RedirectToAction("Login", "Account");
-                return View(model);
+                return View("Login");
             }
             return View(model);
         }
@@ -332,6 +348,8 @@ namespace RealEstate.Controllers
                     _dbContext.TblAgents.Add(agent);
                     _dbContext.SaveChanges();
                 }
+                else
+                    agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(agent.EmailAddress)).SingleOrDefault();
 
                 if (string.IsNullOrEmpty(agent.Password))
                 {

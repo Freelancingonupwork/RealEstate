@@ -44,7 +44,8 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        var oLeadList = DB.TblLeads.Include(x => x.Agent).ToList().Select(s => new LeadViewModel
+                        int agentID = DB.TblAgents.Where(x => x.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault().Id;
+                        var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentID).Include(x => x.Agent).ToList().Select(s => new LeadViewModel
                         {
                             LeadId = s.LeadId,
                             LeadSource = s.LeadSource,
@@ -57,7 +58,7 @@ namespace RealEstate.Controllers
                             LeadOwner = s.LeadOwner,
                             Company = s.Company,
                             FirstName = s.FirstName,
-                            LastName = s.FirstName,
+                            LastName = s.LastName,
                             Title = s.Title,
                             EmailAddress = s.EmailAddress,
                             PhoneNumber = s.PhoneNumber,
@@ -98,7 +99,7 @@ namespace RealEstate.Controllers
                         LeadOwner = s.LeadOwner,
                         Company = s.Company,
                         FirstName = s.FirstName,
-                        LastName = s.FirstName,
+                        LastName = s.LastName,
                         Title = s.Title,
                         EmailAddress = s.EmailAddress,
                         PhoneNumber = s.PhoneNumber,
@@ -251,7 +252,7 @@ namespace RealEstate.Controllers
             try
             {
                 Dictionary<string, string> sOwnerList = new Dictionary<string, string>();
-                var users = _dbContext.TblUsers.Where(u => u.UserLoginTypeId != UserLoginType.Admin.GetHashCode() && u.IsActive == true).ToList();
+                var users = _dbContext.TblUsers.Where(u => u.UserLoginTypeId == UserLoginType.Admin.GetHashCode() && u.IsActive == true).ToList();
                 foreach (var item in users)
                 {
                     sOwnerList.Add(item.FullName, item.FullName);
@@ -259,15 +260,15 @@ namespace RealEstate.Controllers
                 ViewBag.OwnerList = sOwnerList;
 
 
-                Dictionary<string, string> oSourcelist = new Dictionary<string, string>();
+                //Dictionary<string, string> oSourcelist = new Dictionary<string, string>();
 
-                var leads = _dbContext.TblLeads.ToList();
-                var items = leads.Select(x => x.LeadSource).Distinct();
-                foreach (string item in items)
-                {
-                    oSourcelist.Add(item, item);
-                }
-                ViewBag.LeadSourceList = oSourcelist;
+                //var leads = _dbContext.TblLeads.ToList();
+                //var items = leads.Select(x => x.LeadSource).Distinct();
+                //foreach (string item in items)
+                //{
+                //    oSourcelist.Add(item, item);
+                //}
+                //ViewBag.LeadSourceList = oSourcelist;
 
 
                 Dictionary<int, string> oAgentlist = new Dictionary<int, string>();
@@ -602,7 +603,7 @@ namespace RealEstate.Controllers
         {
             try
             {
-                string uri = _config.GetValue<string>("APIs:HubspotAPIForAllContact");
+                string uri = _config.GetValue<string>("APIs:HubspotAPIKey");
                 if (count > 0)
                 {
                     uri = uri + count;

@@ -141,10 +141,21 @@
                                 <line x1="12" y1="2" x2="12" y2="15"></line>
                             </svg>
                         </a>
-                        <a class="btn-icon" title="Click here to add leads" asp-action="NewLead" asp-controller="Lead">
-                            <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        </a>
-                    </div>
+                        @{
+                            int userTypeAdmin = 0;
+                            if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
+                            {
+                                userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
+                            }
+
+                        }
+                        @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                        {
+                            <a class="btn-icon" title="Click here to add leads" asp-action="NewLead" asp-controller="Lead">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            </a>
+                        }
+                        </div>
                     <div class="content-header-right">
                         <button class="btn btn-primary">
                             How it work
@@ -225,10 +236,10 @@
                                         <td>50000</td>
                                         <td>02/01/2021</td><!--Last Activity-->
                                         <td>02/01/2021</td><!--Last Communication-->
-                                        <td>15/12/2019</td><!--Stage-->
+                                        <td>@item.Stage</td><!--Stage-->
                                         <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td><!--Created Date-->
                                         @{
-                                            int userTypeAdmin = 0;
+                                            userTypeAdmin = 0;
                                             if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
                                             {
                                                 userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
