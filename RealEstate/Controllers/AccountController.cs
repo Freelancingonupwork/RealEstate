@@ -54,9 +54,9 @@ namespace RealEstate.Controllers
                     identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, agent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
                     var prinicpal = new ClaimsPrincipal(identity);
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                    SetCookie("EmailAddress", agent.EmailAddress, 1);
-                    SetCookie("FullName", agent.FullName, 1);
-                    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString(), 1);
+                    SetCookie("EmailAddress", agent.EmailAddress);
+                    SetCookie("FullName", agent.FullName);
+                    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString());
                     if (model.KeepMeSigninIn)
                         return RedirectToAction("Index", "Lead", new { area = "" });
                     else
@@ -104,9 +104,9 @@ namespace RealEstate.Controllers
                                 identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAdmin.EmailAddress), new Claim(ClaimTypes.Role, "Admin") }, CookieAuthenticationDefaults.AuthenticationScheme);
                                 var prinicpal = new ClaimsPrincipal(identity);
                                 var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                                SetCookie("EmailAddress", resultForAdmin.EmailAddress, 1);
-                                SetCookie("FullName", resultForAdmin.FullName, 1);
-                                SetCookie("UserLoginTypeId", resultForAdmin.UserLoginTypeId.ToString(), 1);
+                                SetCookie("EmailAddress", resultForAdmin.EmailAddress);
+                                SetCookie("FullName", resultForAdmin.FullName);
+                                SetCookie("UserLoginTypeId", resultForAdmin.UserLoginTypeId.ToString());
                                 return RedirectToAction("Index", "Lead", new { area = "" });
                             }
                         }
@@ -132,9 +132,9 @@ namespace RealEstate.Controllers
                                             identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAgent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
                                             var prinicpal = new ClaimsPrincipal(identity);
                                             var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                                            SetCookie("EmailAddress", resultForAgent.EmailAddress, 1);
-                                            SetCookie("FullName", resultForAgent.FullName, 1);
-                                            SetCookie("UserLoginTypeId", resultForAgent.UserLoginTypeId.ToString(), 1);
+                                            SetCookie("EmailAddress", resultForAgent.EmailAddress);
+                                            SetCookie("FullName", resultForAgent.FullName);
+                                            SetCookie("UserLoginTypeId", resultForAgent.UserLoginTypeId.ToString());
                                             return RedirectToAction("Index", "Lead", new { area = "" });
                                         }
                                     }
@@ -222,9 +222,9 @@ namespace RealEstate.Controllers
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
                     //Redirection of lead user is here. Please give appropreate direction URL to it
 
-                    SetCookie("EmailAddress", oAgent.EmailAddress, 1);
-                    SetCookie("FullName", oAgent.FullName, 1);
-                    SetCookie("UserLoginTypeId", oAgent.UserLoginTypeId.ToString(), 1);
+                    SetCookie("EmailAddress", oAgent.EmailAddress);
+                    SetCookie("FullName", oAgent.FullName);
+                    SetCookie("UserLoginTypeId", oAgent.UserLoginTypeId.ToString());
 
                     return RedirectToAction("Index", "Lead");
                 }
@@ -365,9 +365,9 @@ namespace RealEstate.Controllers
                     var prinicpal = new ClaimsPrincipal(identity);
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
                     //Redirection of lead user is here. Please give appropreate direction URL to it
-                    SetCookie("EmailAddress", agent.EmailAddress, 1);
-                    SetCookie("FullName", agent.FullName, 1);
-                    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString(), 1);
+                    SetCookie("EmailAddress", agent.EmailAddress);
+                    SetCookie("FullName", agent.FullName);
+                    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString());
 
                     return RedirectToAction("Index", "Lead", new { area = "" });
                 }
@@ -415,14 +415,14 @@ namespace RealEstate.Controllers
             }
         }
 
-        public void SetCookie(string key, string value, int? expireTimeInDays)
+        public void SetCookie(string key, string value, int? expireTimeInDays = 0)
         {
             CookieOptions option = new CookieOptions();
 
-            if (expireTimeInDays.HasValue)
-                option.Expires = DateTime.Now.AddDays(expireTimeInDays.Value);
+            if (expireTimeInDays > 0)
+                option.Expires = DateTime.Now.AddMinutes(expireTimeInDays.Value);
             else
-                option.Expires = DateTime.Now.AddDays(2); //minimum 2 Days
+                option.Expires = DateTime.Now.AddMinutes(15); //minimum 15 Minutes
 
             Response.Cookies.Append(key, value, option);
         }

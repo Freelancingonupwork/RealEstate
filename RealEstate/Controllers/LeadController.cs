@@ -132,6 +132,131 @@ namespace RealEstate.Controllers
             }
         }
 
+        [HttpGet]
+        public IActionResult EditLeadDetails(int id)
+        {
+            if (!Request.Cookies.ContainsKey("FullName"))
+                return RedirectToAction("Login", "Account");
+            LoadComboBoxes();
+            try
+            {
+                TblLead oLead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).FirstOrDefault();
+                LeadViewModel oModel = new LeadViewModel();
+                oModel.LeadId = oLead.LeadId;
+                ViewBag.LeadSource = oLead.LeadSource;
+                oModel.LeadSource = oLead.LeadSource;
+                oModel.LeadStatus = oLead.LeadStatus;
+                oModel.Industry = oLead.Industry;
+                oModel.Stage = oLead.Stage;
+                oModel.AgentId = oLead.AgentId;
+                oModel.Agent = oLead.Agent;
+                oModel.OwnerImg = oLead.OwnerImg;
+                oModel.LeadOwner = oLead.LeadOwner;
+                oModel.Company = oLead.Company;
+                oModel.FirstName = oLead.FirstName;
+                oModel.LastName = oLead.LastName;
+                oModel.Title = oLead.Title;
+                oModel.EmailAddress = oLead.EmailAddress;
+                oModel.PhoneNumber = oLead.PhoneNumber;
+                oModel.Fax = oLead.Fax;
+                oModel.MobileNumber = oLead.MobileNumber;
+                oModel.Website = oLead.Website;
+                oModel.NoOfEmp = oLead.NoOfEmp;
+                oModel.AnnualRevenue = oLead.AnnualRevenue;
+                oModel.Rating = oLead.Rating;
+                oModel.EmailOptOut = oLead.EmailOptOut == true ? true : false;
+                oModel.SkypeId = oLead.SkypeId;
+                oModel.TwitterId = oLead.TwitterId;
+                oModel.SecondaryEmail = oLead.SecondaryEmail;
+                oModel.Street = oLead.Street;
+                oModel.State = oLead.State;
+                oModel.Country = oLead.Country;
+                oModel.City = oLead.City;
+                oModel.ZipCode = oLead.ZipCode;
+                oModel.Description = oLead.Description;
+                oModel.CreatedDate = oLead.CreatedDate;
+                return View(oModel);
+            }
+            catch (Exception ex)
+            {
+                ErrorLog.log("LeadController EditLeadDetails" + ex);
+                return View("Index");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult EditLeadDetails(LeadViewModel model)
+        {
+            try
+            {
+                LoadComboBoxes();
+                if (Request.Cookies.ContainsKey("FullName"))
+                {
+                    if (ModelState.IsValid)
+                    {
+                        var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(model.EmailAddress.ToLower()) && u.LeadId != model.LeadId).ToList();
+                        if (result.Count() > 0)
+                        {
+                            ShowErrorMessage("Email is already used!", true);
+                            LoadComboBoxes();
+                            return View(model);
+                        }
+
+                        TblLead oData = new TblLead();
+                        oData.LeadId = model.LeadId;
+                        oData.LeadOwner = model.LeadOwner;
+                        oData.Company = model.Company;
+                        oData.FirstName = model.FirstName;
+                        oData.LastName = model.LastName;
+                        oData.Title = model.Title;
+                        oData.EmailAddress = model.EmailAddress;
+                        oData.PhoneNumber = model.PhoneNumber;
+                        oData.Fax = model.Fax;
+                        oData.MobileNumber = model.MobileNumber;
+                        oData.Website = model.Website;
+                        oData.LeadSource = model.LeadSource;
+                        oData.LeadStatus = model.LeadStatus;
+                        oData.Industry = model.Industry;
+                        oData.AgentId = model.AgentId;
+                        oData.Stage = model.Stage;
+                        oData.NoOfEmp = model.NoOfEmp;
+                        oData.AnnualRevenue = model.AnnualRevenue;
+
+                        oData.Rating = model.Rating;
+                        oData.EmailOptOut = model.EmailOptOut;
+                        oData.SkypeId = model.SkypeId;
+                        oData.TwitterId = model.TwitterId;
+                        oData.SecondaryEmail = model.SecondaryEmail;
+
+                        oData.Street = model.Street;
+                        oData.City = model.City;
+                        oData.State = model.State;
+                        oData.ZipCode = model.ZipCode;
+                        oData.Country = model.Country;
+                        oData.Description = model.Description;
+                        oData.CreatedDate = DateTime.Now;
+                        _dbContext.Entry(oData).State = EntityState.Modified;
+                        _dbContext.SaveChanges();
+
+
+                        LoadComboBoxes();
+                        ShowSuccessMessage("Lead updated Successfully.", true);
+                        return RedirectToAction("Index", "Lead");
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ErrorLog.log(ex);
+                return View();
+            }
+        }
+
         public IActionResult AddNewLead()
         {
             try
@@ -429,6 +554,9 @@ namespace RealEstate.Controllers
                                 string strZipCode = workSheet.Cells[i, 27].Value.ToString() == "NULL" ? string.Empty : workSheet.Cells[i, 27].Value.ToString();
                                 string strDescription = workSheet.Cells[i, 28].Value.ToString() == "NULL" ? string.Empty : workSheet.Cells[i, 27].Value.ToString();
                                 DateTime dtCreatedDate = DateTime.TryParse(workSheet.Cells[i, 29].Value.ToString(), out dtCreatedDate) ? Convert.ToDateTime(workSheet.Cells[i, 29].Value) : DateTime.Now;
+                                var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(strEmailAddress.ToLower())).ToList();
+                                if (result.Count() > 0)
+                                    continue;
 
                                 leadList.Add(new TblLead
                                 {
@@ -537,6 +665,9 @@ namespace RealEstate.Controllers
                             string strZipCode = values[26].ToString() == "NULL" ? string.Empty : values[26].ToString();
                             string strDescription = values[27].ToString() == "NULL" ? string.Empty : values[27].ToString();
                             DateTime dtCreatedDate = DateTime.TryParse(values[28].ToString(), out dtCreatedDate) ? Convert.ToDateTime(values[28].ToString()) : DateTime.Now;
+                            var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(strEmailAddress.ToLower())).ToList();
+                            if (result.Count() > 0)
+                                continue;
 
                             leadList.Add(new TblLead
                             {
@@ -630,6 +761,10 @@ namespace RealEstate.Controllers
                         lead.CreatedDate = Convert.ToDateTime(dt);
                         lead.Company = item.properties.company == null ? string.Empty : item.properties.company.value.ToString();
                         lead.EmailAddress = string.IsNullOrEmpty(item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString()) ? string.Empty : item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString();
+
+                        var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(lead.EmailAddress.ToLower())).ToList();
+                        if (result.Count() > 0)
+                            continue;
                         leadList.Add(lead);
                     }
                     _dbContext.TblLeads.AddRange(leadList);
@@ -715,7 +850,7 @@ namespace RealEstate.Controllers
                 oModel.LeadOwner = lead.LeadOwner;
                 oModel.Company = lead.Company;
                 oModel.FirstName = lead.FirstName;
-                oModel.LastName = lead.FirstName;
+                oModel.LastName = lead.LastName;
                 oModel.Title = lead.Title;
                 oModel.EmailAddress = lead.EmailAddress;
                 oModel.PhoneNumber = lead.PhoneNumber;

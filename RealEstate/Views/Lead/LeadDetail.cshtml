@@ -398,10 +398,10 @@
                                         </path>
                                     </svg>
                                     <a href="tel:@Model.MobileNumber">
-                                        @Model.MobileNumber
+                                        @(Model.MobileNumber != null ? Model.MobileNumber : "N/A")
                                     </a>
                                     <a href="tel:@Model.PhoneNumber">
-                                        @Model.PhoneNumber
+                                        @(Model.PhoneNumber != null ? Model.PhoneNumber : "N/A")
                                     </a>
                                 </div>
                                 <div class="profile-mail">
@@ -423,9 +423,9 @@
                                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                                         <circle cx="12" cy="10" r="3"></circle>
                                     </svg>
-                                    <p>@Model.Street,</p>
-                                    <p>@Model.City , @Model.State</p>
-                                    <p>@Model.Country</p>
+                                    <p>@(Model.Street != null ? Model.Street : "N/A")</p>
+                                    <p>@(Model.City != null ? Model.City : "N/A") , @(Model.State != null ? Model.State : "N/A")</p>
+                                    <p>@(Model.Country != null ? Model.Country : "N/A")</p>
                                 </div>
                             </div>
                         </div>
@@ -460,8 +460,8 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    <p><strong>Stage</strong><span>@Model.Stage</span></p>
-                                    <p><strong>Source</strong><span>@Model.LeadSource</span></p>
+                                    <p><strong>Stage</strong><span>@(Model.Stage != null ? Model.Stage : "N/A")</span></p>
+                                    <p><strong>Source</strong><span>@(Model.LeadSource != null ? Model.LeadSource : "N/A")</span></p>
                                     @{
                                         int userTypeAdmin = 0;
                                         if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
@@ -472,40 +472,40 @@
                                     }
                                     @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
                                     {
-                                        @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                    @if (Convert.ToInt32(Model.AgentId) <= 0)
                                         {
-                                            <p>
-                                                <strong>Agent</strong>
-                                                <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                            </p>
+                                    <p>
+                                        <strong>Agent</strong>
+                                        <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                    </p>
                                         }
                                         else
                                         {
-                                            <p>
-                                                <strong>Agent</strong>
-                                                <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                            </p>
+                                    <p>
+                                        <strong>Agent</strong>
+                                        <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                    </p>
                                         }
                                     }
                                     else
                                     {
-                                        @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                    @if (Convert.ToInt32(Model.AgentId) <= 0)
                                         {
-                                            <p>
-                                                <strong>Agent</strong>
-                                                <span><font color="red">Not Assigned</font> </span>
-                                            </p>
+                                    <p>
+                                        <strong>Agent</strong>
+                                        <span><font color="red">Not Assigned</font> </span>
+                                    </p>
                                         }
                                         else
                                         {
-                                            <p>
-                                                <strong>Agent</strong>
-                                                <span>@Model.Agent.FullName </span>
-                                            </p>
+                                    <p>
+                                        <strong>Agent</strong>
+                                        <span>@Model.Agent.FullName </span>
+                                    </p>
                                         }
                                     }
-                                    <p><strong>Lender</strong><span></span></p>
-                                    <p><strong>Price</strong><span></span></p>
+                                    @*<p><strong>Lender</strong><span></span></p>
+                                        <p><strong>Price</strong><span></span></p>*@
                                     @*<p>
                                             <strong>Tag</strong><span class="btn-tag">Follow us boss</span><span class="btn-tag">Import</span>
                                         </p>*@
@@ -583,8 +583,8 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    <p><strong>Skype</strong><span>@Model.SkypeId</span></p>
-                                    <p><strong>Twitter</strong><span>@Model.TwitterId</span></p>
+                                    <p><strong>Skype</strong><span>@(Model.SkypeId != null ? Model.SkypeId : "N/A")</span></p>
+                                    <p><strong>Twitter</strong><span>@(Model.TwitterId != null ? Model.TwitterId : "N/A")</span></p>
                                     @*<p><strong>Google</strong><span>Search Dan Corkill</span></p>
                                         <p><strong>Name</strong><span>Estajo</span></p>
                                         <p><strong>Location</strong><span>San Francisco</span></p>*@
@@ -620,7 +620,7 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    <p><strong>Website</strong> @Model.Website</p>
+                                    <p><strong>Website</strong> @(Model.Website != null ? Model.Website : "N/A")</p>
                                     @*<p><strong>Birthday</strong><span></span></p>
                                         <p><strong>Close Date</strong><span></span></p>
                                         <p><strong>Commission</strong><span></span></p>
@@ -843,7 +843,7 @@
                                             <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
                                         </svg>
                                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                        </svg><span>0</span>
+                                        <span>0</span>
                                     </a>
                                 </li>
                             </ul>

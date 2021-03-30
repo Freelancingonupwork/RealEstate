@@ -1,0 +1,314 @@
+﻿@model LeadViewModel
+@{
+    ViewData["Title"] = "EditLeadDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/js/phone.js"></script>
+<script src="~/SiteJavascripts/leadsource.js"></script>
+<div class="modal fade" id="divAddSource" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add Source</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divAlertMessage" style="display:none"></div>
+                <label>Source Name:</label><input type="text" id="txtSourceName" placeholder="Enter source name!" class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="btnSaveSource" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header top-header">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="m-b-0 text-white">Edit Lead Details</h4>
+                        <a asp-action="Index" asp-controller="Lead" class="btn btn-primary"><i class="fa fa-backward"></i>&nbsp;Back</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+                <div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+                <form method="post" role="form">
+                    <div style="float:left"><h4>Lead Details</h4></div><br />
+                    <br />
+                    <hr />
+                    <div class="form-body">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Lead Owner:</label>
+                                <input type="hidden" asp-for="LeadId" />
+                                <input type="hidden" asp-for="AgentId" />
+                                <select class="form-control" asp-for="LeadOwner" asp-items="@(new SelectList(ViewBag.OwnerList,"Key","Value"))" style="width:80%">
+                                    <option value="">Select Lead Owner</option>
+                                    <option value="No Owner">No Owner</option>
+                                </select>
+                                <span asp-validation-for="LeadOwner" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Company:</label>
+                                <input type="text" asp-for="Company" placeholder="Enter Company Name" class="form-control" style="width:80%" />
+                                <span asp-validation-for="Company" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">First Name:</label>
+                                <input type="text" asp-for="FirstName" class="form-control" placeholder="Enter First Name" style="width:80%" />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Last Name:</label>
+                                <input type="text" asp-for="LastName" class="form-control" placeholder="Enter Last Name" style="width:80%" />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Title:</label>
+                                <input type="text" asp-for="Title" class="form-control" placeholder="Enter Title" style="width:80%" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Email:</label>
+                                <input type="email" asp-for="EmailAddress" class="form-control" placeholder="Enter Email" style="width:80%" />
+                                <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Phone:</label>
+                                <input type="text" asp-for="PhoneNumber" onkeydown="javascript:backspacerDOWN(this,event);"
+                                       onkeyup="javascript:backspacerUP(this,event);" class="form-control" placeholder="Enter Phone" style="width:80%" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Fax:</label>
+                                <input type="number" asp-for="Fax" class="form-control" placeholder="Enter Fax" style="width:80%" />
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Mobile:</label>
+                                <input type="text" asp-for="MobileNumber" onkeydown="javascript:backspacerDOWN(this,event);"
+                                       onkeyup="javascript:backspacerUP(this,event);" class="form-control" placeholder="Enter Mobile Number" style="width:80%" />
+                                <span asp-validation-for="MobileNumber" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">WebSite:</label>
+                                <input type="text" asp-for="Website" class="form-control" placeholder="Enter Website Link" style="width:80%" />
+                                <span asp-validation-for="Website" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            @*<div class="form-group col-md-6">
+                                    <label for="">Lead Source:</label>
+                                    <select class="form-control" asp-for="LeadSource" asp-items="@(new SelectList(ViewBag.LeadSourceList,"Key","Value"))" style="width:80%">
+                                        <option value="">Select Lead Source</option>
+                                    </select>
+                                    <span asp-validation-for="LeadSource" class="text-danger"></span>
+                                </div>*@
+                            @{
+                                string leadSource = String.IsNullOrEmpty(ViewBag.LeadSource) ? "Select Lead Source" : ViewBag.LeadSource;
+                            }
+                            <div class="form-group col-md-6">
+                                <div class="d-flex align-items-end">
+                                    <div class="col-md-7 p-0 pr-3">
+                                        <label for="">Lead Source:</label>
+                                        <input type="hidden" asp-for="LeadSource" value="@leadSource" id="hdnLeadSource" />
+                                        <div class="dropdown">
+                                            <button class="form-control dropdown-toggle" style="width:100%" type="button" id="btnDropdown" data-toggle="dropdown">
+                                                @leadSource
+                                                <span class="caret"></span>
+                                            </button>
+                                            <ul class="dropdown-menu" style="width:100%;padding:20px" id="cmbLeadSource">
+                                            </ul>
+                                        </div>
+                                        <span asp-validation-for="LeadSource" class="text-danger"></span>
+                                    </div>
+                                    <div class="">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#divAddSource">
+                                            + Add New Source
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Lead Status:</label>
+                                <select class="form-control" asp-for="LeadStatus" style="width:80%">
+                                    <option value="">Select Lead Status</option>
+                                    <option value="New">New</option>
+                                    <option value="Open">Open</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Open Deal">Open Deal</option>
+                                    <option value="Unqualified">Unqualified</option>
+                                    <option value="Attempted To Contact">Attempted To Contact</option>
+                                    <option value="Connected">Connected</option>
+                                    <option value="Bad Timing">Bad Timing</option>
+                                </select>
+                                <span asp-validation-for="LeadStatus" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">Industry:</label>
+                                <select class="form-control" asp-for="Industry" style="width:80%">
+                                    <option value="">Select Industry</option>
+                                    <option value="Consulting">Consulting</option>
+                                    <option value="Technology">Technology</option>
+                                    <option value="Entertainment & Media">Entertainment & Media</option>
+                                    <option value="Retail & Wholesale">Retail & Wholesale</option>
+                                    <option value="Telecommunication">Telecommunication</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Consulting">Consulting</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Financial Services">Financial Services</option>
+                                    <option value="Power & Energy">Power & Energy</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Government">Government</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Automotive">Automotive</option>
+                                    <option value="Legal">Legal</option>
+                                    <option value="Hospitality">Hospitality</option>
+                                    <option value="Healthcare & Pharmaceuticals">Healthcare & Pharmaceuticals</option>
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Internet">Internet</option>
+                                    <option value="Staffing & Recruiting">Staffing & Recruiting</option>
+                                    <option value="Marketing & Advertising">Marketing & Advertising</option>
+                                    <option value="Information Technology & Services">Information Technology & Services</option>
+                                    <option value="Professional Training & Coaching">Professional Training & Coaching</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="Industry" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="">Stage:</label>
+                                <select class="form-control" asp-for="Stage" style="width:80%">
+                                    <option value="">Select Stage</option>
+                                    <option value="Subscriber">Subscriber</option>
+                                    <option value="Lead">Lead</option>
+                                    <option value="Marketing Qualified Lead">Marketing Qualified Lead</option>
+                                    <option value="">Sales Qualified Lead</option>
+                                    <option value="Opportunity">Opportunity</option>
+                                    <option value="Customer">Customer</option>
+                                    <option value="Evangelist">Evangelist</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <span asp-validation-for="Industry" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">No. Of Employees:</label>
+                                <input type="number" asp-for="NoOfEmp" class="form-control" placeholder="Enter No. Of Employees" style="width:80%" />
+                            </div>
+                        </div>
+
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">Annual Revenue:</label>
+                                <input type="number" asp-for="AnnualRevenue" placeholder="Enter Annual Revenue" class="form-control" style="width:80%" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Ratings:</label>
+                                <select asp-for="Rating" class="form-control" style="width:80%">
+                                    <option value="0">--None--</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <div class="form-checkbox-group">
+
+                                    <input type="checkbox" asp-for="EmailOptOut" value="true" id="EmailOptOut">
+                                    <label for="EmailOptOut">Email Opt Out</label>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="">Skype ID:</label>
+                                <input type="text" asp-for="SkypeId" class="form-control" placeholder="Enter Skype-ID" style="width:80%" />
+                            </div>
+                        </div>
+
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">Twitter ID:</label>
+                                <input type="text" asp-for="TwitterId" class="form-control" placeholder="Enter Twitter-ID" style="width:80%" />
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="">Secondary Email:</label>
+                                <input type="email" asp-for="SecondaryEmail" class="form-control" placeholder="Enter Secondary Email" style="width:80%" />
+                                <span asp-validation-for="SecondaryEmail" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div style="float:left"><h4>Address Information</h4></div><br /><hr />
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">Street:</label>
+                                <input type="text" asp-for="Street" class="form-control" placeholder="Enter Street" style="width:80%" />
+                                <span asp-validation-for="Street" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">City:</label>
+                                <input type="text" asp-for="City" class="form-control" placeholder="Enter City" style="width:80%" />
+                                <span asp-validation-for="City" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">State:</label>
+                                <input type="text" asp-for="State" class="form-control" placeholder="Enter State" style="width:80%" />
+                                <span asp-validation-for="State" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Zip Code:</label>
+                                <input type="number" asp-for="ZipCode" maxlength="6" min="0" class="form-control" placeholder="Enter Zip Code" style="width:80%" />
+                                <span asp-validation-for="ZipCode" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="">Country:</label>
+                                <input type="text" asp-for="Country" class="form-control" placeholder="Enter Country" style="width:80%" />
+                                <span asp-validation-for="Country" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div style="float:left"><h4>Description Information</h4></div><br /><hr />
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-12">
+                                <label for="">Description:</label>
+                                <textarea rows="4" asp-for="Description" class="form-control"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <input type="submit" value="Submit" name="EditLeadDetails" class="btn btn-success" />
+                                <a asp-action="Index" asp-controller="Lead" title="Click here to get List" class="btn btn-primary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
