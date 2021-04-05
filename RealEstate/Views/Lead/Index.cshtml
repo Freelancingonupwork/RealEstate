@@ -195,7 +195,7 @@
                                 <th scope="col">Email</th>
                                 <th scope="col">Price</th>
                                 @*<th scope="col">Last Activity</th>
-                                <th scope="col">Last Communication</th>*@
+                                  <th scope="col">Last Communication</th>*@
                                 <th scope="col">Stage</th>
                                 <th scope="col">Created</th>
                                 <th scope="col">Agent</th>
@@ -210,77 +210,77 @@
                             {
                                 @foreach (var item in Model)
                                 {
-                            <tr>
-                                <th scope="row">
-                                    <div class="form-checkbox-group">
-                                        <input class="form-checkbox-group" type="checkbox" value="@item.LeadId" id="checkbox-@item.LeadId" name="checkbox-@item.LeadId" />
-                                        <label for="checkbox-@item.LeadId"></label>
-                                    </div>
-                                </th>
-                                <td>
-                                    <div class="table-profile-detail">
-                                        @if (!string.IsNullOrEmpty(item.OwnerImg))
-                                        {
-                                            <div class="profile-img">
-                                                <img src="~/image/profile-img-2.jpeg" alt="user" />
+                                    <tr>
+                                        <th scope="row">
+                                            <div class="form-checkbox-group">
+                                                <input class="form-checkbox-group" type="checkbox" value="@item.LeadId" id="checkbox-@item.LeadId" name="checkbox-@item.LeadId" />
+                                                <label for="checkbox-@item.LeadId"></label>
                                             </div>
+                                        </th>
+                                        <td>
+                                            <div class="table-profile-detail">
+                                                @if (!string.IsNullOrEmpty(item.OwnerImg))
+                                                {
+                                                    <div class="profile-img">
+                                                        <img src="~/image/profile-img-2.jpeg" alt="user" />
+                                                    </div>
+                                                }
+
+                                                <div class="profile-detail">
+                                                    <input type="hidden" id="hdnAgentID" />
+                                                    <input type="hidden" id="hdnLeadID" />
+                                                    <a asp-action="LeadDetail" asp-route-id="@item.LeadId">@item.FirstName @item.LastName</a>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <a href="#" class="table-icon-call">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                     class="feather feather-phone">
+                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                                    </path>
+                                                </svg>
+                                            </a>
+                                            <a href="tel:@item.PhoneNumber" class="table-phone-number">@(item.PhoneNumber == null ? "N/A" : item.PhoneNumber)</a>
+                                        </td>
+                                        <td>@item.EmailAddress</td>
+                                        <td>50000</td>
+                                        <!--<td>02/01/2021</td>--><!--Last Activity-->
+                                        <!--<td>02/01/2021</td>--><!--Last Communication-->
+                                        <td>@item.Stage</td><!--Stage-->
+                                        <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td><!--Created Date-->
+
+                                        @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                                        {
+                                            @if (@Convert.ToInt32(item.AgentId) <= 0)
+                                            {
+                                                <td><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" onclick="setAgentValue(0,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
+                                            }
+                                            else
+                                            {
+                                                <td>@item.Agent.FullName &nbsp;&nbsp;<a href="#" onclick="setAgentValue(@item.AgentId,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
+                                            }
+
+                                            <td>
+                                                <a asp-action="EditLeadDetails" asp-controller="Lead" asp-route-id="@item.LeadId.ToString()" class="btn btn-warning" title="Click to edit record.">
+                                                    Edit
+                                                </a>
+                                            </td>
                                         }
-
-                                        <div class="profile-detail">
-                                            <input type="hidden" id="hdnAgentID" />
-                                            <input type="hidden" id="hdnLeadID" />
-                                            <a asp-action="LeadDetail" asp-route-id="@item.LeadId">@item.FirstName @item.LastName</a>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <a href="#" class="table-icon-call">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-phone">
-                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                            </path>
-                                        </svg>
-                                    </a>
-                                    <a href="tel:@item.PhoneNumber" class="table-phone-number">@(item.PhoneNumber == null ? "N/A" : item.PhoneNumber)</a>
-                                </td>
-                                <td>@item.EmailAddress</td>
-                                <td>50000</td>
-                                <!--<td>02/01/2021</td>--><!--Last Activity-->
-                                <!--<td>02/01/2021</td>--><!--Last Communication-->
-                                <td>@item.Stage</td><!--Stage-->
-                                <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td><!--Created Date-->
-
-                                @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
-                                {
-                                    @if (@Convert.ToInt32(item.AgentId) <= 0)
-                                    {
-                                        <td><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" onclick="setAgentValue(0,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
-                                    }
-                                    else
-                                    {
-                                        <td>@item.Agent.FullName &nbsp;&nbsp;<a href="#" onclick="setAgentValue(@item.AgentId,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
-                                    }
-
-                                    <td>
-                                        <a asp-action="EditLeadDetails" asp-controller="Lead" asp-route-id="@item.LeadId.ToString()" class="btn btn-warning" title="Click to edit record.">
-                                            Edit
-                                        </a>
-                                    </td>
-                                }
-                                else
-                                {
-                                    @if (@Convert.ToInt32(item.AgentId) <= 0)
-                                    {
-                                        <td><font color="red">Not Assigned</font> </td>
-                                    }
-                                    else
-                                    {
-                                        <td>@item.Agent.FullName </td>
-                                    }
-                                }
-                            </tr>
+                                        else
+                                        {
+                                            @if (@Convert.ToInt32(item.AgentId) <= 0)
+                                            {
+                                                <td><font color="red">Not Assigned</font> </td>
+                                            }
+                                            else
+                                            {
+                                                <td>@item.Agent.FullName </td>
+                                            }
+                                        }
+                                    </tr>
                                 }
                             }
                             else

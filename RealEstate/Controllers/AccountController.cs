@@ -253,20 +253,20 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        var oUser = _dbContext.TblUsers.Where(x => x.EmailAddress.ToLower() == model.Email.ToLower()).FirstOrDefault();
+                        var oUser = _dbContext.TblAgents.Where(x => x.EmailAddress.ToLower() == model.Email.ToLower()).FirstOrDefault();
                         if (oUser != null)
                         {
-                            if (oUser.UserLoginTypeId == UserLoginType.GoogleAccount.GetHashCode())
-                            {
-                                ShowErrorMessage("You have registered with google account. You can't change your password from here!", true);
-                                return View(model);
-                            }
+                            //if (oUser.UserLoginTypeId == UserLoginType.GoogleAccount.GetHashCode())
+                            //{
+                            //    ShowErrorMessage("You have registered with google account. You can't change your password from here!", true);
+                            //    return View(model);
+                            //}
 
-                            if (oUser.UserLoginTypeId == UserLoginType.MicrosoftAccount.GetHashCode())
-                            {
-                                ShowErrorMessage("You have registered with microsoft account. You can't change your password from here!", true);
-                                return View(model);
-                            }
+                            //if (oUser.UserLoginTypeId == UserLoginType.MicrosoftAccount.GetHashCode())
+                            //{
+                            //    ShowErrorMessage("You have registered with microsoft account. You can't change your password from here!", true);
+                            //    return View(model);
+                            //}
 
                             string SmtpUserName = this.Configuration.GetSection("MailSettings")["SmtpUserName"];
                             string SmtpPassword = this.Configuration.GetSection("MailSettings")["SmtpPassword"];
@@ -276,8 +276,8 @@ namespace RealEstate.Controllers
                             bool isSSL = Convert.ToBoolean(this.Configuration.GetSection("MailSettings")["isSSL"]);
                             var password = Encryption.DecryptText(oUser.Password);
                             var body = "<p>Hi,</p>" +
-                                        "Your Email Address is " + oUser.EmailAddress + "<br/>" +
-                                        "Your password is " + password + "<br/>" +
+                                        "<p>Your Email Address is:- " + oUser.EmailAddress + "</p>" +
+                                        "<p>Your password is:- " + password + "</p><br/>" +
                                         "Thank You.";
 
                             var subject = "Estajo - ForgotPassword Mail";
@@ -286,7 +286,7 @@ namespace RealEstate.Controllers
                             ModelState.Clear();
                             //ViewBag.sucessMessage = "Forgot Password Mail has been sent successfully. Please check the mail and login again.";
                             ShowSuccessMessage("Forgot Password Mail has been sent successfully. Please check the mail and login again.", true);
-                            return View(model);
+                            return View("Login");
                         }
                         else
                         {
