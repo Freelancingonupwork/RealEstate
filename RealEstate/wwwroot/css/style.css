@@ -11,7 +11,7 @@ body {
   font-size: 14px;
   line-height: 22px;
   font-weight: normal;
-  background-color: #dedede;
+  background-color: #f1f4f8;
 }
 
 a, .btn {
@@ -437,10 +437,10 @@ header {
 }
 .profile-link-wrapper .dropdown-item{
   padding:  10px;
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #f1f4f8;
 }
 .profile-link-wrapper .dropdown-item:last-child{
-  border-bottom: 0px solid #dedede;
+  border-bottom: 0px solid #f1f4f8;
 }
 .profile-img-wrapper{
   display: flex;
@@ -518,7 +518,7 @@ left: 0px;
 border-bottom: 5px solid #BF0D1C;
 }
 .custom-card-header {
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #f1f4f8;
   padding: 10px 15px 20px;
   display: flex;
   justify-content: space-between;
@@ -557,7 +557,7 @@ border-bottom: 5px solid #BF0D1C;
 }
 .custom-card-text .table thead th{
   border-top: medium none;
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #f1f4f8;
   color: #504747;
 }
 .table-profile-detail{
@@ -681,7 +681,7 @@ border-bottom: 5px solid #BF0D1C;
   background-color: #f9f9f9;
   border-radius: 5px;
   min-height: 200px;
-  border: 2px solid #dedede;
+  border: 2px solid #f1f4f8;
   padding: 10px;
 }
 .chat-listing-tab .nav-link{
@@ -705,5 +705,5 @@ border-bottom: 5px solid #BF0D1C;
   font-size: 13px;
 }
 .divider{
-  border: 1px solid #dedede;
+  border: 1px solid #f1f4f8;
 }

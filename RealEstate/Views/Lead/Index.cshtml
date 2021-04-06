@@ -184,7 +184,7 @@
                     <table class="table" id="tblLeadList">
                         <thead>
                             <tr>
-                                <th scope="col">
+                                <th scope="col" style="text-align: center">
                                     <div class="form-checkbox-group">
                                         <input type="checkbox" id="checkAll" />
                                         <label for="checkAll"></label>
@@ -211,7 +211,7 @@
                                 @foreach (var item in Model)
                                 {
                                     <tr>
-                                        <th scope="row">
+                                        <th scope="row" style="text-align: center">
                                             <div class="form-checkbox-group">
                                                 <input class="form-checkbox-group" type="checkbox" value="@item.LeadId" id="checkbox-@item.LeadId" name="checkbox-@item.LeadId" />
                                                 <label for="checkbox-@item.LeadId"></label>
