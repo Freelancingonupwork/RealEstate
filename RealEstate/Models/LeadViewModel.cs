@@ -12,6 +12,12 @@ namespace RealEstate.Models
         public int LeadId { get; set; }
         public int? AgentId { get; set; }
 
+        //[Required(ErrorMessage = "{0} is required.")]
+        //public int? StageId { get; set; }
+
+        [Required(ErrorMessage = "Please select a stage")]
+        public Nullable<int> StageId { get; set; }
+
         [Required(ErrorMessage = "Please Select Lead Source")]
         public string LeadSource { get; set; }
         [Required(ErrorMessage = "Please Select Lead Status")]
@@ -19,8 +25,8 @@ namespace RealEstate.Models
         [Required(ErrorMessage = "Please Select Industry")]
         public string Industry { get; set; }
 
-        [Required(ErrorMessage = "Please Select Stage")]
-        public string Stage { get; set; }
+        //[Required(ErrorMessage = "Please Select Stage")]
+        //public string Stage { get; set; }
         [Required(ErrorMessage = "Please Select Owner")]
         public string LeadOwner { get; set; }
 
@@ -68,6 +74,16 @@ namespace RealEstate.Models
         public string Description { get; set; }
         public DateTime? CreatedDate { get; set; }
 
+        public string TagsName { get; set; }
         public virtual TblAgent Agent { get; set; }
+        public virtual TblStage Stage { get; set; }
+    }
+
+    public class LeadTagViewModel
+    {
+        public int LeadTagId { get; set; }
+        public Nullable<int> LeadId { get; set; }
+        public Nullable<int> TagId { get; set; }
+        public Nullable<int> CompanyId { get; set; }
     }
 }

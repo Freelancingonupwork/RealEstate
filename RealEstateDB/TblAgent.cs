@@ -13,6 +13,7 @@ namespace RealEstateDB
         }
 
         public int Id { get; set; }
+        public int? CompanyId { get; set; }
         public string FullName { get; set; }
         public string EmailAddress { get; set; }
         public string CellPhone { get; set; }
@@ -21,6 +22,7 @@ namespace RealEstateDB
         public bool? IsActive { get; set; }
         public DateTime? CreatedDate { get; set; }
 
+        public virtual TblCompany Company { get; set; }
         public virtual TblUserLoginType UserLoginType { get; set; }
         public virtual ICollection<TblLead> TblLeads { get; set; }
     }

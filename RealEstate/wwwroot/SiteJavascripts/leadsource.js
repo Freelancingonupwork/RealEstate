@@ -25,6 +25,27 @@
             return;
         }
     });
+
+    $("#btnSaveStage").click(function () {
+        var stageName = $("#txtStageName");
+        if (__glb_fnIsNullOrEmpty(stageName.val())) {
+            showAlertMessage("danger", "Stage Name Can't Be Blank!");
+            stageName.focus();
+            return;
+        }
+        var formData = new FormData();
+        formData.append("name", stageName.val());
+        var result = __glb_fnIUDOperation(formData, "/Lead/AddStage");
+        if (result.success === true) {
+            $("#StageModal").modal("hide");
+            stageName.val("");
+            window.location.reload();
+        }
+        else {
+            showAlertMessage("warning", result.message);
+            return;
+        }
+    });
 });
 function populateComboBox() {
     var cmbLeadSource = $("#cmbLeadSource");
@@ -43,12 +64,18 @@ function populateComboBox() {
 }
 
 function showAlertMessage(type, message) {
+  
     if (type == "danger") {
         $("#divAlertMessage").html(message);
         $('#divAlertMessage').show();
+
+        $("#divAlertMessageStage").html(message);
+        $('#divAlertMessageStage').show();
         document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        document.getElementById("divAlertMessageStage").classList.add("alert", "alert-danger");
         setTimeout(function () {
             $("#divAlertMessage").fadeOut();
+            $("#divAlertMessageStage").fadeOut();
         }, 5000);
     }
 

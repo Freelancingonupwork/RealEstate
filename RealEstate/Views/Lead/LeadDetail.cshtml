@@ -3,7 +3,16 @@
     ViewData["Title"] = "LeadDetail";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@{
+    int userTypeAdmin = 0;
+    if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
+    {
+        userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
+    }
 
+}
+<link href="~/css/select2.css" rel="stylesheet" />
+<link href="~/css/select2.min.css" rel="stylesheet" />
 <div class="modal fade" id="divAssignAgent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -22,6 +31,51 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" onclick="fnUpdateAgent()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="divAssignStageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Assign Stage</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgStage" style="display:none"></div>
+                <label>Stage:</label><select id="cmbStage" asp-items="@(new SelectList(ViewBag.StageList,"Key","Value"))" class="form-control">
+                    <option value="0">---Select Stage--</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnUpdateStage()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="AssignTagModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Assign Tag</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgTag" style="display:none"></div>
+                <label>Tag:</label>
+                <select id="cmbtag" asp-items="@(new SelectList(ViewBag.TagList,"Key","Value"))" class="form-control" multiple>
+                    <option value="0">---Select Tag--</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnAssignTag()" class="btn btn-primary">Save changes</button>
             </div>
         </div>
     </div>
@@ -460,55 +514,176 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    <p><strong>Stage</strong><span>@(Model.Stage != null ? Model.Stage : "N/A")</span></p>
-                                    <p><strong>Source</strong><span>@(Model.LeadSource != null ? Model.LeadSource : "N/A")</span></p>
-                                    @{
-                                        int userTypeAdmin = 0;
-                                        if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
-                                        {
-                                            userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
-                                        }
-
-                                    }
-                                    @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                                    @*<p><strong>Stage</strong><span>@(Model.Stage != null ? Model.Stage.StageName : "N/A")</span></p>*@
+                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
                                     {
-                                    @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                        @if (Convert.ToInt32(Model.StageId) <= 0)
                                         {
-                                    <p>
-                                        <strong>Agent</strong>
-                                        <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                    </p>
+                                            @*<p>
+                                                    <strong>Stage</strong>
+                                                    <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(0)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Stage</strong>
+                                                <div class="follow-us-inner"><span>Not Assigned</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(0)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></div>
+                                            </div>
                                         }
                                         else
                                         {
-                                    <p>
-                                        <strong>Agent</strong>
-                                        <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                    </p>
+                                            @*<p>
+                                                    <strong>Stage</strong>
+                                                    <span>@Model.Stage.StageName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(@Model.StageId)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Stage</strong>
+                                                <div class="follow-us-inner"><span>@Model.Stage.StageName</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(@Model.StageId)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></div>
+                                            </div>
                                         }
                                     }
                                     else
                                     {
-                                    @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                        @if (Convert.ToInt32(Model.StageId) <= 0)
                                         {
-                                    <p>
-                                        <strong>Agent</strong>
-                                        <span><font color="red">Not Assigned</font> </span>
-                                    </p>
+                                            @*<p>
+                                                    <strong>Stage</strong>
+                                                    <span><font color="red">Not Assigned</font> </span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Stage</strong>
+                                                <div class="follow-us-inner"><span>Not Assigned</span></div>
+                                            </div>
                                         }
                                         else
                                         {
-                                    <p>
-                                        <strong>Agent</strong>
-                                        <span>@Model.Agent.FullName </span>
-                                    </p>
+                                            @*<p>
+                                                    <strong>Stage</strong>
+                                                    <span>@Model.Stage.StageName </span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Stage</strong>
+                                                <div class="follow-us-inner"><span>@Model.Stage.StageName</span></div>
+                                            </div>
+                                        }
+                                    }
+                                    <div class="follow-us"><strong>Source</strong><div class="follow-us-inner"><span>@(Model.LeadSource != null ? Model.LeadSource : "N/A")</span></div></div>
+
+                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                                    {
+                                        @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                        {
+                                            @*<p>
+                                                    <strong>Agent</strong>
+                                                    <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Agent</strong>
+                                                <div class="follow-us-inner">
+                                                    <span>Not Assigned</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @*<p>
+                                                    <strong>Agent</strong>
+                                                    <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Agent</strong>
+                                                <div class="follow-us-inner">
+                                                    <span>@Model.Agent.FullName</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @if (Convert.ToInt32(Model.AgentId) <= 0)
+                                        {
+                                            @*<p>
+                                                    <strong>Agent</strong>
+                                                    <span><font color="red">Not Assigned</font> </span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Agent</strong>
+                                                <div class="follow-us-inner">
+                                                    <span>Not Assigned</span>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            @*<p>
+                                                    <strong>Agent</strong>
+                                                    <span>@Model.Agent.FullName </span>
+                                                </p>*@
+                                            <div class="follow-us">
+                                                <strong>Agent</strong>
+                                                <div class="follow-us-inner">
+                                                    <span>@Model.Agent.FullName</span>
+                                                </div>
+                                            </div>
                                         }
                                     }
                                     @*<p><strong>Lender</strong><span></span></p>
                                         <p><strong>Price</strong><span></span></p>*@
-                                    @*<p>
-                                            <strong>Tag</strong><span class="btn-tag">Follow us boss</span><span class="btn-tag">Import</span>
-                                        </p>*@
+                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                                    {
+
+                                        @if (Model.TagsName != "")
+                                        {
+                                            <div class="follow-us">
+                                                <strong>Tag</strong>
+                                                <div class="follow-us-inner">
+                                                    @{
+                                                        var tagList = Model.TagsName.Split(",");
+                                                        foreach (var item in tagList)
+                                                        {
+                                                            <span class="btn-tag">@item</span>
+                                                        }
+                                                        <a href="#" style="color:#ffffff" onclick="setTagValue(@Model.LeadId)" data-toggle="modal" data-target="#AssignTagModal"><i class="fa fa-pencil"></i></a>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="follow-us">
+                                                <strong>Tag</strong>
+                                                <div class="follow-us-inner">
+                                                    <span class="btn-tag">Not Assigned</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setTagValue(@Model.LeadId)" data-toggle="modal" data-target="#AssignTagModal"><i class="fa fa-pencil"></i></a>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @if (Model.TagsName != "")
+                                        {
+                                            <div class="follow-us">
+                                                <strong>Tag</strong>
+                                                <div class="follow-us-inner">
+                                                    @{
+                                                        var tagList = Model.TagsName.Split(",");
+                                                        foreach (var item in tagList)
+                                                        {
+                                                            <span class="btn-tag">@item</span>
+                                                        }
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="follow-us">
+                                                <strong>Tag</strong>
+                                                <div class="follow-us-inner">
+                                                    <span class="btn-tag">Not Assigned</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    }
+
                                 </div>
                             </div>
                         </div>
@@ -947,4 +1122,14 @@
         </div>
     </div>
 </div>
+<script src="~/js/select2.js"></script>
+<script src="~/js/select2.min.js"></script>
 <script src="~/SiteJavascripts/LeadDetail.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#cmbtag").select2({
+            width: '100%',
+        });
+    });
+
+</script>

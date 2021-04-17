@@ -4,8 +4,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+
 <div class="modal fade" id="CRMSelector" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-md" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Which CRM are you coming from?</h5>
@@ -15,28 +16,37 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
-                        <div class="card custom-card" style="height:271px;">
-                            <div class="card-header">
-                                <div class="text-center profile-details">
-                                    <h4 style="margin-top:20px">From Zillow</h4><br />
-                                    <img src="~/image/zillow.jpg" width="170" height="80" style="margin-bottom:20px;" />
-                                </div>
-                                <div class="card-footer row">
-                                    <a class="btn btn-primary" href="">Go</a>
+                    @*<div class="col-md-6">
+                            <div class="card custom-card" style="height:271px;">
+                                <div class="card-header">
+                                    <div class="text-center profile-details">
+                                        <h4 style="margin-top:20px">From Zillow</h4><br />
+                                        <img src="~/image/zillow.jpg" width="170" height="80" style="margin-bottom:20px;" />
+                                    </div>
+                                    <div class="card-footer row">
+                                        <a class="btn btn-primary" href="">Go</a>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 ">
-                        <div class="card custom-card" style="height:271px;">
-                            <div class="card-header">
-                                <div class="text-center profile-details">
-                                    <h4 style="margin-top:20px">From HubSpot</h4><br />
-                                    <img src="~/image/hubspot.jpeg" width="170" height="80" style="margin-bottom:20px;" />
+                        </div>*@
+                    <div class="col-md-12">
+                        <div class="card custom-card" style="text-align:center">
+                            <div class="card-header d-flex">
+                                <div class="text-center profile-details w-100 pr-3">
+                                    @*<h4 style="margin-top:20px">From HubSpot</h4><br />
+                                        <img src="~/image/hubspot.jpeg" width="170" height="80" style="margin-bottom:20px;" />*@
+                                    <select class="form-control mb-3" style="width:100%" id="ddlSource">
+                                        <option value="">Select Source</option>
+                                        <option value="HubSpot">HubSpot</option>
+                                    </select>
+                                    <div role="alert" id="divAlertMessage" style="display:none"></div>
                                 </div>
-                                <div class="card-footer row">
-                                    <a class="btn btn-primary" href="@Url.Action("GetLeadsFromHubSpot")">Go</a>
+                                <div>
+                                    @*<a class="btn btn-primary" href="@Url.Action("GetLeadsFromHubSpot")">Go</a>*@
+                                    @using (Html.BeginForm("HubSportRequest", "Lead", FormMethod.Post))
+                                    {
+                                        <button class="btn btn-primary" id="btnGo">Go</button>
+                                    }
                                 </div>
                             </div>
                         </div>
@@ -65,7 +75,7 @@
                             </div>
                             <div class="custom-file">
                                 <input type="file" class="custom-file-input" id="postedFile" name="postedFile">
-                                <label class="custom-file-label">Choose file</label>
+                                <label class="custom-file-label text-left">Choose file</label>
                             </div>
                         </div>
 
@@ -128,5 +138,19 @@
             $("#divAlert").hide('blind', {}, 500)
         }, 5000);
         /*document.getElementById("liLead").classList.add("active");*/
+
+
+        $(function () {
+            $("#btnGo").click(function () {
+                var ddlSource = $("#ddlSource");
+                if (ddlSource.val() == "") {
+                    $("#divAlertMessage").html("Please select source");
+                    $('#divAlertMessage').show();
+                    document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+                    return false;
+                }
+                return true;
+            });
+        });
     });
 </script>

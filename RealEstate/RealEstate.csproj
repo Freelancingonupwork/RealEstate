@@ -15,4 +15,9 @@
     <ProjectReference Include="..\RealEstateDB\RealEstateDB.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\css\datatable\" />
+    <Folder Include="wwwroot\js\datatable\" />
+  </ItemGroup>
+
 </Project>

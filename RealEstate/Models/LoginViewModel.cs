@@ -24,9 +24,10 @@ namespace RealEstate.Models
 
     public enum UserLoginType
     {
-        Admin = 1, 
-        GoogleAccount = 2, 
+        Admin = 1,
+        GoogleAccount = 2,
         MicrosoftAccount = 3,
-        Manual = 4
+        Manual = 4,
+        Company = 5
     }
 }

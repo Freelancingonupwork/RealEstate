@@ -67,8 +67,10 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("AccountController SetPassword" + ex);
-                return View(model);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
         }
         public IActionResult Index()
@@ -90,24 +92,39 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        var resultForAdmin = DB.TblUsers.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
-                                                       u.Password.Equals(Encryption.EncryptText(model.Password)) &&
-                                                       u.IsActive == true).FirstOrDefault();
+                        //var resultForAdmin = DB.TblUsers.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
+                        //                               u.Password.Equals(Encryption.EncryptText(model.Password)) &&
+                        //                               u.IsActive == true && u.UserLoginTypeId == UserLoginType.Admin.GetHashCode()).FirstOrDefault();
+
+
+                        var oCompanyDetails = DB.TblCompanies.Where(u => u.Email.Equals(model.EmailAddress.Trim()) &&
+                                                       u.Password.Equals(Encryption.EncryptText(model.Password)) && u.IsCompany == true).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
 
                         ClaimsIdentity identity = null;
-                        if (resultForAdmin != null)
+                        //if (resultForAdmin != null)
+                        if (oCompanyDetails != null)
                         {
-
-
-                            if (resultForAdmin.UserLoginTypeId == UserLoginType.Admin.GetHashCode())
+                            //if (resultForAdmin.UserLoginTypeId == UserLoginType.Admin.GetHashCode())
+                            //if (oCompanyDetails.LogionTypeId == UserLoginType.Company.GetHashCode())
                             {
-                                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAdmin.EmailAddress), new Claim(ClaimTypes.Role, "Admin") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                                identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, oCompanyDetails.Email), new Claim(ClaimTypes.Role, "Company") }, CookieAuthenticationDefaults.AuthenticationScheme);
                                 var prinicpal = new ClaimsPrincipal(identity);
                                 var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                                SetCookie("EmailAddress", resultForAdmin.EmailAddress);
-                                SetCookie("FullName", resultForAdmin.FullName);
-                                SetCookie("UserLoginTypeId", resultForAdmin.UserLoginTypeId.ToString());
+                                SetCookie("EmailAddress", oCompanyDetails.Email);
+                                SetCookie("FullName", oCompanyDetails.FullName);
+                                SetCookie("UserLoginTypeId", UserLoginType.Company.GetHashCode().ToString()); // oCompanyDetails.LogionTypeId.ToString()
+                                SetCookie("LoginCompanyId", oCompanyDetails.CompanyId.ToString());
+                                //SetCookie("CompanyId", oCompanyDetails.CompanyId.ToString());
                                 return RedirectToAction("Index", "Lead", new { area = "" });
+
+                                //identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAdmin.EmailAddress), new Claim(ClaimTypes.Role, "Admin") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                                //var prinicpal = new ClaimsPrincipal(identity);
+                                //var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
+                                //SetCookie("EmailAddress", resultForAdmin.EmailAddress);
+                                //SetCookie("FullName", resultForAdmin.FullName);
+                                //SetCookie("UserLoginTypeId", resultForAdmin.UserLoginTypeId.ToString());
+                                //SetCookie("LoginUserId", resultForAdmin.UserId.ToString());
+                                //return RedirectToAction("Index", "Lead", new { area = "" });
                             }
                         }
                         else
@@ -135,6 +152,7 @@ namespace RealEstate.Controllers
                                             SetCookie("EmailAddress", resultForAgent.EmailAddress);
                                             SetCookie("FullName", resultForAgent.FullName);
                                             SetCookie("UserLoginTypeId", resultForAgent.UserLoginTypeId.ToString());
+                                            //SetCookie("LoginCompanyId", oCompanyDetails.CompanyId.ToString());
                                             return RedirectToAction("Index", "Lead", new { area = "" });
                                         }
                                     }
@@ -155,9 +173,10 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.Message = ex.Message;
-                ErrorLog.log("Account Controller AuthenticateAccount:-" + ex);
-                return View("Login");
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
             return View(model);
         }
@@ -190,26 +209,34 @@ namespace RealEstate.Controllers
                     //throw new Exception();
                     return View("Login");
                 }
-                // Here the following code reperesent that user is sucessfully authenticated by google.
-                //We are taking user's information and redirecting user to his environment.
-                TblAgent oAgent = new TblAgent();
-                oAgent.EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
-                oAgent.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
-                oAgent.UserLoginTypeId = UserLoginType.GoogleAccount.GetHashCode();
 
-                if (!IsUserExist(oAgent.EmailAddress))
+                var EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                var oData = _dbContext.TblCompanies.Where(x => x.Email.Equals(EmailAddress) && x.IsCompany == true && x.LogionTypeId == UserLoginType.GoogleAccount.GetHashCode()).FirstOrDefault();
+                if (oData == null)
                 {
-                    oAgent.IsActive = true;
-                    oAgent.CreatedDate = DateTime.Now;
-                    _dbContext.TblAgents.Add(oAgent);
+                    ShowWarningMessage("Your Google account couldn't be found in Estajo." + System.Environment.NewLine + "You can try another Google account or register in Estajo. ", true);
+                    return RedirectToAction("Login", "Account");
+                }
+
+                TblCompany oCompany = new TblCompany();
+                oCompany.Email = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                oCompany.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
+                oCompany.LogionTypeId = UserLoginType.GoogleAccount.GetHashCode();
+                oCompany.IsCompany = true;
+
+                if (!IsUserExist(oCompany.Email))
+                {
+                    //agent.IsActive = true;
+                    oCompany.CreatedDate = DateTime.Now;
+                    _dbContext.TblCompanies.Add(oCompany);
                     _dbContext.SaveChanges();
                 }
                 else
-                    oAgent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(oAgent.EmailAddress)).SingleOrDefault();
+                    oCompany = _dbContext.TblCompanies.Where(x => x.Email.Equals(oCompany.Email) && x.IsCompany == true).SingleOrDefault();
 
-                if (string.IsNullOrEmpty(oAgent.Password))
+                if (string.IsNullOrEmpty(oCompany.Password))
                 {
-                    TempData["EmailAddress"] = oAgent.EmailAddress;
+                    TempData["EmailAddress"] = oCompany.Email;
                     TempData.Keep();
                     return RedirectToAction("SetPassword", "Account");
                 }
@@ -217,22 +244,67 @@ namespace RealEstate.Controllers
                 {
                     //Here we are storing claims for authentication
                     ClaimsIdentity identity = null;
-                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, oAgent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, oCompany.Email), new Claim(ClaimTypes.Role, "Company") }, CookieAuthenticationDefaults.AuthenticationScheme);
                     var prinicpal = new ClaimsPrincipal(identity);
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
                     //Redirection of lead user is here. Please give appropreate direction URL to it
+                    SetCookie("EmailAddress", oCompany.Email);
+                    SetCookie("FullName", oCompany.FullName);
+                    SetCookie("LoginCompanyId", oCompany.CompanyId.ToString());
+                    SetCookie("UserLoginTypeId", UserLoginType.Company.GetHashCode().ToString());
 
-                    SetCookie("EmailAddress", oAgent.EmailAddress);
-                    SetCookie("FullName", oAgent.FullName);
-                    SetCookie("UserLoginTypeId", oAgent.UserLoginTypeId.ToString());
-
-                    return RedirectToAction("Index", "Lead");
+                    return RedirectToAction("Index", "Lead", new { area = "" });
                 }
+
+
+
+                #region OldCode
+
+                // Here the following code reperesent that user is sucessfully authenticated by google.
+                //We are taking user's information and redirecting user to his environment.
+                //TblAgent oAgent = new TblAgent();
+                //oAgent.EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                //oAgent.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
+                //oAgent.UserLoginTypeId = UserLoginType.GoogleAccount.GetHashCode();
+
+                //if (!IsUserExist(oAgent.EmailAddress))
+                //{
+                //    oAgent.IsActive = true;
+                //    oAgent.CreatedDate = DateTime.Now;
+                //    _dbContext.TblAgents.Add(oAgent);
+                //    _dbContext.SaveChanges();
+                //}
+                //else
+                //    oAgent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(oAgent.EmailAddress)).SingleOrDefault();
+
+                //if (string.IsNullOrEmpty(oAgent.Password))
+                //{
+                //    TempData["EmailAddress"] = oAgent.EmailAddress;
+                //    TempData.Keep();
+                //    return RedirectToAction("SetPassword", "Account");
+                //}
+                //else
+                //{
+                //    //Here we are storing claims for authentication
+                //    ClaimsIdentity identity = null;
+                //    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, oAgent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                //    var prinicpal = new ClaimsPrincipal(identity);
+                //    var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
+                //    //Redirection of lead user is here. Please give appropreate direction URL to it
+
+                //    SetCookie("EmailAddress", oAgent.EmailAddress);
+                //    SetCookie("FullName", oAgent.FullName);
+                //    SetCookie("UserLoginTypeId", oAgent.UserLoginTypeId.ToString());
+
+                //    return RedirectToAction("Index", "Lead");
+                //}
+                #endregion
             }
             catch (Exception ex)
             {
-                ShowErrorMessage(ex.Message.ToString(), true);
-                ErrorLog.log("Account Controller GoogleResponse:-" + ex.Message.ToString());
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -335,25 +407,34 @@ namespace RealEstate.Controllers
                 {
                     throw new Exception("User is not authorize!");
                 }
-                // Here the following code reperesent that user is sucessfully authenticated by google.
-                //We are taking user's information and redirecting user to his environment.
-                TblAgent agent = new TblAgent();
-                agent.EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
-                agent.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
-                agent.UserLoginTypeId = UserLoginType.MicrosoftAccount.GetHashCode();
-                if (!IsUserExist(agent.EmailAddress))
+
+                var EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                var oData = _dbContext.TblCompanies.Where(x => x.Email.Equals(EmailAddress) && x.IsCompany == true && x.LogionTypeId == UserLoginType.MicrosoftAccount.GetHashCode()).FirstOrDefault();
+                if (oData == null)
                 {
-                    agent.IsActive = true;
-                    agent.CreatedDate = DateTime.Now;
-                    _dbContext.TblAgents.Add(agent);
+                    ShowWarningMessage("Your Microsoft account couldn't be found in Estajo." + System.Environment.NewLine + "You can try another Microsoft account or register in Estajo. ", true);
+                    return RedirectToAction("Login", "Account");
+                }
+
+                TblCompany oCompany = new TblCompany();
+                oCompany.Email = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                oCompany.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
+                oCompany.LogionTypeId = UserLoginType.MicrosoftAccount.GetHashCode();
+                oCompany.IsCompany = true;
+
+                if (!IsUserExist(oCompany.Email))
+                {
+                    //agent.IsActive = true;
+                    oCompany.CreatedDate = DateTime.Now;
+                    _dbContext.TblCompanies.Add(oCompany);
                     _dbContext.SaveChanges();
                 }
                 else
-                    agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(agent.EmailAddress)).SingleOrDefault();
+                    oCompany = _dbContext.TblCompanies.Where(x => x.Email.Equals(oCompany.Email) && x.IsCompany == true).SingleOrDefault();
 
-                if (string.IsNullOrEmpty(agent.Password))
+                if (string.IsNullOrEmpty(oCompany.Password))
                 {
-                    TempData["EmailAddress"] = agent.EmailAddress;
+                    TempData["EmailAddress"] = oCompany.Email;
                     TempData.Keep();
                     return RedirectToAction("SetPassword", "Account");
                 }
@@ -361,23 +442,63 @@ namespace RealEstate.Controllers
                 {
                     //Here we are storing claims for authentication
                     ClaimsIdentity identity = null;
-                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, agent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, oCompany.Email), new Claim(ClaimTypes.Role, "Company") }, CookieAuthenticationDefaults.AuthenticationScheme);
                     var prinicpal = new ClaimsPrincipal(identity);
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
                     //Redirection of lead user is here. Please give appropreate direction URL to it
-                    SetCookie("EmailAddress", agent.EmailAddress);
-                    SetCookie("FullName", agent.FullName);
-                    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString());
+                    SetCookie("EmailAddress", oCompany.Email);
+                    SetCookie("FullName", oCompany.FullName);
+                    SetCookie("LoginCompanyId", oCompany.CompanyId.ToString());
+                    SetCookie("UserLoginTypeId", UserLoginType.Company.GetHashCode().ToString());
 
                     return RedirectToAction("Index", "Lead", new { area = "" });
                 }
 
+                #region OldCode
+                // Here the following code reperesent that user is sucessfully authenticated by google.
+                //We are taking user's information and redirecting user to his environment.
+                //TblAgent agent = new TblAgent();
+                //agent.EmailAddress = result.Principal.FindFirst(ClaimTypes.Email).Value;
+                //agent.FullName = result.Principal.FindFirst(ClaimTypes.Name).Value;
+                //agent.UserLoginTypeId = UserLoginType.MicrosoftAccount.GetHashCode();
+                //if (!IsUserExist(agent.EmailAddress))
+                //{
+                //    agent.IsActive = true;
+                //    agent.CreatedDate = DateTime.Now;
+                //    _dbContext.TblAgents.Add(agent);
+                //    _dbContext.SaveChanges();
+                //}
+                //else
+                //    agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(agent.EmailAddress)).SingleOrDefault();
+
+                //if (string.IsNullOrEmpty(agent.Password))
+                //{
+                //    TempData["EmailAddress"] = agent.EmailAddress;
+                //    TempData.Keep();
+                //    return RedirectToAction("SetPassword", "Account");
+                //}
+                //else
+                //{
+                //    //Here we are storing claims for authentication
+                //    ClaimsIdentity identity = null;
+                //    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, agent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                //    var prinicpal = new ClaimsPrincipal(identity);
+                //    var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
+                //    //Redirection of lead user is here. Please give appropreate direction URL to it
+                //    SetCookie("EmailAddress", agent.EmailAddress);
+                //    SetCookie("FullName", agent.FullName);
+                //    SetCookie("UserLoginTypeId", agent.UserLoginTypeId.ToString());
+
+                //    return RedirectToAction("Index", "Lead", new { area = "" });
+                //}
+                #endregion
             }
             catch (Exception ex)
             {
-                ViewBag.ErroMessage = "Error occur while authente user. -->" + ex.Message;
-                ErrorLog.log("Account Controller MicrosoftResponse:-" + ex);
-                return View("Login");
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
 
         }

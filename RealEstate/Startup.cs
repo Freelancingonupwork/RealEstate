@@ -52,6 +52,10 @@ namespace RealEstate
                 o.ClientSecret = Configuration.GetSection("Microsoft")["MicrosoftClientSecret"];
             });
 
+            //services.AddControllers().AddNewtonsoftJson(options =>
+            //    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+            //);
+
             services.AddDbContext<RealEstateContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));

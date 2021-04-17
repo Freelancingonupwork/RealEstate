@@ -1,0 +1,93 @@
+﻿@model IEnumerable<TagsViewModel>
+@{
+    ViewData["Title"] = "Stage";
+}
+
+<div role="alert" id="divAlertMessage" style="display:none"></div>
+<div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+<div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+
+<div class="modal fade" id="divEditTags" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Update Tags</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgTags" style="display:none"></div>
+                <input type="hidden" id="hdnCompanyId" />
+                <input type="hidden" id="hdnTagsId" />
+                <label>Tag Name:</label><input type="text" id="txtTagName" class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnUpdateStageDetails()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<partial name="_MenuBar" />
+
+<div class="content-bg mt-3">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header top-header">
+                    <div class="col-lg-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="m-b-0 text-white">Tags</h4>
+                            <a asp-action="AddTags" asp-controller="Admin" class="btn btn-primary">+ Add Tags</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-all-people" role="tabpanel"
+                             aria-labelledby="pills-all-people-tab">
+                            <div class="custom-card-text">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Count() > 0)
+                                        {
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@item.TagsName</td>
+                                                    <td>
+                                                        @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
+                                                        <b>
+                                                            <a onclick="fnPopulateControls(@item.TagsId)" style="color:#007bff" title="Click to edit record.">
+                                                                Edit
+                                                            </a>
+                                                        </b>|
+                                                        <b><a onclick="return ConfirmationDialog(@item.TagsId)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="5"><h5>No Tags Found.</h5></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/SiteJavascripts/TagsList.js"></script>

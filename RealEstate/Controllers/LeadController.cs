@@ -19,6 +19,8 @@ using RealEstate.Models;
 using RealEstate.Utills;
 using OfficeOpenXml;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Collections.Specialized;
 
 namespace RealEstate.Controllers
 {
@@ -38,61 +40,76 @@ namespace RealEstate.Controllers
         {
             try
             {
-                if (!Request.Cookies.ContainsKey("FullName"))
+                //if (!Request.Cookies.ContainsKey("FullName"))
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
-                if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Admin.GetHashCode())
+                //if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Admin.GetHashCode())
+                if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Company.GetHashCode())
                 {
                     using (var DB = _dbContext)
                     {
-                        int agentID = DB.TblAgents.Where(x => x.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault().Id;
-                        var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentID).Include(x => x.Agent).ToList().Select(s => new LeadViewModel
+                        var agentDetails = DB.TblAgents.Where(x => x.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault();
+                        if (agentDetails != null)
                         {
-                            LeadId = s.LeadId,
-                            LeadSource = s.LeadSource,
-                            LeadStatus = s.LeadStatus,
-                            Industry = s.Industry,
-                            Stage = s.Stage,
-                            AgentId = s.AgentId,
-                            Agent = s.Agent,
-                            OwnerImg = s.OwnerImg,
-                            LeadOwner = s.LeadOwner,
-                            Company = s.Company,
-                            FirstName = s.FirstName,
-                            LastName = s.LastName,
-                            Title = s.Title,
-                            EmailAddress = s.EmailAddress,
-                            PhoneNumber = s.PhoneNumber,
-                            Fax = s.Fax,
-                            MobileNumber = s.MobileNumber,
-                            Website = s.Website,
-                            NoOfEmp = s.NoOfEmp,
-                            AnnualRevenue = s.AnnualRevenue,
-                            Rating = s.Rating,
-                            EmailOptOut = s.EmailOptOut == true ? true : false,
-                            SkypeId = s.SkypeId,
-                            TwitterId = s.TwitterId,
-                            SecondaryEmail = s.SecondaryEmail,
-                            Street = s.Street,
-                            State = s.State,
-                            Country = s.Country,
-                            City = s.City,
-                            ZipCode = s.ZipCode,
-                            Description = s.Description,
-                            CreatedDate = s.CreatedDate
-                        });
-                        LoadComboBoxes();
-                        return View(oLeadList);
+                            var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentDetails.Id).Include(x => x.Agent).Include(x => x.StageNavigation).ToList().Select(s => new LeadViewModel
+                            {
+                                LeadId = s.LeadId,
+                                LeadSource = s.LeadSource,
+                                LeadStatus = s.LeadStatus,
+                                Industry = s.Industry,
+                                StageId = s.StageId,
+                                Stage = s.StageNavigation,
+                                AgentId = s.AgentId,
+                                Agent = s.Agent,
+                                OwnerImg = s.OwnerImg,
+                                TagsName = GetTagsName(s.LeadId),
+                                LeadOwner = s.LeadOwner,
+                                Company = s.Company,
+                                FirstName = s.FirstName,
+                                LastName = s.LastName,
+                                Title = s.Title,
+                                EmailAddress = s.EmailAddress,
+                                PhoneNumber = s.PhoneNumber,
+                                Fax = s.Fax,
+                                MobileNumber = s.MobileNumber,
+                                Website = s.Website,
+                                NoOfEmp = s.NoOfEmp,
+                                AnnualRevenue = s.AnnualRevenue,
+                                Rating = s.Rating,
+                                EmailOptOut = s.EmailOptOut == true ? true : false,
+                                SkypeId = s.SkypeId,
+                                TwitterId = s.TwitterId,
+                                SecondaryEmail = s.SecondaryEmail,
+                                Street = s.Street,
+                                State = s.State,
+                                Country = s.Country,
+                                City = s.City,
+                                ZipCode = s.ZipCode,
+                                Description = s.Description,
+                                CreatedDate = s.CreatedDate
+                            });
+                            LoadComboBoxes();
+                            return View(oLeadList);
+                        }
+                        else
+                        {
+                            return View();
+                        }
                     }
                 }
                 else
                 {
-                    var oLeadList = _dbContext.TblLeads.Include(x => x.Agent).ToList().Select(s => new LeadViewModel
+                    int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                    var oLeadList = _dbContext.TblLeads.Where(x => x.CompanyId == CompanyId).Include(x => x.Agent).ToList().Select(s => new LeadViewModel
                     {
                         LeadId = s.LeadId,
                         LeadSource = s.LeadSource,
                         LeadStatus = s.LeadStatus,
                         Industry = s.Industry,
-                        Stage = s.Stage,
+                        //Stage = s.Stage,
+                        StageId = s.StageId,
+                        Stage = s.StageNavigation,
+                        TagsName = GetTagsName(s.LeadId),
                         AgentId = s.AgentId,
                         Agent = s.Agent,
                         OwnerImg = s.OwnerImg,
@@ -127,27 +144,33 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log(ex);
-                return View();
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
         }
 
         [HttpGet]
         public IActionResult EditLeadDetails(int id)
         {
-            if (!Request.Cookies.ContainsKey("FullName"))
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                 return RedirectToAction("Login", "Account");
             LoadComboBoxes();
             try
             {
-                TblLead oLead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).FirstOrDefault();
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                TblLead oLead = _dbContext.TblLeads.Where(x => x.LeadId == id && x.CompanyId == CompanyId).Include(x => x.Agent).Include(x => x.StageNavigation).FirstOrDefault();
                 LeadViewModel oModel = new LeadViewModel();
                 oModel.LeadId = oLead.LeadId;
                 ViewBag.LeadSource = oLead.LeadSource;
                 oModel.LeadSource = oLead.LeadSource;
                 oModel.LeadStatus = oLead.LeadStatus;
                 oModel.Industry = oLead.Industry;
-                oModel.Stage = oLead.Stage;
+                //oModel.Stage = oLead.Stage;
+                oModel.StageId = oLead.StageId;
+                oModel.Stage = oLead.StageNavigation;
+                oModel.TagsName = GetTagsName(oLead.LeadId);
                 oModel.AgentId = oLead.AgentId;
                 oModel.Agent = oLead.Agent;
                 oModel.OwnerImg = oLead.OwnerImg;
@@ -179,7 +202,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("LeadController EditLeadDetails" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return View("Index");
             }
         }
@@ -190,11 +215,12 @@ namespace RealEstate.Controllers
             try
             {
                 LoadComboBoxes();
-                if (Request.Cookies.ContainsKey("FullName"))
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
                 {
                     if (ModelState.IsValid)
                     {
-                        var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(model.EmailAddress.ToLower()) && u.LeadId != model.LeadId).ToList();
+                        var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(model.EmailAddress.ToLower()) && u.LeadId != model.LeadId && u.CompanyId == CompanyId).ToList();
                         if (result.Count() > 0)
                         {
                             ShowErrorMessage("Email is already used!", true);
@@ -205,6 +231,8 @@ namespace RealEstate.Controllers
                         TblLead oData = new TblLead();
                         oData.LeadId = model.LeadId;
                         oData.LeadOwner = model.LeadOwner;
+                        oData.StageId = model.StageId;
+                        oData.CompanyId = CompanyId;
                         oData.Company = model.Company;
                         oData.FirstName = model.FirstName;
                         oData.LastName = model.LastName;
@@ -218,7 +246,7 @@ namespace RealEstate.Controllers
                         oData.LeadStatus = model.LeadStatus;
                         oData.Industry = model.Industry;
                         oData.AgentId = model.AgentId;
-                        oData.Stage = model.Stage;
+                        //oData.Stage = model.Stage;
                         oData.NoOfEmp = model.NoOfEmp;
                         oData.AnnualRevenue = model.AnnualRevenue;
 
@@ -273,8 +301,10 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log(ex);
-                return View();
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
         }
 
@@ -284,7 +314,7 @@ namespace RealEstate.Controllers
             try
             {
                 LoadComboBoxes();
-                if (Request.Cookies.ContainsKey("FullName"))
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
                 {
                     if (ModelState.IsValid)
                     {
@@ -296,9 +326,11 @@ namespace RealEstate.Controllers
                             LoadComboBoxes();
                             return View(model);
                         }
-
+                        int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
                         TblLead oData = new TblLead();
                         oData.LeadOwner = model.LeadOwner;
+                        oData.StageId = Convert.ToInt32(model.StageId);
+                        oData.CompanyId = CompanyId;
                         oData.Company = model.Company;
                         oData.FirstName = model.FirstName;
                         oData.LastName = model.LastName;
@@ -311,7 +343,7 @@ namespace RealEstate.Controllers
                         oData.LeadSource = model.LeadSource;
                         oData.LeadStatus = model.LeadStatus;
                         oData.Industry = model.Industry;
-                        oData.Stage = model.Stage;
+                        //oData.Stage = model.Stage;
                         oData.NoOfEmp = model.NoOfEmp;
                         oData.AnnualRevenue = model.AnnualRevenue;
 
@@ -347,8 +379,10 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log(ex);
-                return View();
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
             }
         }
 
@@ -356,7 +390,7 @@ namespace RealEstate.Controllers
         {
             try
             {
-                if (Request.Cookies.ContainsKey("FullName"))
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
                 {
                     return View();
                 }
@@ -367,7 +401,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Admin Controller LeadFlow :-" + ex.Message);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -376,6 +412,8 @@ namespace RealEstate.Controllers
         {
             try
             {
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+
                 Dictionary<string, string> sOwnerList = new Dictionary<string, string>();
                 var users = _dbContext.TblUsers.Where(u => u.UserLoginTypeId == UserLoginType.Admin.GetHashCode() && u.IsActive == true).ToList();
                 foreach (var item in users)
@@ -397,17 +435,38 @@ namespace RealEstate.Controllers
 
 
                 Dictionary<int, string> oAgentlist = new Dictionary<int, string>();
-                var agents = _dbContext.TblAgents.Where(u => u.IsActive == true).ToList();
+                var agents = _dbContext.TblAgents.Where(u => u.IsActive == true && u.CompanyId == CompanyId).ToList();
                 foreach (var item in agents)
                 {
                     oAgentlist.Add(item.Id, item.FullName);
                 }
                 ViewBag.AgentList = oAgentlist;
 
+
+
+                Dictionary<int, string> oStagelist = new Dictionary<int, string>();
+                var stages = _dbContext.TblStages.Where(u => u.CompanyId == CompanyId).ToList();
+                foreach (var item in stages)
+                {
+                    oStagelist.Add(item.StageId, item.StageName);
+                }
+                ViewBag.StageList = oStagelist;
+
+
+                Dictionary<int, string> oTaglist = new Dictionary<int, string>();
+                var tags = _dbContext.TblTags.Where(u => u.CompanyId == CompanyId).ToList();
+                foreach (var item in tags)
+                {
+                    oTaglist.Add(item.TagId, item.TagName);
+                }
+                ViewBag.TagList = oTaglist;
+
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Lead Controller LoadComboBoxes fun :- " + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
             }
         }
 
@@ -415,7 +474,11 @@ namespace RealEstate.Controllers
         {
             try
             {
-                return Json(_dbContext.TblLeadSources.Select(s => new
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                return Json(_dbContext.TblLeadSources.Where(x => x.CompanyId == CompanyId).Select(s => new
                 {
                     id = s.LeadSourceId,
                     name = s.LeadSourceName
@@ -423,7 +486,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Lead GetAllSources" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return Json(new { success = false, message = "Error occur while getting record!" + ex.Message });
             }
 
@@ -433,16 +498,22 @@ namespace RealEstate.Controllers
         {
             try
             {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
                 int id = 0;
                 if (Request.Form.ContainsKey("id")) { id = Convert.ToInt32(Request.Form["id"]); }
                 if (id <= 0) { throw new Exception("Identity can not be blank!"); }
-                _dbContext.TblLeadSources.Remove(_dbContext.TblLeadSources.Where(x => x.LeadSourceId == id).FirstOrDefault());
+                _dbContext.TblLeadSources.Remove(_dbContext.TblLeadSources.Where(x => x.LeadSourceId == id && x.CompanyId == CompanyId).FirstOrDefault());
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                ErrorLog.log("LeadController DeleteSource" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -450,10 +521,14 @@ namespace RealEstate.Controllers
         {
             try
             {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
                 string name = string.Empty;
                 if (Request.Form.ContainsKey("name")) { name = Request.Form["name"]; }
                 if (string.IsNullOrEmpty(name)) { throw new Exception("Source name can not be blank!"); }
-                var lead = _dbContext.TblLeadSources.Where(x => x.LeadSourceName.ToLower().Equals(name.ToLower())).FirstOrDefault();
+                var lead = _dbContext.TblLeadSources.Where(x => x.LeadSourceName.ToLower().Equals(name.ToLower()) && x.CompanyId == CompanyId).FirstOrDefault();
                 if (lead != null)
                 {
                     return Json(new { success = false, message = "Lead source with name '" + name + "' is already exist" });
@@ -461,38 +536,66 @@ namespace RealEstate.Controllers
 
                 TblLeadSource src = new TblLeadSource();
                 src.LeadSourceName = name;
+                src.CompanyId = CompanyId;
+                src.CreatedDate = DateTime.Now;
                 _dbContext.TblLeadSources.Add(src);
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Lead AddSource" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return Json(new { success = false, message = "Error occur while inserting record!" + ex.Message });
             }
 
         }
-        public bool IsUserExist(string email)
+
+
+        public ActionResult AddStage()
         {
             try
             {
-                var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(email.ToLower())).ToList();
-                if (result.Count() > 0)
-                    return true;
-                else
-                    return false;
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                string name = string.Empty;
+                if (Request.Form.ContainsKey("name")) { name = Request.Form["name"]; }
+                if (string.IsNullOrEmpty(name)) { throw new Exception("Stage name can not be blank!"); }
+                var lead = _dbContext.TblStages.Where(x => x.StageName.ToLower().Equals(name.ToLower()) && x.CompanyId == CompanyId).FirstOrDefault();
+                if (lead != null)
+                {
+                    return Json(new { success = false, message = "Lead stage with name '" + name + "' is already exist" });
+                }
+
+                TblStage oStage = new TblStage();
+                oStage.StageName = name;
+                oStage.CompanyId = CompanyId;
+                oStage.CreatedDate = DateTime.Now;
+                _dbContext.TblStages.Add(oStage);
+                _dbContext.SaveChanges();
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Account Controller IsUserExist:-" + ex);
-                return false;
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while inserting record!" + ex.Message });
             }
+
         }
 
         public async Task<IActionResult> Upload(IFormFile postedFile)
         {
             try
             {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
                 if (postedFile == null || postedFile.Length == 0)
                 {
                     ShowErrorMessage("Please select file.", true);
@@ -566,7 +669,7 @@ namespace RealEstate.Controllers
                                     Stage = strStage,
                                     OwnerImg = strOwnerImg,
                                     LeadOwner = strLeadOwner,
-
+                                    CompanyId = CompanyId,
                                     Company = strCompany,
                                     FirstName = strFirstName,
                                     LastName = strLastName,
@@ -590,7 +693,7 @@ namespace RealEstate.Controllers
                                     ZipCode = strZipCode,
                                     Description = strDescription,
                                     CreatedDate = dtCreatedDate
-                                });
+                                }); ;
                             }
 
                             _dbContext.TblLeads.AddRange(leadList);
@@ -677,7 +780,7 @@ namespace RealEstate.Controllers
                                 Stage = strStage,
                                 OwnerImg = strOwnerImg,
                                 LeadOwner = strLeadOwner,
-
+                                CompanyId = CompanyId,
                                 Company = strCompany,
                                 FirstName = strFirstName,
                                 LastName = strLastName,
@@ -716,7 +819,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log(ex.Message.ToString());
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return RedirectToAction("NewLead");
             }
             return RedirectToAction("Index", "Lead");
@@ -728,6 +833,138 @@ namespace RealEstate.Controllers
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        [HttpPost]
+        public ActionResult HubSportRequest()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    return Redirect("https://app.hubspot.com/oauth/authorize?client_id=" + this._config.GetSection("APIs")["client_id"] + "&scope=contacts&redirect_uri=" + $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + this._config.GetSection("APIs")["redirect_uri"] + "");
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return View("NewLead");
+            }
+
+        }
+
+        public async Task<IActionResult> HubSportResponse(string code)
+        {
+            try
+            {
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+
+                var postParams = new Dictionary<string, string>();
+
+                postParams.Add("grant_type", "authorization_code");
+                postParams.Add("client_id", this._config.GetSection("APIs")["client_id"]);
+                postParams.Add("client_secret", this._config.GetSection("APIs")["client_secret"]);
+                postParams.Add("redirect_uri", $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + this._config.GetSection("APIs")["redirect_uri"]);
+                postParams.Add("code", code);
+
+                var formUrlEncodedContent = new FormUrlEncodedContent(postParams);
+
+
+                //The url to post to.
+                var url = "https://api.hubapi.com/oauth/v1/token";
+                var client = new HttpClient();
+
+                //Pass in the full URL and the json string content
+                var response = await client.PostAsync(url, formUrlEncodedContent);
+
+
+                //It would be better to make sure this request actually made it through
+                string result = await response.Content.ReadAsStringAsync();
+
+                var Token = JsonConvert.DeserializeObject<Token>(result);
+
+                if (status.EXPIRED_AUTH_CODE == Token.Status)
+                {
+                    ErrorLog.log(Token.message.ToString());
+                    return RedirectToAction("HubSportRequest");
+                }
+                else if (status.MISMATCH_REDIRECT_URI_AUTH_CODE == Token.Status)
+                {
+                    ErrorLog.log(Token.message.ToString());
+                    ShowErrorMessage(Token.message.ToString(), true);
+                    return RedirectToAction("Index", "Lead");
+                }
+                else if (status.BAD_REDIRECT_URI == Token.Status)
+                {
+                    ErrorLog.log(Token.message.ToString());
+                    ShowErrorMessage(Token.message.ToString(), true);
+                    return RedirectToAction("Index", "Lead");
+                }
+                else
+                {
+                    var httpRequestMessage = new HttpRequestMessage
+                    {
+                        Method = HttpMethod.Get,
+                        RequestUri = new Uri("https://api.hubapi.com/contacts/v1/lists/all/contacts/all"),
+                        Headers = {
+                                { HttpRequestHeader.Authorization.ToString(), "Bearer "+Token.access_token},
+                                { HttpRequestHeader.Accept.ToString(), "application/json" },
+                        },
+                    };
+
+                    var responseContact = client.SendAsync(httpRequestMessage).Result;
+                    var data = await responseContact.Content.ReadAsStringAsync();
+                    var model = JsonConvert.DeserializeObject<HubSpotEntity.Root>(data);
+                    List<TblLead> leadList = new List<TblLead>();
+                    if (model.contacts != null)
+                    {
+                        foreach (var item in model.contacts)
+                        {
+                            TblLead lead = new TblLead();
+                            lead.FirstName = item.properties.firstname == null ? string.Empty : item.properties.firstname.value.ToString();
+                            lead.LastName = item.properties.lastname == null ? string.Empty : item.properties.lastname.value.ToString();
+                            //lead.CreatedDate = Convert.ToDateTime(item.addedAt.ToString());
+                            var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToInt64(item.addedAt) / 1000d)).ToLocalTime();
+                            lead.CreatedDate = Convert.ToDateTime(dt);
+                            lead.Company = item.properties.company == null ? string.Empty : item.properties.company.value.ToString();
+                            lead.EmailAddress = string.IsNullOrEmpty(item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString()) ? string.Empty : item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString();
+                            lead.CompanyId = CompanyId;
+                            var resultLead = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(lead.EmailAddress.ToLower()) && u.CompanyId == CompanyId).ToList();
+                            if (resultLead.Count() > 0)
+                                continue;
+                            leadList.Add(lead);
+                        }
+                        _dbContext.TblLeads.AddRange(leadList);
+                        _dbContext.SaveChanges();
+                        //close out the client
+                        client.Dispose();
+
+                        ShowSuccessMessage(model.contacts.Count + " Leads are successfully imported from HubSpot!", true);
+
+                    }
+                    else
+                    {
+                        ShowSuccessMessage("0 Leads are founds from HubSpot!", true);
+                    }
+
+                    return RedirectToAction("Index", "Lead");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return View("NewLead");
+            }
+
         }
 
         public async Task<IActionResult> GetLeadsFromHubSpot(int? count)
@@ -775,10 +1012,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("leadController GetLeadsFromHubSpot" + ex);
-                ViewBag.MessageType = "danger";
-                //ViewBag.Message = "Opps! Something went wrong!";
-                ShowErrorMessage("Opps! Something went wrong!", true);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return View("NewLead");
             }
 
@@ -805,7 +1041,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Lead Controller DeleteLeads :-" + ex.Message);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return Json(new { success = false });
             }
         }
@@ -825,7 +1063,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("LeadController DeleteSingleLead" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return false;
             }
         }
@@ -835,15 +1075,18 @@ namespace RealEstate.Controllers
             try
             {
                 LoadComboBoxes();
-                if (!Request.Cookies.ContainsKey("FullName"))
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
-                var lead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).FirstOrDefault();
+                var lead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).Include(x => x.StageNavigation).FirstOrDefault();
                 LeadViewModel oModel = new LeadViewModel();
                 oModel.LeadId = lead.LeadId;
                 oModel.LeadSource = lead.LeadSource;
                 oModel.LeadStatus = lead.LeadStatus;
                 oModel.Industry = lead.Industry;
-                oModel.Stage = lead.Stage;
+                //oModel.Stage = lead.Stage;
+                oModel.StageId = lead.StageId;
+                oModel.Stage = lead.StageNavigation;
+                oModel.TagsName = GetTagsName(lead.LeadId);
                 oModel.AgentId = lead.AgentId;
                 oModel.Agent = lead.Agent;
                 oModel.OwnerImg = lead.OwnerImg;
@@ -875,9 +1118,101 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Lead Controller LeadDetail :-" + ex.Message);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return RedirectToAction("Login", "Account");
             }
         }
+
+        public ActionResult SendBulkMail()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                string subject = Request.Form["subject"];
+                string MailBody = Request.Form["mailBody"];
+                var checkedEmailList = Request.Form["checkedEmailList"].ToString().Split(",");
+                var checkedAgentEmailList = Request.Form["checkedAgentEmailList"].ToString().Split(",");
+
+                var emailList = new HashSet<string>(checkedEmailList);
+                var fromEmailList = new HashSet<string>(checkedAgentEmailList);
+                if (emailList.Count > 0)
+                {
+                    foreach (var item in emailList)
+                    {
+                        string SmtpUserName = this._config.GetSection("MailSettings")["SmtpUserName"];
+                        string SmtpPassword = this._config.GetSection("MailSettings")["SmtpPassword"];
+                        int SmtpPort = Convert.ToInt32(this._config.GetSection("MailSettings")["SmtpPort"]);
+                        string SmtpServer = this._config.GetSection("MailSettings")["SmtpServer"];
+                        string fromEmail = this._config.GetSection("MailSettings")["fromEmail"];
+                        bool isSSL = Convert.ToBoolean(this._config.GetSection("MailSettings")["isSSL"]);
+
+                        Utility.sendMail(item, MailBody, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    }
+                    return Json(new { success = true, message = "Your emails are on the way!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Email Found!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+            }
+            return View();
+        }
+
+
+        #region Function
+        public bool IsUserExist(string email)
+        {
+            try
+            {
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                var result = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(email.ToLower()) && u.CompanyId == CompanyId).ToList();
+                if (result.Count() > 0)
+                    return true;
+                else
+                    return false;
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return false;
+            }
+        }
+        public string GetTagsName(int LeadId)
+        {
+            try
+            {
+                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                var leadTag = _dbContext.TblLeadTags.Where(x => x.LeadId == LeadId && x.CompanyId == CompanyId).ToList();
+                var TagsName = string.Empty;
+                foreach (var data in leadTag)
+                {
+                    var tag = _dbContext.TblTags.Where(x => x.TagId == data.TagId).Select(x => x.TagName).First();
+                    TagsName += tag + ",";
+                }
+                TagsName = TagsName.TrimEnd(',');
+                return TagsName;
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return null;
+            }
+
+        }
+        #endregion
     }
 }

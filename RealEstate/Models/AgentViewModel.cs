@@ -9,6 +9,7 @@ namespace RealEstate.Models
     public class AgentViewModel
     {
         public int AgentId { get; set; }
+        public int CompanyId { get; set; }
 
         [Required(ErrorMessage = "Full Name is required.")]
         public string FullName { get; set; }

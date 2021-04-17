@@ -23,10 +23,10 @@
                     <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AdminUser"))" id="pills-clients-tab" asp-action="AdminUser" asp-controller="Admin"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Admin User</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
-                       role="tab" aria-controls="pills-clients" aria-selected="false">Action Plans</a>
-                </li>
+                @*<li class="nav-item">
+                <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "UserHubSportAPI"))" id="pills-clients-tab" asp-action="UserHubSportAPI" asp-controller="Admin"
+                   role="tab" aria-controls="pills-clients" aria-selected="false">Hub Sport API Key</a>
+            </li>*@
                 <li class="nav-item">
                     <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Automation</a>
@@ -51,23 +51,54 @@
                     <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Custom Fields</a>
                 </li>
+                <li class="nav-item dropdown profile-link-wrapper">
+                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Company,Admin", actions: "CompanySetting,Stage,AddStage"))" href="#" id="navbarDropdown"
+                       role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        More
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Company", actions: "CompanySetting"))" asp-action="CompanySetting" asp-controller="Company">Company</a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "Stage,AddStage"))" asp-action="Stage" asp-controller="Admin">Stage</a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "Tags,AddTags"))" asp-action="Tags" asp-controller="Admin">Tags</a>
+                    </div>
+                </li>
             </ul>
             @{
                 string actionName = this.ViewContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ViewContext.RouteData.Values["controller"].ToString();
-                if (actionName == "Team" && controllerName == "Admin")
+                @*if (actionName == "Team" && controllerName == "Admin")
                 {
                     <div class="list-button-wrapper mr-4">
                         <a asp-action="AddAgents" class="btn btn-primary mr-2">+ Add User</a>
                     </div>
-                }
+                }*@
 
-                if (actionName == "AdminUser" && controllerName == "Admin")
+                @*if (actionName == "AdminUser" && controllerName == "Admin")
                 {
                     <div class="list-button-wrapper mr-4">
                         <a asp-action="AddAdminUser" class="btn btn-primary mr-2">+ Add Admin User</a>
                     </div>
+                }*@
+
+                if (actionName == "UserHubSportAPI" && controllerName == "Admin")
+                {
+                    <div class="list-button-wrapper mr-4">
+                        <a asp-action="AddAPIKey" class="btn btn-primary mr-2">+ Add Api Key</a>
+                    </div>
                 }
+
+                @*if (actionName == "Stage" && controllerName == "Admin")
+                {
+                    <div class="list-button-wrapper mr-4">
+                        <a asp-action="AddStage" class="btn btn-primary mr-2">+ Add Stage</a>
+                    </div>
+                }*@
+                @*if (actionName == "Tags" && controllerName == "Admin")
+                {
+                    <div class="list-button-wrapper mr-4">
+                        <a asp-action="AddTags" class="btn btn-primary mr-2">+ Add Tags</a>
+                    </div>
+                }*@
             }
         </div>
     </div>

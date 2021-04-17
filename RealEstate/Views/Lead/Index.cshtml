@@ -4,11 +4,127 @@
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@{
+    int userTypeAdmin = 0;
+    if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
+    {
+        userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
+    }
+
+}
+<link href="~/css/select2.css" rel="stylesheet" />
+
+<link href="~/css/select2.min.css" rel="stylesheet" />
+<style type="text/css">
+    th, td {
+        white-space: nowrap;
+    }
+
+    div.dataTables_wrapper {
+        width: 1200px;
+        margin: 0 auto;
+    }
+
+    table.dataTable.no-footer {
+        border-bottom: 0px solid #111;
+    }
+
+    .checkbox-menu li label {
+        display: block;
+        padding: 3px 10px;
+        clear: both;
+        font-weight: normal;
+        line-height: 1.42857143;
+        color: #333;
+        white-space: nowrap;
+        margin: 0;
+        transition: background-color .4s ease;
+    }
+
+    .checkbox-menu li input {
+        margin: 0px 5px;
+        top: 2px;
+        position: relative;
+    }
+
+    .checkbox-menu li.active label {
+        background-color: #cbcbff;
+        font-weight: bold;
+    }
+
+    .checkbox-menu li label:hover,
+    .checkbox-menu li label:focus {
+        background-color: #f5f5f5;
+    }
+
+    .checkbox-menu li.active label:hover,
+    .checkbox-menu li.active label:focus {
+        background-color: #b8b8ff;
+    }
+
+    table.dataTable tbody tr .form-checkbox-group input {
+        padding: 0;
+        height: initial;
+        width: initial;
+        margin-bottom: 0;
+        display: block;
+        cursor: pointer;
+        opacity: 0;
+        position: relative;
+        top: 17px;
+        left: 11px;
+        z-index: 1;
+    }
+</style>
 
 
 <div role="alert" id="divAlertMessage" style="display:none"></div>
-
-<div class="modal fade" id="divAssignAgent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+<div class="modal fade" id="AssignTagModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Assign Tag</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgTag" style="display:none"></div>
+                <label>Tag:</label>
+                <select id="cmbtag" asp-items="@(new SelectList(ViewBag.TagList,"Key","Value"))" class="form-control" multiple>
+                    <option value="0">---Select Tag--</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnAssignTag()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="AssignStageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Assign Stage</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgStage" style="display:none"></div>
+                <label>Stage:</label><select id="cmbStage" asp-items="@(new SelectList(ViewBag.StageList,"Key","Value"))" class="form-control">
+                    <option value="0">---Select Stage--</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnAssignStage()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="AssignAgentModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -25,7 +141,60 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnAssignMultipleAgent()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="divAssignAgent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Assign Agent</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgAgent" style="display:none"></div>
+                <label>Agent:</label><select id="cmbAgentsn" asp-items="@(new SelectList(ViewBag.AgentList,"Key","Value"))" class="form-control">
+                    <option value="0">---Select Agent--</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" onclick="fnUpdateAgent()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="BulkEmailModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Batch Email</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgMail" style="display:none"></div>
+                <div class="form-group">
+                    <b>From:</b> <span id="spnemailList">constro.umbraco@gmail.com</span>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="txtEmailSubject" class="form-control" placeholder="Email Subject" />
+                </div>
+                <div class="form-group">
+                    <textarea id="txtMailBody" class="form-control" rows="200"></textarea>
+                    <script>
+                        CKEDITOR.replace("txtMailBody");
+                    </script>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnSendBulkMail()" class="btn btn-primary">Send Mail</button>
             </div>
         </div>
     </div>
@@ -39,7 +208,7 @@
                 <li class="nav-item">
                     <a class="nav-link active" id="pills-all-people-tab" data-toggle="pill"
                        href="#pills-all-people" role="tab" aria-controls="pills-all-people"
-                       aria-selected="true">All leads <span class="number-text">(5)</span></a>
+                       aria-selected="true">All leads <span class="number-text">(@Model.Count())</span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="pills-todays-leads-tab" data-toggle="pill"
@@ -96,22 +265,25 @@
 
                 <div class="custom-card-header">
                     <div class="content-header-left">
-                        <button class="btn-icon">
+                        @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                        {
+                        <button class="btn-icon" onclick="return SendBulkMail();" data-toggle="tooltip" data-placement="top" title="Bulk Mail">
+                            @*data-toggle="modal" data-target="#BulkEmailModel"*@
                             <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-mail">
                                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
                                 </path>
                                 <polyline points="22,6 12,13 2,6"></polyline>
                             </svg>
                         </button>
-                        <button class="btn-icon">
+                        <a class="btn-icon" onclick="return setBulkAgent();" data-toggle="tooltip" data-placement="top" title="Assign agent to lead">
                             <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round" class="feather feather-user">
                                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                                 <circle cx="12" cy="7" r="4"></circle>
                             </svg>
-                        </button>
-                        <button class="btn-icon">
+                        </a>
+                        <button class="btn-icon" onclick="return AssignTag();" data-toggle="tooltip" data-placement="top" title="Assign tag to lead">
                             <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag">
@@ -120,7 +292,7 @@
                                 <line x1="7" y1="7" x2="7.01" y2="7"></line>
                             </svg>
                         </button>
-                        <a class="btn-icon" href="#" id="btnDeleteLead" onclick="return ConfirmationDialog();">
+                        <a class="btn-icon" href="#" id="btnDeleteLead" onclick="return ConfirmationDialog();" data-toggle="tooltip" data-placement="top" title="Trash">
                             <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                  stroke-linecap="round" stroke-linejoin="round"
@@ -132,6 +304,12 @@
                                 <line x1="14" y1="11" x2="14" y2="17"></line>
                             </svg>
                         </a>
+                        <button class="btn-icon" onclick="return AssignBulkStage();" data-toggle="tooltip" data-placement="top" title="Assign Stage">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z" />
+                            </svg>
+                        </button>
                         <a class="btn-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24"
                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -142,28 +320,77 @@
                                 <line x1="12" y1="2" x2="12" y2="15"></line>
                             </svg>
                         </a>
-                        @{
-                            int userTypeAdmin = 0;
-                            if (Context.Request.Cookies.ContainsKey("UserLoginTypeId"))
-                            {
-                                userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
-                            }
-
-                        }
-                        @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
-                        {
-                            <a class="btn-icon" title="Click here to add leads" asp-action="NewLead" asp-controller="Lead">
-                                <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            </a>
+                        <a class="btn-icon" title="Click here to add leads" asp-action="NewLead" asp-controller="Lead">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="display:block;margin:auto" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        </a>
                         }
                     </div>
                     <div class="content-header-right">
                         <button class="btn btn-primary">
                             How it work
                         </button>
-                        <button class="btn btn-secondary ml-2">
-                            Columns
-                        </button>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary ml-2 dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Columns <b class="caret"></b>
+                            </button>
+                            <ul class="dropdown-menu checkbox-menu allow-focus" id="colsDrop">
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="1"> Name
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="2"> Phone
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="3"> Email
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="4"> Price
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="5"> Source
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="6"> Status
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="7"> Industry
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="8"> Stage
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="9"> Tags
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="10"> Created
+                                    </label>
+                                </li>
+                                <li>
+                                    <label>
+                                        <input checked type="checkbox" class="toggle-vis" data-column="11"> Agent
+                                    </label>
+                                </li>
+                            </ul>
+                        </div>
                         <button class="btn btn-secondary ml-2">
                             Everyone
                         </button>
@@ -181,8 +408,8 @@
                         }
 
                     }
-                    <table class="table" id="tblLeadList">
-                        <thead>
+                    <table class="row-border order-column" id="tblLeadList" cellspacing="0" width="100%">
+                        <thead style="background-color:white">
                             <tr>
                                 <th scope="col" style="text-align: center">
                                     <div class="form-checkbox-group">
@@ -194,100 +421,113 @@
                                 <th scope="col">Phone</th>
                                 <th scope="col">Email</th>
                                 <th scope="col">Price</th>
-                                @*<th scope="col">Last Activity</th>
-                                  <th scope="col">Last Communication</th>*@
+                                <th scope="col">Source</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Industry</th>
+                                <th scope="col">Last Activity</th>
+                                <th scope="col">Last Communication</th>
                                 <th scope="col">Stage</th>
+                                <th scope="col">Tags</th>
                                 <th scope="col">Created</th>
                                 <th scope="col">Agent</th>
-                                @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                                @*@if (userTypeAdmin == UserLoginType.Admin.GetHashCode())*@
+                                @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
                                 {
-                                    <th scope="col">Action</th>
+                                <th scope="col">Action</th>
                                 }
                             </tr>
                         </thead>
                         <tbody>
                             @if (Model.Count() > 0)
                             {
-                                @foreach (var item in Model)
+                            @foreach (var item in Model)
                                 {
-                                    <tr>
-                                        <th scope="row" style="text-align: center">
-                                            <div class="form-checkbox-group">
-                                                <input class="form-checkbox-group" type="checkbox" value="@item.LeadId" id="checkbox-@item.LeadId" name="checkbox-@item.LeadId" />
-                                                <label for="checkbox-@item.LeadId"></label>
-                                            </div>
-                                        </th>
-                                        <td>
-                                            <div class="table-profile-detail">
-                                                @if (!string.IsNullOrEmpty(item.OwnerImg))
+                            <tr>
+                                <th scope="row" style="text-align: center">
+                                    <div class="form-checkbox-group">
+                                        <input class="form-checkbox-group" type="checkbox" value="@item.LeadId" id="checkbox-@item.LeadId" name="checkbox-@item.LeadId" email="checkboxemail-@(item.EmailAddress == null ? "N/A" : item.EmailAddress)" agentemail="checkboxagentemail-@(item.Agent == null ? "N/A" : item.Agent.EmailAddress)" />
+                                        <label for="checkbox-@item.LeadId"></label>
+                                    </div>
+                                </th>
+                                <td>
+                                    <div class="table-profile-detail">
+                                        @if (!string.IsNullOrEmpty(item.OwnerImg))
                                                 {
-                                                    <div class="profile-img">
-                                                        <img src="~/image/profile-img-2.jpeg" alt="user" />
-                                                    </div>
+                                        <div class="profile-img">
+                                            <img src="~/image/profile-img-2.jpeg" alt="user" />
+                                        </div>
                                                 }
 
-                                                <div class="profile-detail">
-                                                    <input type="hidden" id="hdnAgentID" />
-                                                    <input type="hidden" id="hdnLeadID" />
-                                                    <a asp-action="LeadDetail" asp-route-id="@item.LeadId">@item.FirstName @item.LastName</a>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <a href="#" class="table-icon-call">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                     class="feather feather-phone">
-                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                                    </path>
-                                                </svg>
-                                            </a>
-                                            <a href="tel:@item.PhoneNumber" class="table-phone-number">@(item.PhoneNumber == null ? "N/A" : item.PhoneNumber)</a>
-                                        </td>
-                                        <td>@item.EmailAddress</td>
-                                        <td>50000</td>
-                                        <!--<td>02/01/2021</td>--><!--Last Activity-->
-                                        <!--<td>02/01/2021</td>--><!--Last Communication-->
-                                        <td>@item.Stage</td><!--Stage-->
-                                        <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td><!--Created Date-->
-
-                                        @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                                        <div class="profile-detail">
+                                            <input type="hidden" id="hdnAgentID" />
+                                            <input type="hidden" id="hdnLeadID" />
+                                            <a asp-action="LeadDetail" asp-route-id="@item.LeadId">@item.FirstName @item.LastName</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <a href="#" class="table-icon-call">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                             viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                             class="feather feather-phone">
+                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                            </path>
+                                        </svg>
+                                    </a>
+                                    <a href="tel:@item.PhoneNumber" class="table-phone-number">@(item.PhoneNumber == null ? "N/A" : item.PhoneNumber)</a>
+                                </td>
+                                <td>@item.EmailAddress</td>
+                                <td>50000</td>
+                                <td>@(item.LeadSource == null ? "N/A" : item.LeadSource)</td>
+                                <td>@(item.LeadStatus == null ? "N/A" : item.LeadStatus)</td>
+                                <td>@(item.Industry == null ? "N/A" : item.Industry)</td>
+                                <td>02/01/2021</td>
+                                @*Last Activity*@
+                                <td style="text-align:center">02/01/2021</td>
+                                @*Last Communication*@
+                                <td style="text-align:center">@(item.Stage == null ? "N/A" : item.Stage.StageName)</td><!--Stage-->
+                                <td style="text-align:center">@(item.TagsName == "" || item.TagsName == null ? "N/A" : item.TagsName)</td>
+                                <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td><!--Created Date-->
+                                @*@if (userTypeAdmin == UserLoginType.Admin.GetHashCode())*@
+                                @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
                                         {
-                                            @if (@Convert.ToInt32(item.AgentId) <= 0)
+                                @if (@Convert.ToInt32(item.AgentId) <= 0)
                                             {
-                                                <td><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" onclick="setAgentValue(0,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
+                                <td style="text-align:center"><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" onclick="setAgentValue(0,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
                                             }
                                             else
                                             {
-                                                <td>@item.Agent.FullName &nbsp;&nbsp;<a href="#" onclick="setAgentValue(@item.AgentId,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
+                                <td style="text-align:center">@item.Agent.FullName &nbsp;&nbsp;<a href="#" onclick="setAgentValue(@item.AgentId,@item.LeadId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></td>
                                             }
 
-                                            <td>
-                                                <a asp-action="EditLeadDetails" asp-controller="Lead" asp-route-id="@item.LeadId.ToString()" class="btn btn-warning" title="Click to edit record.">
-                                                    Edit
-                                                </a>
-                                            </td>
+                                <td style="text-align:center">
+                                    <b>
+                                        <a asp-action="EditLeadDetails" asp-controller="Lead" asp-route-id="@item.LeadId.ToString()" style="color:#007bff" title="Click to edit record.">
+                                            Edit
+                                        </a>
+                                    </b>
+                                </td>
                                         }
                                         else
                                         {
-                                            @if (@Convert.ToInt32(item.AgentId) <= 0)
+                                @if (@Convert.ToInt32(item.AgentId) <= 0)
                                             {
-                                                <td><font color="red">Not Assigned</font> </td>
+                                <td><font color="red">Not Assigned</font> </td>
                                             }
                                             else
                                             {
-                                                <td>@item.Agent.FullName </td>
+                                <td>@item.Agent.FullName </td>
                                             }
                                         }
-                                    </tr>
+                            </tr>
                                 }
                             }
                             else
                             {
-                                <tr>
-                                    <td colspan="8"><h5>No Lead Found.</h5></td>
-                                </tr>
+                            <tr>
+                                <td colspan="8"><h5>No Lead Found.</h5></td>
+                            </tr>
                             }
                         </tbody>
                     </table>
@@ -324,14 +564,51 @@
     </div>
 </div>
 @*<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>*@
-<script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+@*<script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/3.3.2/js/dataTables.fixedColumns.min.js"></script>*@
+
+<script src="~/js/datatable/jquery.dataTables.min.js"></script>
+<script src="~/js/datatable/dataTables.fixedColumns.min.js"></script>
+<script src="~/js/select2.js"></script>
+<script src="~/js/select2.min.js"></script>
+@*<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.5.1/jquery.nicescroll.min.js"></script>*@
+
 <script type="text/javascript" src="~/SiteJavascripts/LeadList.js"></script>
 <script type="text/javascript">
     $(document).ready(function () {
+        $("#cmbtag").select2({
+            width: '100%',
+        });
         /*document.getElementById("liLead").classList.add("active");*/
         $("#checkAll").click(function () {
             $('input:checkbox').not(this).prop('checked', this.checked);
         });
+
+
+        /*$("#tblLeadList").niceScroll({ cursorwidth: '10px', autohidemode: false, zindex: 999 });*/
+        /* $("#tblLeadList").niceScroll({ cursorborder: "", cursorcolor: "#00F", boxzoom: true }); // First scrollable DIV*/
+
+        $('#AssignTagModal').on('hidden.bs.modal', function () {
+            // do something…
+            $("#cmbtag").val([]).trigger("change");
+        });
+
+        $('#AssignStageModal').on('hidden.bs.modal', function () {
+            // do something…
+            $('#cmbStage').prop('selectedIndex', 0);
+        });
+
+        $('#AssignAgentModal').on('hidden.bs.modal', function () {
+            // do something…
+            $('#cmbAgent').prop('selectedIndex', 0);
+        });
+
+        $('#divAssignAgent').on('hidden.bs.modal', function () {
+            // do something…
+            $('#cmbAgentsn').prop('selectedIndex', 0);
+        });
+
+
     });
 
 </script>

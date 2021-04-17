@@ -25,6 +25,26 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="StageModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Add Stage</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divAlertMessageStage" style="display:none"></div>
+                <label>Stage Name:</label><input type="text" id="txtStageName" placeholder="Stage name!" class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="btnSaveStage" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="row">
     <div class="col-lg-12">
         <div class="card">
@@ -41,14 +61,6 @@
                 <div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
                 <form method="post" role="form">
                     <div style="float:left"><h4>Lead Details</h4></div><br />
-                    @if (!string.IsNullOrEmpty(ViewBag.Message))
-                    {
-                        <div class="alert alert-@ViewBag.MessageType mt-3" role="alert">
-                            @ViewBag.Message
-                        </div>
-                    }
-                    <br />
-                    <hr />
                     <div class="form-body">
                         <div class="form-row m-3">
                             <div class="form-group col-md-6">
@@ -192,19 +204,21 @@
                                 <span asp-validation-for="Industry" class="text-danger"></span>
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="">Stage:</label>
-                                <select class="form-control" asp-for="Stage" style="width:80%">
-                                    <option value="">Select Stage</option>
-                                    <option value="Subscriber">Subscriber</option>
-                                    <option value="Lead">Lead</option>
-                                    <option value="Marketing Qualified Lead">Marketing Qualified Lead</option>
-                                    <option value="">Sales Qualified Lead</option>
-                                    <option value="Opportunity">Opportunity</option>
-                                    <option value="Customer">Customer</option>
-                                    <option value="Evangelist">Evangelist</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                                <span asp-validation-for="Industry" class="text-danger"></span>
+                                <div class="d-flex align-items-end">
+                                    <div class="col-md-7 p-0 pr-3">
+                                        <label for="">Stage:</label>
+
+                                        <select class="form-control" asp-for="StageId" asp-items="@(new SelectList(ViewBag.StageList,"Key","Value"))">
+                                            <option value="">Select Stage</option>
+                                        </select>
+                                        <span asp-validation-for="StageId" class="text-danger"></span>
+                                    </div>
+                                    <div class="">
+                                        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#StageModal">
+                                            + Add New Stage
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="form-row m-3">
@@ -310,3 +324,18 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#divAddSource').on('hidden.bs.modal', function () {
+            // do something…
+            $("#txtSourceName").val('');
+        });
+
+        $('#StageModal').on('hidden.bs.modal', function () {
+            // do something…
+            $("#txtStageName").val('');
+        });
+
+    });
+
+</script>

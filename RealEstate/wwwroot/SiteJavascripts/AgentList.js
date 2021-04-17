@@ -1,8 +1,8 @@
-﻿function fnActivateDeactivateUser(AgentID, ADAFlag) {
+﻿function fnActivateDeactivateAgent(AgentID, ADAFlag) {
     var formData = new FormData();
     formData.append("id", AgentID);
     formData.append("flag", ADAFlag);
-    var result = __glb_fnIUDOperation(formData, '/Admin/ActivateDeactivateUser');
+    var result = __glb_fnIUDOperation(formData, '/Admin/ActivateDeactivateAgent');
     if (result.act == true) {
         //$("#divAlertMessage").html(result.message);
         //$('#divAlertMessage').show();
@@ -153,7 +153,7 @@ function showAlertMessage(type, message) {
         document.getElementById("divAlertMessage").classList.add("alert", "alert-warning");
         setTimeout(function () {
             $("#divAlertMessage").fadeOut();
-            window.location.reload();
+            //window.location.reload();
         }, 2000);
     }
 }

@@ -1,0 +1,47 @@
+﻿@model HubSportViewModel
+@{
+    ViewData["Title"] = "AddAPIKey";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header top-header">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="m-b-0 text-white">Add Hu Sport API Key</h4>
+                        <a asp-action="UserHubSportAPI" asp-controller="Admin" class="btn btn-primary"><i class="fa fa-backward"></i>&nbsp;Back</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form asp-action="AddAPIKey" method="post" role="form">
+                    <div class="form-body">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Full Name:</label>
+                                <input type="text" asp-for="HubSportAPIKey" placeholder="Enter Hub Sport API Key Name" class="form-control" style="width:80%" />
+                                <span asp-validation-for="HubSportAPIKey" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <div class="form-checkbox-group">
+                                    <input type="checkbox" asp-for="IsActive" value="true" id="IsActive">
+                                    <label for="IsActive"> Is Active </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <input type="submit" value="Submit" name="AddAPIKey" class="btn btn-success" />
+                                <a asp-action="UserHubSportAPI" asp-controller="Admin" title="Click here to get List" class="btn btn-primary">Cancel</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

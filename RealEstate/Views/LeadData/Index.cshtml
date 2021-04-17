@@ -1,0 +1,111 @@
+﻿
+@{
+    ViewData["Title"] = "Index";
+}
+
+<div class="content-bg mt-3">
+    <div class="row">
+        <div class="tab-content" id="pills-tabContent">
+            <table class="row-border order-column" id="tblLeadList" cellspacing="0" width="100%">
+                <thead style="background-color:white">
+                    <tr>
+                        @*<th><input type="checkbox" name='ID' id="checkBoxAll" class="custom-checkbox" /></th>*@
+                        <th><input type="checkbox" name='ID' id="checkBoxAll" class="custom-checkbox" /></th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Phone</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Industry</th>
+                        <th scope="col">Last Activity</th>
+                        <th scope="col">Last Communication</th>
+                        <th scope="col">Stage</th>
+                        <th scope="col">Tags</th>
+                        <th scope="col">Created</th>
+                        <th scope="col">Agent</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="~/js/datatable/jquery.dataTables.min.js"></script>
+<script src="~/js/datatable/dataTables.fixedColumns.min.js"></script>
+<script src="~/js/select2.js"></script>
+<script src="~/js/select2.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: "/LeadData/GetAllLead",
+            async: false,
+            success: function (data) {
+                //debugger;
+                console.log(data);
+                if (data != "False") {
+                    for (var i = 0; i < data.length; i++) {
+                        $('#tblLeadList').dataTable().fnAddData([
+                            //"<input type='checkbox' name='ID' value=" + data[i].leadId + " id='checkbox-'" + data[i].leadId + " name='checkbox-'" + data[i].leadId + " email='checkboxemail-'" + data[i].emailAddress == null ? "N/A" : data[i].emailAddress + " agentemail='checkboxagentemail-'" + __glb_fnIsNullOrEmpty(data[i].agent) ? "N/A" : data[i].agent.emailAddress + " />",
+                            "<input type='checkbox' name='ID' value=" + data[i].leadId + " class='custom-checkbox chkCheckBoxId' id='checkbox-" + data[i].leadId + "' />",
+                            //"<div class=\"form-checkbox-group\">"+
+                            //    "<input class=\"form-checkbox-group\" type=\"checkbox\" value=" + data[i].leadId + " id='checkbox-'" + data[i].leadId + " name='checkbox-'" + data[i].leadId + " email='checkboxemail-'" + data[i].emailAddress == null ? "N/A" : data[i].emailAddress + " agentemail='checkboxagentemail-'" + __glb_fnIsNullOrEmpty(data[i].agent) ? "N/A" : data[i].agent.emailAddress +"/>" +
+                            //    "<label for='checkbox-'"+ data[i].leadId + "></label>"+
+                            //"</div>",
+                            data[i].firstName + " " + data[i].lastName,
+                            data[i].phoneNumber == null ? "N/A" : data[i].phoneNumber,
+                            data[i].emailAddress,
+                            "50000",
+                            data[i].leadSource == null ? "N/A" : data[i].leadSource,
+                            data[i].leadStatus == null ? "N/A" : data[i].leadStatus,
+                            data[i].industry == null ? "N/A" : data[i].industry,
+                            "02/01/2021",
+                            "02/01/2021",
+                            data[i].stage == null ? "N/A" : data[i].stage.stageName,
+                            data[i].tagsName == null || data[i].tagsName == "" ? "N/A" : data[i].tagsName,
+                            data[i].createdDate,
+                            "",
+                            ""]);
+                    }
+                }
+            }
+        });
+        $('.paginate_button.next:not(.disabled)').on('click', function () {
+            EditPuzzle();
+        });
+
+        $('#checkBoxAll').click(function () {
+            if ($(this).is(":checked")) {
+                $(".chkCheckBoxId").prop("checked", true)
+            }
+            else {
+                $(".chkCheckBoxId").prop("checked", false)
+            }
+        });
+    });
+
+    //var table = $('#tblLeadList').DataTable({
+    //    'aoColumnDefs': [{
+    //        'bSortable': false,
+    //        'aTargets': [0] /* 1st one, start by the right */
+    //    }]
+    //});
+
+    var table = $('#tblLeadList').DataTable({
+        //scrollY: "300px",
+        scrollX: true,
+        scrollCollapse: true,
+        pageLength: 5,
+        order: [[1, 'desc']],
+        columnDefs: [{
+            "targets": 0,
+            "orderable": false
+        }],
+        fixedColumns: {
+            leftColumns: 2
+        }
+    });
+
+</script>

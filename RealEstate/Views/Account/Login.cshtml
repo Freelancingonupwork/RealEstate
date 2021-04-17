@@ -62,9 +62,14 @@
                             <a asp-action="MicrosoftLogin" asp-controller="Account" class="btn btn-microsoft"></a>
                         </div>
                     </div>
+                    <fieldset class="or-option mt-2">
+                        <legend>Or</legend>
+                    </fieldset>
+                    <div class="row mt-2 justify-content-center">
+                        <a asp-action="signup" asp-controller="Company" class="btn btn-primary">Registration</a>
+                    </div>
                 </div>
             </form>
-            <a href="#">🔥 Checkout our recent improvements</a>
         </div>
     </div>
     <footer>
@@ -91,8 +96,12 @@
 </html>
 <!-- Optional JavaScript -->
 <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
-<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+@*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>*@
+
+<script src="~/js/jquery-3.3.1.js"></script>
+<script src="~/js/jquery-3.3.1.min.js"></script>
+
 @*<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
     integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
     crossorigin="anonymous"></script>*@
@@ -131,9 +140,9 @@
             if (messageType == "warning") {
                 jQuery("#WarningMsg").html(message);
                 jQuery('#WarningMsg').show();
-                setTimeout(function () {
-                    jQuery('#WarningMsg').fadeOut();
-                }, 5000);
+                //setTimeout(function () {
+                //    jQuery('#WarningMsg').fadeOut();
+                //}, 5000);
             }
 
     </script>

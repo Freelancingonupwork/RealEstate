@@ -1,0 +1,150 @@
+﻿@model CompanyViewModel
+@{
+    Layout = null;
+}
+
+
+<html>
+<head>
+    <!-- Required meta tags -->
+    <meta http-equiv="Content-Type" content="application/x-font-woff; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Estajo - SignUp</title>
+    <!-- Favicon -->
+    <!-- <link rel="icon" href="assets/images/favicon.png" /> -->
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
+          rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="~/css/bootstrap.min.css" />
+    <!--Style CSS-->
+    <link rel="stylesheet" href="~/css/style.css" />
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="container">
+            <div class="logo-wrapper">
+                <img class="logo-img" src="~/image/logo.png" alt="" />
+            </div>
+            <form role="form" method="post" asp-controller="Company" asp-action="signup">
+                <div class="signup-form mb-4">
+                    <div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+                    <div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+                    <div class="alert alert-warning" id="WarningMsg" role="alert" style="display:none;"></div>
+                    <div class="row mt-2">
+                        <div class="col-12 col-sm-6">
+                            <a asp-action="GoogleLogin" asp-controller="Company" class="btn btn-signUpGoogle"></a>
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <a asp-action="MicrosoftLogin" asp-controller="Company" class="btn btn-signUpMicrosoft"></a>
+                        </div>
+                    </div>
+                    <fieldset class="or-option mt-2">
+                        <legend>OR</legend>
+                    </fieldset>
+                    <div class="form-group">
+                        <input asp-for="FullName" class="custom-input" placeholder="FullName">
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <input asp-for="CellPhone" class="custom-input" onkeydown="javascript:backspacerDOWN(this,event);"
+                               onkeyup="javascript:backspacerUP(this,event);" placeholder="CellPhone">
+                        <span asp-validation-for="CellPhone" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <input asp-for="EmailAddress" class="custom-input" placeholder="Email Address">
+                        <span asp-validation-for="EmailAddress" class="text-danger"></span>
+                    </div>
+                    <div class="forgot-password-link-wrapper mt-3">
+                        <input asp-for="Password" type="password" class="custom-input" placeholder="Password" id="txtUserPassword">
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="row align-items-center">
+                        <div class="col-4 text-left mt-3">
+                            <input type="submit" class="btn btn-primary" name="SignUp" value="SignUp">
+                        </div>
+                        <div class="col-4 text-left mt-3">
+                            <a class="btn btn-secondary" asp-action="Login" asp-controller="Account">SignIn</a>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer>
+        <div class="container-fluid">
+            <div class="row align">
+                <div class="col-12 col-sm-4 order-sm-1 order-2">
+                    <div class="copyright-text">
+                        <a href="#">
+                            &copy; @DateTime.Now.Year - Estajo
+                        </a>
+                    </div>
+                </div>
+                <div class="col-12 col-sm-8 order-sm-2 order-1">
+                    <ul>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Terms &amp; Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
+<!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+@*<script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>*@
+
+<script src="~/js/jquery-3.3.1.js"></script>
+<script src="~/js/jquery-3.3.1.min.js"></script>
+
+@*<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+    integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+    crossorigin="anonymous"></script>*@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/js/phone.js"></script>
+@if (TempData["MessageType"] != null && TempData["Message"] != null)
+{
+    <script type="text/javascript">
+            var messageType = '@TempData["MessageType"]';
+            var message = '@TempData["Message"]'
+
+            if (messageType == "success") {
+                jQuery("#SuccessMsg").html(message);
+                jQuery('#SuccessMsg').show();
+                setTimeout(function () {
+                    jQuery('#SuccessMsg').fadeOut();
+                }, 5000);
+            }
+
+            if (messageType == "error") {
+                jQuery("#ErrorMsg").html(message);
+                jQuery('#ErrorMsg').show();
+                setTimeout(function () {
+                    jQuery('#ErrorMsg').fadeOut();
+                }, 5000);
+            }
+
+            if (messageType == "warning") {
+                jQuery("#WarningMsg").html(message);
+                jQuery('#WarningMsg').show();
+                setTimeout(function () {
+                    jQuery('#WarningMsg').fadeOut();
+                }, 5000);
+            }
+
+    </script>
+
+}

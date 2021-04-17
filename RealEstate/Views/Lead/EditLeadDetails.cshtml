@@ -193,18 +193,22 @@
                             </div>
                             <div class="form-group col-md-6">
                                 <label for="">Stage:</label>
-                                <select class="form-control" asp-for="Stage" style="width:80%">
+                                <select class="form-control" asp-for="StageId" asp-items="@(new SelectList(ViewBag.StageList,"Key","Value"))" style="width:80%">
                                     <option value="">Select Stage</option>
-                                    <option value="Subscriber">Subscriber</option>
-                                    <option value="Lead">Lead</option>
-                                    <option value="Marketing Qualified Lead">Marketing Qualified Lead</option>
-                                    <option value="">Sales Qualified Lead</option>
-                                    <option value="Opportunity">Opportunity</option>
-                                    <option value="Customer">Customer</option>
-                                    <option value="Evangelist">Evangelist</option>
-                                    <option value="Other">Other</option>
                                 </select>
-                                <span asp-validation-for="Industry" class="text-danger"></span>
+                                <span asp-validation-for="StageId" class="text-danger"></span>
+                                @*<select class="form-control" asp-for="Stage" style="width:80%">
+                                        <option value="">Select Stage</option>
+                                        <option value="Subscriber">Subscriber</option>
+                                        <option value="Lead">Lead</option>
+                                        <option value="Marketing Qualified Lead">Marketing Qualified Lead</option>
+                                        <option value="">Sales Qualified Lead</option>
+                                        <option value="Opportunity">Opportunity</option>
+                                        <option value="Customer">Customer</option>
+                                        <option value="Evangelist">Evangelist</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span asp-validation-for="Stage" class="text-danger"></span>*@
                             </div>
                         </div>
                         <div class="form-row m-3">

@@ -13,7 +13,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Assign Agent</h5>
+                <h5 class="modal-title" id="exampleModalLongTitle">Update User</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -38,75 +38,91 @@
 
 <div class="content-bg mt-3">
     <div class="row">
-        <div class="tab-content" id="pills-tabContent">
-            <div class="tab-pane fade show active" id="pills-all-people" role="tabpanel"
-                 aria-labelledby="pills-all-people-tab">
-                <div class="custom-card-text">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Phone</th>
-                                <th scope="col">Is Active</th>
-                                <th scope="col">Created</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Count() > 0)
-                            {
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="table-profile-detail">
-
-                                                <div class="profile-detail">
-                                                    <a href="#">@item.FullName</a>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>@item.EmailAddress</td>
-                                        <td>
-                                            <a href="#" class="table-icon-call">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                     class="feather feather-phone">
-                                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                                    </path>
-                                                </svg>
-                                            </a>
-                                            <a href="tel:@item.CellPhone" class="table-phone-number">@item.CellPhone</a>
-                                        </td>
-                                        @if (item.IsActive == true)
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header top-header">
+                    <div class="col-lg-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="m-b-0 text-white">Team</h4>
+                            <a asp-action="AddAgents" class="btn btn-primary mr-2">+ Add User</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-all-people" role="tabpanel"
+                             aria-labelledby="pills-all-people-tab">
+                            <div class="custom-card-text">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Name</th>
+                                            <th scope="col">Email</th>
+                                            <th scope="col">Phone</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Created</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Count() > 0)
                                         {
-                                            <td><font color="Green"><b><button title="Click here to Deactivate User" class="btn btn-success" onclick="javascript:fnActivateDeactivateUser(@item.AgentId,0)">Active</button></b></font></td>
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-profile-detail">
+
+                                                            <div class="profile-detail">
+                                                                <a href="#">@item.FullName</a>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>@item.EmailAddress</td>
+                                                    <td>
+                                                        <a href="#" class="table-icon-call">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                                 class="feather feather-phone">
+                                                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                                                </path>
+                                                            </svg>
+                                                        </a>
+                                                        <a href="tel:@item.CellPhone" class="table-phone-number">@item.CellPhone</a>
+                                                    </td>
+                                                    @if (item.IsActive == true)
+                                                    {
+                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateAgent(@item.AgentId,0)">Active</a></b></font></td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateAgent(@item.AgentId,1)">In-Active</a></b></font></td>
+                                                    }
+                                                    <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td>
+                                                    <td>
+                                                        @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
+                                                        <b>
+                                                            <a onclick="fnPopulateControls(@item.AgentId)" style="color:#007bff" title="Click to edit record.">
+                                                                Edit
+                                                            </a>
+                                                        </b>|
+                                                        <b><a onclick="return ConfirmationDialog(@item.AgentId)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
+                                                    </td>
+                                                </tr>
+                                            }
                                         }
                                         else
                                         {
-                                            <td><font color="Green"><b><button title="Click here to Activate User" class="btn btn-danger" onclick="javascript:fnActivateDeactivateUser(@item.AgentId,1)">In-Active</button></b></font></td>
+                                            <tr>
+                                                <td colspan="5"><h5>No Agent Found.</h5></td>
+                                            </tr>
                                         }
-                                        <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td>
-                                        <td>
-                                            @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
-                                            <button onclick="fnPopulateControls(@item.AgentId)" class="btn btn-warning" title="Click to edit record.">
-                                                Edit
-                                            </button>
-                                            <button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger" title="Click to delete record.">Delete </button>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="5"><h5>No Agent Found.</h5></td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

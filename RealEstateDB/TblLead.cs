@@ -7,8 +7,15 @@ namespace RealEstateDB
 {
     public partial class TblLead
     {
+        public TblLead()
+        {
+            TblLeadTags = new HashSet<TblLeadTag>();
+        }
+
         public int LeadId { get; set; }
+        public int? CompanyId { get; set; }
         public int? AgentId { get; set; }
+        public int? StageId { get; set; }
         public string LeadSource { get; set; }
         public string LeadStatus { get; set; }
         public string Industry { get; set; }
@@ -40,5 +47,8 @@ namespace RealEstateDB
         public DateTime? CreatedDate { get; set; }
 
         public virtual TblAgent Agent { get; set; }
+        public virtual TblCompany CompanyNavigation { get; set; }
+        public virtual TblStage StageNavigation { get; set; }
+        public virtual ICollection<TblLeadTag> TblLeadTags { get; set; }
     }
 }
