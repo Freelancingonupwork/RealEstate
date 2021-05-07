@@ -8,7 +8,7 @@ namespace RealEstate.Models
 {
     public class UserViewModel
     {
-        public int UserId { get; set; }
+        public int AccountId { get; set; }
         public int? UserLoginTypeId { get; set; }
 
         [Required(ErrorMessage = "Full Name is required.")]
@@ -19,10 +19,16 @@ namespace RealEstate.Models
         public string EmailAddress { get; set; }
 
         [Required(ErrorMessage = "Password is required.")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,15}$", ErrorMessage = "Password must contain one special character, one later and one digit with minimum 8 length!")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,25}$", ErrorMessage = "Password must contain one special character, one later, one digit and one uppercase letter with minimum 8 length!")]
         [DataType(DataType.Password)]
         public string Password { get; set; }
-        public bool IsActive { get; set; }
+
+        [Required(ErrorMessage = "Phone is required.")]
+        public string CellPhone { get; set; }
+        public bool Status { get; set; }
+        public bool IsOwner { get; set; }
+        public int RoleId { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
     }
 }

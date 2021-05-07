@@ -7,7 +7,7 @@
             <ul class="nav nav-pills" id="pills-tab" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link"
-                       asp-action="LeadFlow" asp-controller="Admin" role="tab" aria-controls="pills-all-people"
+                       data-toggle="pill" href="#pills-clients" role="tab" aria-controls="pills-all-people"
                        aria-selected="true">Lead Flow</a>
                 </li>
                 <li class="nav-item">
@@ -20,13 +20,13 @@
                        role="tab" aria-controls="pills-clients" aria-selected="false">Team</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AdminUser"))" id="pills-clients-tab" asp-action="AdminUser" asp-controller="Admin"
+                    <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AdminUser,AddAdminUser"))" id="pills-clients-tab" asp-action="AdminUser" asp-controller="Admin"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Admin User</a>
                 </li>
                 @*<li class="nav-item">
-                <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "UserHubSportAPI"))" id="pills-clients-tab" asp-action="UserHubSportAPI" asp-controller="Admin"
-                   role="tab" aria-controls="pills-clients" aria-selected="false">Hub Sport API Key</a>
-            </li>*@
+                        <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "UserHubSportAPI"))" id="pills-clients-tab" asp-action="UserHubSportAPI" asp-controller="Admin"
+                           role="tab" aria-controls="pills-clients" aria-selected="false">Hub Sport API Key</a>
+                    </li>*@
                 <li class="nav-item">
                     <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Automation</a>
@@ -35,24 +35,35 @@
                     <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Ponds</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
-                       role="tab" aria-controls="pills-clients" aria-selected="false">Email Templates</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
-                       role="tab" aria-controls="pills-clients" aria-selected="false">Text Templates</a>
+                @*<li class="nav-item">
+                        <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                           role="tab" aria-controls="pills-clients" aria-selected="false">Email Templates</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                           role="tab" aria-controls="pills-clients" aria-selected="false">Text Templates</a>
+                    </li>*@
+                <li class="nav-item dropdown profile-link-wrapper">
+                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate,TextTemplate,AddTextTemplate"))" href="#" id="navbarDropdown"
+                       role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Marketing
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate"))" asp-action="EmailTemplate" asp-controller="Admin">Email Template</a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "TextTemplate,AddTextTemplate"))" asp-action="TextTemplate" asp-controller="Admin">Text Template</a>
+
+                    </div>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Import</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="pills-clients-tab" data-toggle="pill" href="#pills-clients"
+                    <a class="nav-link @(Html.IsSelectedMultiple(controllers: "Admin", actions: "CustomFields,AddCustomFields"))" id="pills-clients-tab" asp-action="CustomFields" asp-controller="Admin"
                        role="tab" aria-controls="pills-clients" aria-selected="false">Custom Fields</a>
                 </li>
                 <li class="nav-item dropdown profile-link-wrapper">
-                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Company,Admin", actions: "CompanySetting,Stage,AddStage"))" href="#" id="navbarDropdown"
+                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Company,Admin", actions: "CompanySetting,Stage,AddStage,Tags,AddTags,AppointmentTypes,AddAppointmentTypes,AppointmentOutcomes,AddAppointmentOutcomes"))" href="#" id="navbarDropdown"
                        role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         More
                     </a>
@@ -60,6 +71,13 @@
                         <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Company", actions: "CompanySetting"))" asp-action="CompanySetting" asp-controller="Company">Company</a>
                         <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "Stage,AddStage"))" asp-action="Stage" asp-controller="Admin">Stage</a>
                         <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "Tags,AddTags"))" asp-action="Tags" asp-controller="Admin">Tags</a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AppointmentTypes,AddAppointmentTypes"))" asp-action="AppointmentTypes" asp-controller="Admin">
+                            Appointment Types
+                        </a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "AppointmentOutcomes,AddAppointmentOutcomes"))" asp-action="AppointmentOutcomes" asp-controller="Admin">
+                            Appointment Outcomes
+
+                        </a>
                     </div>
                 </li>
             </ul>
@@ -67,18 +85,18 @@
                 string actionName = this.ViewContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ViewContext.RouteData.Values["controller"].ToString();
                 @*if (actionName == "Team" && controllerName == "Admin")
-                {
-                    <div class="list-button-wrapper mr-4">
-                        <a asp-action="AddAgents" class="btn btn-primary mr-2">+ Add User</a>
-                    </div>
-                }*@
+                    {
+                        <div class="list-button-wrapper mr-4">
+                            <a asp-action="AddAgents" class="btn btn-primary mr-2">+ Add User</a>
+                        </div>
+                    }*@
 
                 @*if (actionName == "AdminUser" && controllerName == "Admin")
-                {
-                    <div class="list-button-wrapper mr-4">
-                        <a asp-action="AddAdminUser" class="btn btn-primary mr-2">+ Add Admin User</a>
-                    </div>
-                }*@
+                    {
+                        <div class="list-button-wrapper mr-4">
+                            <a asp-action="AddAdminUser" class="btn btn-primary mr-2">+ Add Admin User</a>
+                        </div>
+                    }*@
 
                 if (actionName == "UserHubSportAPI" && controllerName == "Admin")
                 {
@@ -88,17 +106,17 @@
                 }
 
                 @*if (actionName == "Stage" && controllerName == "Admin")
-                {
-                    <div class="list-button-wrapper mr-4">
-                        <a asp-action="AddStage" class="btn btn-primary mr-2">+ Add Stage</a>
-                    </div>
-                }*@
+                    {
+                        <div class="list-button-wrapper mr-4">
+                            <a asp-action="AddStage" class="btn btn-primary mr-2">+ Add Stage</a>
+                        </div>
+                    }*@
                 @*if (actionName == "Tags" && controllerName == "Admin")
-                {
-                    <div class="list-button-wrapper mr-4">
-                        <a asp-action="AddTags" class="btn btn-primary mr-2">+ Add Tags</a>
-                    </div>
-                }*@
+                    {
+                        <div class="list-button-wrapper mr-4">
+                            <a asp-action="AddTags" class="btn btn-primary mr-2">+ Add Tags</a>
+                        </div>
+                    }*@
             }
         </div>
     </div>

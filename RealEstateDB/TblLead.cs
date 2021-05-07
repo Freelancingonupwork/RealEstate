@@ -9,13 +9,16 @@ namespace RealEstateDB
     {
         public TblLead()
         {
+            TblCustomFieldAnswers = new HashSet<TblCustomFieldAnswer>();
+            TblLeadAppointments = new HashSet<TblLeadAppointment>();
             TblLeadTags = new HashSet<TblLeadTag>();
         }
 
         public int LeadId { get; set; }
-        public int? CompanyId { get; set; }
+        public int? AccountId { get; set; }
         public int? AgentId { get; set; }
         public int? StageId { get; set; }
+        public int? CustomFieldId { get; set; }
         public string LeadSource { get; set; }
         public string LeadStatus { get; set; }
         public string Industry { get; set; }
@@ -46,9 +49,12 @@ namespace RealEstateDB
         public string Description { get; set; }
         public DateTime? CreatedDate { get; set; }
 
+        public virtual TblAccount Account { get; set; }
         public virtual TblAgent Agent { get; set; }
-        public virtual TblCompany CompanyNavigation { get; set; }
+        public virtual TblCustomField CustomField { get; set; }
         public virtual TblStage StageNavigation { get; set; }
+        public virtual ICollection<TblCustomFieldAnswer> TblCustomFieldAnswers { get; set; }
+        public virtual ICollection<TblLeadAppointment> TblLeadAppointments { get; set; }
         public virtual ICollection<TblLeadTag> TblLeadTags { get; set; }
     }
 }

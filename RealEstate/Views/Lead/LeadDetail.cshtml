@@ -70,12 +70,115 @@
                 <div role="alert" id="divErrorMsgTag" style="display:none"></div>
                 <label>Tag:</label>
                 <select id="cmbtag" asp-items="@(new SelectList(ViewBag.TagList,"Key","Value"))" class="form-control" multiple>
-                    <option value="0">---Select Tag--</option>
+                    @*<option value="0">---Select Tag--</option>*@
                 </select>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" onclick="fnAssignTag()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="divCustomFieldValueModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Set Custom Field Value</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgStage" style="display:none"></div>
+                <input type="hidden" id="hdnAccountID" />
+                <input type="hidden" id="hdnCustomFieldId" />
+                <input type="hidden" id="hdnCustomFieldTypeId" />
+                <label id="CustomFiedlTitle"></label><input id="txtCustomFieldValue" class="form-control" /><br />
+                <select class="form-control" id="cmbcustomFieldType" style="display:none"></select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnUpdateCustomFieldDetails(@Model.LeadId)" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="divAppointmentsModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgAppointments" style="display:none"></div>
+                <input type="hidden" id="hdnAccountID" />
+                <input type="hidden" id="hdnCustomFieldId" />
+                <input type="hidden" id="hdnCustomFieldTypeId" />
+                <input type="hidden" id="hdnLeadAppointmentId" />
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Title</label><input type="text" id="txtAppointmentTitle" class="form-control" placeholder="Title" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Description</label><textarea id="txtDescription" cols="40" rows="3" class="form-control" placeholder="Description"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label>Type</label>
+                        <select id="cmdAppointmentType" asp-items="@(new SelectList(ViewBag.AppointmentTypeslist,"Key","Value"))" class="form-control">
+                            <option value="0">No type</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Outcome</label>
+                        <select id="cmdAppointmentOutcomes" asp-items="@(new SelectList(ViewBag.AppointmentOutcomeslist,"Key","Value"))" class="form-control">
+                            <option value="0">No outcome</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <label>Time</label>
+                        <input type="text" id="datepicker" class="form-control">
+
+                        @*<div class="col-md-2" style="text-align:center">To</div>
+                            <div class="col-md-3"><input type="text" id="datepickerto" class="form-control"></div>
+                            <div class="col-md-2"><input type="text" id="timepickerto" class="form-control"></div>*@
+                    </div>
+                    <div class="col-md-6">
+                        <label>&nbsp;&nbsp;</label>
+                        <input type="text" id="timepicker" class="form-control">
+                        @*<div class="col-md-2" style="text-align:center">To</div>
+                            <div class="col-md-3"><input type="text" id="datepickerto" class="form-control"></div>
+                            <div class="col-md-2"><input type="text" id="timepickerto" class="form-control"></div>*@
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Location</label><input type="text" id="txtLocation" class="form-control" placeholder="Location" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Invitees:</label>
+                        <select id="cmbInvitees" asp-items="@(new SelectList(ViewBag.AgentList,"Key","Value"))" class="form-control" multiple>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="BtCreateAppointment" onclick="fnCreateLeadAppointMent(@Model.LeadId)" class="btn btn-primary">Create Appointment</button>
+                <button type="button" style="display:none" id="BtnSave" onclick="fnUpdateLeadAppointMent(@Model.LeadId)" class="btn btn-primary">Save</button>
             </div>
         </div>
     </div>
@@ -203,23 +306,25 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="content-bg mt-3">
-                        <div class="row">
-                            <div class="custom-card-header">
-                                <div class="content-header-left align-items-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                         stroke-linejoin="round" class="feather feather-calendar">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                                    </svg>
-                                    Appointments
-                                </div>
-                                <div class="content-header-right">
-                                    <button class="btn-icon">
+                    </div>*@
+                <div class="content-bg mt-3">
+                    <div class="row">
+                        <div class="custom-card-header">
+                            <div class="content-header-left align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                     stroke-linejoin="round" class="feather feather-calendar">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                                Appointments
+                            </div>
+                            <div class="content-header-right">
+                                @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                {
+                                    <button class="btn-icon" onclick="fnPopulateControlsAppointment(@Model.LeadId)" data-toggle="modal" data-target="#divAppointmentsModel">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                              stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus">
@@ -227,22 +332,67 @@
                                             <line x1="5" y1="12" x2="19" y2="12"></line>
                                         </svg>
                                     </button>
-                                    <button class="btn-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-chevron-down">
-                                            <polyline points="6 9 12 15 18 9"></polyline>
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="custom-card-text">
-                                <p>No Upcoming Appointments</p>
+                                }
+                                <button class="btn-icon collapsible">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         class="feather feather-chevron-down">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
                             </div>
                         </div>
+
+                        <div id="divScroll" class="custom-card-text upcoming-appointment" style="max-height:140px;overflow:auto;">
+                            @if (Model.LeadAppointments.Count > 0)
+                            {
+                                foreach (var item in Model.LeadAppointments.OrderByDescending(x => x.LeadAppointmentId))
+                                {
+                                    <div class="appointment-title">
+                                        <h6><span>@item.Title</span></h6>
+                                        <div>
+                                            @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                            {
+                                                <a onclick="GetLeadAppointmentValue(@Model.LeadId,@item.LeadAppointmentId)" data-toggle="modal" data-target="#divAppointmentsModel">
+                                                    <b><i style="color:#BF0D1C" class="fa fa-pencil-square-o" aria-hidden="true"></i></b>
+                                                </a>
+                                                <a onclick="return ConfirmationDialogAppointMent(@Model.LeadId,@item.LeadAppointmentId)">
+                                                    <b><i style="color:#BF0D1C" class="fa fa-trash" aria-hidden="true"></i></b>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            <b><i style="color:#BF0D1C" class="fa fa-calendar" aria-hidden="true"></i></b>
+                                            <span>@item.AppointmentDateTime.Value.ToString("MM/dd/yyy hh:mm tt").Replace("-", "/")</span>
+                                        </li>
+                                        <li>
+                                            <b><i style="color:#BF0D1C" class="fa fa-map-marker" aria-hidden="true"></i></b>
+                                            <span> @(item.Location == "" ? "N/A" : item.Location)</span>
+                                        </li>
+                                        <li>
+                                            <b><i style="color:#BF0D1C" class="fa fa-envelope" aria-hidden="true"></i></b>
+                                            <span>@item.Lead.EmailAddress</span>
+                                        </li>
+                                        <li>
+                                            <b><i style="color:#BF0D1C" class="fa fa-envelope" aria-hidden="true"></i></b>
+                                            <span>@item.Agent.EmailAddress</span>
+                                        </li>
+                                    </ul>
+                                    <hr />
+                                }
+                            }
+                            else
+                            {
+                                <p>No Upcoming Appointments</p>
+                            }
+
+                        </div>
                     </div>
-                    <div class="content-bg mt-3">
+                </div>
+                @*<div class="content-bg mt-3">
                         <div class="row">
                             <div class="custom-card-header">
                                 <div class="content-header-left align-items-center">
@@ -515,7 +665,7 @@
                                 </div>
                                 <div class="custom-card-text">
                                     @*<p><strong>Stage</strong><span>@(Model.Stage != null ? Model.Stage.StageName : "N/A")</span></p>*@
-                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                                     {
                                         @if (Convert.ToInt32(Model.StageId) <= 0)
                                         {
@@ -567,7 +717,7 @@
                                     }
                                     <div class="follow-us"><strong>Source</strong><div class="follow-us-inner"><span>@(Model.LeadSource != null ? Model.LeadSource : "N/A")</span></div></div>
 
-                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                                     {
                                         @if (Convert.ToInt32(Model.AgentId) <= 0)
                                         {
@@ -627,7 +777,7 @@
                                     }
                                     @*<p><strong>Lender</strong><span></span></p>
                                         <p><strong>Price</strong><span></span></p>*@
-                                    @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                                     {
 
                                         @if (Model.TagsName != "")
@@ -795,7 +945,67 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    <p><strong>Website</strong> @(Model.Website != null ? Model.Website : "N/A")</p>
+                                    @{
+                                        int AccountId = Convert.ToInt32(Context.Request.Cookies["LoginAccountId"].ToString());
+                                    }
+                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                    {
+                                        @foreach (var item in ViewBag.CustomFieldlist)
+                                        {
+                                            <p>
+                                                <strong>@item.Value</strong>
+                                                @if (Model.CustomFieldAnswer.Where(x => x.CustomFieldId == item.Key).Count() > 0)
+                                                {
+                                                    @foreach (var itemAns in Model.CustomFieldAnswer.Where(x => x.CustomFieldId == item.Key))
+                                                    {
+                                                        if (itemAns.LeadId == Model.LeadId && itemAns.AccountId == AccountId)
+                                                        {
+
+                                                            @itemAns.FieldAns
+                                                        }
+                                                        else
+                                                        {
+                                                            <strong>@("N/A")</strong>
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <strong>@("N/A")</strong>
+                                                }
+                                                <a href="#" style="color:#ffffff" onclick="fnPopulateControls(@Model.LeadId,@item.Key)"><i class="fa fa-pencil"></i></a>
+                                            </p>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @foreach (var item in ViewBag.CustomFieldlist)
+                                        {
+                                            <p>
+                                                <strong>@item.Value</strong>
+                                                @if (Model.CustomFieldAnswer.Where(x => x.CustomFieldId == item.Key).Count() > 0)
+                                                {
+                                                    @foreach (var itemAns in Model.CustomFieldAnswer.Where(x => x.CustomFieldId == item.Key))
+                                                    {
+                                                        if (itemAns.LeadId == Model.LeadId && itemAns.AccountId == AccountId)
+                                                        {
+
+                                                            @itemAns.FieldAns
+                                                        }
+                                                        else
+                                                        {
+                                                            <strong>@("N/A")</strong>
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <strong>@("N/A")</strong>
+                                                }
+                                            </p>
+                                        }
+                                    }
+                                    @*<p><strong>Website</strong> @(Model.Website != null ? Model.Website : "N/A")</p>*@
                                     @*<p><strong>Birthday</strong><span></span></p>
                                         <p><strong>Close Date</strong><span></span></p>
                                         <p><strong>Commission</strong><span></span></p>
@@ -1130,6 +1340,69 @@
         $("#cmbtag").select2({
             width: '100%',
         });
+        $("#cmbInvitees").select2({
+            width: '100%',
+        });
+        $('#divCustomFieldValueModel').on('hidden.bs.modal', function () {
+            $('#cmbcustomFieldType').prop('selectedIndex', 0);
+            //$('#txtCustomFieldValue').val('');
+            //$('#txtCustomFieldValue').removeAttr("style");
+            //$(this)
+            //    .find("input,textarea")
+            //    .val('')
+            //    .end()
+            //    .find("input[type=checkbox], input[type=radio]")
+            //    .prop("checked", "")
+            //    .end();
+            //$('#txtCustomFieldValue').removeAttr("value");
+            //$("input[type='email']").val('');
+            //$("input[type='text']").val('');
+            //$("input[type='number']").val('');
+            //$("input[type='date']").val('');
+        });
+        var date = new Date();
+        var today = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        var time = date.getHours(); // + ":" + date.getMinutes()
+        $('#divAppointmentsModel').on('hidden.bs.modal', function (e) {
+            $(this)
+                .find("input,textarea")
+                .val('')
+                .end()
+                .find("input[type=checkbox], input[type=radio]")
+                .prop("checked", "")
+                .end();
+            $('#cmdAppointmentType').prop('selectedIndex', 0);
+            $('#cmdAppointmentOutcomes').prop('selectedIndex', 0);
+            $('#datepicker').datepicker('setDate', today);//,#datepickerto
+            $('#timepicker').timepicker('setTime', time);//,#timepickerto
+        })
+
+
+        $('#datepicker').datepicker({
+            showOptions: { speed: 'fast' },
+            changeMonth: false,
+            changeYear: false,
+            dateFormat: 'mm/dd/yy',
+            gotoCurrent: true,
+            startDate: today,
+            todayHighlight: true,
+        });
+        $('#timepicker').timepicker({ 'timeFormat': 'H:i' });
+
+        //$('#datepickerto').datepicker({
+        //    showOptions: { speed: 'fast' },
+        //    changeMonth: false,
+        //    changeYear: false,
+        //    dateFormat: 'dd/mm/yy',
+        //    gotoCurrent: true,
+        //    startDate: today,
+        //});
+        //$('#timepickerto').timepicker();
+
+        $('#datepicker').datepicker('setDate', today);//,#datepickerto
+        $('#timepicker').timepicker('setTime', time);//,#timepickerto
+
+        $("#divScroll").niceScroll({ cursorwidth: '10px', autohidemode: false, zindex: 999 });
     });
 
 </script>

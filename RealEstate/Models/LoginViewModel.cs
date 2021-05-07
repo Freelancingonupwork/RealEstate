@@ -30,4 +30,19 @@ namespace RealEstate.Models
         Manual = 4,
         Company = 5
     }
+
+    public enum RoleType
+    {
+        Admin = 1,
+        Agent = 2,
+        MicrosoftAccount = 3,
+        Manual = 4,
+        Company = 5
+    }
+
+    public enum EmailType
+    {
+        EmailTemplate = 1,
+        TextTemplate = 2
+    }
 }

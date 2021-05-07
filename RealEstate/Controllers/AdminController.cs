@@ -58,8 +58,8 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                        var oAgentList = DB.TblAgents.Where(x => x.CompanyId == CompanyId).ToList().Select(s => new AgentViewModel
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oAgentList = DB.TblAgents.Where(x => x.AccountId == AccountId).ToList().Select(s => new AgentViewModel
                         {
                             AgentId = s.Id,
                             FullName = s.FullName,
@@ -131,9 +131,9 @@ namespace RealEstate.Controllers
                     oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
                     oData.EmailAddress = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
                     oData.CellPhone = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
-                    oData.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
+                    //oData.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
                     oData.IsActive = model.IsActive;
-                    oData.CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                    oData.AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                     oData.CreatedDate = DateTime.Now;
 
                     _dbContext.TblAgents.Add(oData);
@@ -185,8 +185,8 @@ namespace RealEstate.Controllers
             {
                 int id = Convert.ToInt32(Request.Form["id"]);
                 int Flag = Convert.ToInt32(Request.Form["flag"]);
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                TblAgent agent = _dbContext.TblAgents.SingleOrDefault(c => c.Id == id && c.CompanyId == CompanyId);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                TblAgent agent = _dbContext.TblAgents.SingleOrDefault(c => c.Id == id && c.AccountId == AccountId);
 
                 if (Flag >= 1)
                     agent.IsActive = true;
@@ -217,11 +217,11 @@ namespace RealEstate.Controllers
                 return RedirectToAction("Login", "Account");
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int id = 0;
                 if (Request.Form.ContainsKey("id")) { id = Convert.ToInt32(Request.Form["id"]); }
                 if (id <= 0) { throw new Exception("Identity can not be blank!"); }
-                _dbContext.TblAgents.Remove(_dbContext.TblAgents.Where(x => x.Id == id && x.CompanyId == CompanyId).FirstOrDefault());
+                _dbContext.TblAgents.Remove(_dbContext.TblAgents.Where(x => x.Id == id && x.AccountId == AccountId).FirstOrDefault());
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
             }
@@ -241,10 +241,10 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int intAgentID = Convert.ToInt32(Request.Form["agentID"]);
                 int intLeadID = Convert.ToInt32(Request.Form["leadID"]);
-                TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == intLeadID && x.CompanyId == CompanyId).FirstOrDefault();
+                TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == intLeadID && x.AccountId == AccountId).FirstOrDefault();
                 lead.AgentId = intAgentID <= 0 ? Convert.ToInt32(DBNull.Value) : intAgentID;
                 _dbContext.Entry(lead).State = EntityState.Modified;
                 _dbContext.SaveChanges();
@@ -268,8 +268,8 @@ namespace RealEstate.Controllers
                     return RedirectToAction("Login", "Account");
 
                 int id = Convert.ToInt32(Request.Form["agentID"]);
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                return Json(_dbContext.TblAgents.Where(x => x.Id == id && x.CompanyId == CompanyId).Select(x => new
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                return Json(_dbContext.TblAgents.Where(x => x.Id == id && x.AccountId == AccountId).Select(x => new
                 {
                     success = true,
                     agentID = x.Id,
@@ -296,7 +296,7 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
                 int intAgentID = Convert.ToInt32(Request.Form["agentID"]);
                 string strfullName = Request.Form["fullName"];
@@ -307,13 +307,13 @@ namespace RealEstate.Controllers
                 if (_dbContext.TblAgents.Where(x => x.EmailAddress.Equals(stremailAddress) && x.Id != intAgentID).FirstOrDefault() != null)
                     return Json(new { success = false, message = "Email address is already in use! Try another email address!" });
 
-                TblAgent oAgent = _dbContext.TblAgents.Where(x => x.Id == intAgentID && x.CompanyId == CompanyId).FirstOrDefault();
+                TblAgent oAgent = _dbContext.TblAgents.Where(x => x.Id == intAgentID && x.AccountId == AccountId).FirstOrDefault();
                 if (oAgent != null)
                 {
                     oAgent.FullName = strfullName;
                     oAgent.EmailAddress = stremailAddress;
                     oAgent.CellPhone = strcellPhone;
-                    oAgent.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
+                    //oAgent.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
                     oAgent.CreatedDate = DateTime.Now;
                     _dbContext.Entry(oAgent).State = EntityState.Modified;
                     _dbContext.SaveChanges();
@@ -359,8 +359,8 @@ namespace RealEstate.Controllers
             {
                 if (Request.Cookies.ContainsKey("UserLoginTypeId"))
                 {
-                    //if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Admin.GetHashCode())
-                    if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Company.GetHashCode())
+                    if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != RoleType.Admin.GetHashCode())
+                        //if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) != UserLoginType.Company.GetHashCode())
                         return false;
                     else
                         return true;
@@ -382,7 +382,7 @@ namespace RealEstate.Controllers
         {
             try
             {
-                var result = _dbContext.TblUsers.Where(u => u.EmailAddress.ToLower().Equals(email.ToLower()) && u.UserLoginTypeId == UserLoginType.Admin.GetHashCode()).ToList();
+                var result = _dbContext.TblAccounts.Where(u => u.UserName.ToLower().Equals(email.ToLower()) && u.RoleId == RoleType.Admin.GetHashCode()).ToList();
                 if (result.Count() > 0)
                     return true;
                 else
@@ -390,7 +390,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Account Controller IsAdminExist:-" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
                 return false;
             }
         }
@@ -408,16 +410,55 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                        var oAdminUserList = DB.TblUsers.Where(x => x.UserLoginTypeId == (int)UserLoginType.Admin && x.CompanyId == CompanyId).ToList().Select(s => new UserViewModel
-                        {
-                            UserId = s.UserId,
-                            FullName = s.FullName,
-                            EmailAddress = s.EmailAddress,
-                            IsActive = (bool)s.IsActive,
-                            CreatedDate = (DateTime)s.CreatedDate
-                        });
-                        return View(oAdminUserList);
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+
+
+                        var oAdminUserList = from A in DB.TblAccounts // outer sequence
+                                             join AC in DB.TblAccountCompanies //inner sequence 
+                                             on A.AccountId equals AC.AccountId // key selector 
+                                             where AC.AddedBy == AccountId
+                                             select new UserViewModel
+                                             {
+                                                 AccountId = (int)A.AccountId,
+                                                 FullName = A.FullName,
+                                                 EmailAddress = A.UserName,
+                                                 Status = A.Status == null ? false : true,
+                                                 CreatedDate = (DateTime)A.CreatedDate,
+                                                 IsOwner = (bool)A.IsOwner
+                                             };
+                        return View(oAdminUserList.ToList());
+                        //var oAccount = DB.TblAccounts.Where(c => c.RoleId == (int)RoleType.Admin && c.AccountId == AccountId).ToList().Select(s => new UserViewModel
+                        //{
+                        //    AccountId = (int)s.AccountId,
+                        //    FullName = s.FullName,
+                        //    EmailAddress = s.UserName,
+                        //    Status = s.Status == null ? false : true,
+                        //    CreatedDate = (DateTime)s.CreatedDate,
+                        //    IsOwner = (bool)s.IsOwner
+                        //});
+
+                        //var oAccountDetails = DB.TblAccountCompanies.Where(x => x.AddedBy == AccountId).Include(x => x.Account).ToList().Select(s => new UserViewModel
+                        //{
+                        //    AccountId = (int)s.AccountId,
+                        //    FullName = s.Account.FullName,
+                        //    EmailAddress = s.Account.UserName,
+                        //    Status = s.Account.Status == null ? false : true,
+                        //    CreatedDate = (DateTime)s.CreatedDate,
+                        //    IsOwner = (bool)s.Account.IsOwner
+                        //});
+
+                        //var oAdminUserList = oAccount.Union(oAccountDetails);
+
+                        //var oAdminUserList = DB.TblAccountCompanies.Where(x => x.Account.RoleId == (int)RoleType.Admin && x.AccountId == AccountId).ToList().Select(s => new UserViewModel
+                        //{
+                        //    AccountId = (int)s.AccountId,
+                        //    FullName = s.Account.FullName,
+                        //    EmailAddress = s.Account.UserName,
+                        //    Status = s.Account.Status == null ? false : true,
+                        //    CreatedDate = (DateTime)s.CreatedDate,
+                        //    IsOwner = (bool)s.Account.IsOwner
+                        //});
+
                     }
                 }
                 else
@@ -455,6 +496,8 @@ namespace RealEstate.Controllers
         {
             try
             {
+                ModelState.Remove("CellPhone");
+
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
@@ -463,24 +506,30 @@ namespace RealEstate.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
                     if (IsAdminExist(model.EmailAddress))
                     {
                         ShowErrorMessage("Email is already used!", true);
                         return View(model);
                     }
-                    TblUser oData = new TblUser();
+                    TblAccount oData = new TblAccount();
                     oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
-                    oData.EmailAddress = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
+                    oData.UserName = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
                     oData.Password = string.IsNullOrEmpty(model.Password) ? string.Empty : Encryption.EncryptText(model.Password);
-                    oData.IsActive = model.IsActive;
+                    oData.Status = model.Status;
                     oData.CreatedDate = DateTime.Now;
-                    oData.UserLoginTypeId = UserLoginType.Admin.GetHashCode();
-                    oData.CompanyId = CompanyId;
-                    _dbContext.TblUsers.Add(oData);
+                    oData.RoleId = RoleType.Admin.GetHashCode();
+                    oData.IsOwner = false;
+                    _dbContext.TblAccounts.Add(oData);
                     _dbContext.SaveChanges();
 
+                    TblAccountCompany oCompany = new TblAccountCompany();
+                    oCompany.AccountId = oData.AccountId;
+                    oCompany.AddedBy = AccountId;
+                    oCompany.CreatedDate = DateTime.Now;
+                    _dbContext.TblAccountCompanies.Add(oCompany);
+                    _dbContext.SaveChanges();
 
                     #region SendMail
                     string SmtpUserName = this.Configuration.GetSection("MailSettings")["SmtpUserName"];
@@ -491,12 +540,12 @@ namespace RealEstate.Controllers
                     bool isSSL = Convert.ToBoolean(this.Configuration.GetSection("MailSettings")["isSSL"]);
                     var password = Encryption.DecryptText(oData.Password);
                     var body = "<p>Hi,</p>" +
-                                "<p>Your Email Address is:- " + oData.EmailAddress + "</p>" +
+                                "<p>Your Email Address is:- " + oData.UserName + "</p>" +
                                 "<p>Your password is:- " + password + "</p><br/>" +
                                 "Thank You.";
 
                     var subject = "Estajo - Admin Details";
-                    Utility.sendMail(oData.EmailAddress, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
 
                     #endregion
 
@@ -526,21 +575,22 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
                 int intAdminID = Convert.ToInt32(Request.Form["adminID"]);
                 string strfullName = Request.Form["fullName"];
 
                 string stremailAddress = Request.Form["emailAddress"];
 
-                if (_dbContext.TblUsers.Where(x => x.EmailAddress.Equals(stremailAddress) && x.UserId != intAdminID && x.CompanyId == CompanyId).FirstOrDefault() != null)
+                if (_dbContext.TblAccounts.Where(x => x.UserName.Equals(stremailAddress) && x.AccountId != intAdminID && x.AccountId == AccountId && x.RoleId == RoleType.Admin.GetHashCode()).FirstOrDefault() != null)
                     return Json(new { success = false, message = "Email address is already in use! Try another email address!" });
 
-                TblUser user = _dbContext.TblUsers.Where(x => x.UserId == intAdminID && x.CompanyId == CompanyId).FirstOrDefault();
-                if (user.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString()))
+                TblAccount user = _dbContext.TblAccounts.Where(x => x.RoleId == RoleType.Admin.GetHashCode() && x.AccountId == AccountId).FirstOrDefault();
+                if (user.UserName.Equals(Request.Cookies["EmailAddress"].ToString()))
                     return Json(new { success = false, message = "You can not change your own details!" });
                 user.FullName = strfullName;
-                user.EmailAddress = stremailAddress;
+                user.UserName = stremailAddress;
+                user.UpdatedDate = DateTime.Now;
                 _dbContext.Entry(user).State = EntityState.Modified;
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
@@ -562,13 +612,13 @@ namespace RealEstate.Controllers
                     return RedirectToAction("Login", "Account");
 
                 int id = Convert.ToInt32(Request.Form["adminID"]);
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                return Json(_dbContext.TblUsers.Where(x => x.UserId == id && x.CompanyId == CompanyId).Select(x => new
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                return Json(_dbContext.TblAccounts.Where(x => x.RoleId == RoleType.Admin.GetHashCode() && x.AccountId == AccountId).Select(x => new
                 {
                     success = true,
-                    adminID = x.UserId,
+                    adminID = x.AccountId,
                     fullName = x.FullName,
-                    emailAddress = x.EmailAddress
+                    emailAddress = x.UserName
                 }).FirstOrDefault());
             }
             catch (Exception ex)
@@ -590,16 +640,17 @@ namespace RealEstate.Controllers
                 return RedirectToAction("Login", "Account");
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int id = Convert.ToInt32(Request.Form["id"]);
                 int Flag = Convert.ToInt32(Request.Form["flag"]);
-                TblUser user = _dbContext.TblUsers.FirstOrDefault(c => c.UserId == id && c.CompanyId == CompanyId);
-                if (user.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString()))
+                TblAccount user = _dbContext.TblAccounts.FirstOrDefault(c => c.RoleId == RoleType.Admin.GetHashCode() && c.IsOwner == false && c.AccountId == AccountId);
+                if (user.UserName.Equals(Request.Cookies["EmailAddress"].ToString()))
                     return Json(new { success = false, message = "You can not change your status!" });
                 if (Flag >= 1)
-                    user.IsActive = true;
+                    user.Status = true;
                 else
-                    user.IsActive = false;
+                    user.Status = false;
+                user.UpdatedDate = DateTime.Now;
                 _dbContext.Entry(user).State = EntityState.Modified;
                 _dbContext.SaveChanges();
                 if (Flag >= 1)
@@ -626,13 +677,13 @@ namespace RealEstate.Controllers
             try
             {
                 int id = 0;
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 if (Request.Form.ContainsKey("id")) { id = Convert.ToInt32(Request.Form["id"]); }
                 if (id <= 0) { throw new Exception("Identity can not be blank!"); }
-                TblUser user = _dbContext.TblUsers.Where(x => x.UserId == id && x.CompanyId == CompanyId).FirstOrDefault();
-                if (user.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString()))
+                TblAccount user = _dbContext.TblAccounts.Where(c => c.RoleId == RoleType.Admin.GetHashCode() && c.IsOwner == false && c.AccountId == AccountId).FirstOrDefault();
+                if (user.UserName.Equals(Request.Cookies["EmailAddress"].ToString()))
                     return Json(new { success = false, message = "You can not delete your self!" });
-                _dbContext.TblUsers.Remove(user);
+                _dbContext.TblAccounts.Remove(user);
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
             }
@@ -835,14 +886,14 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int intAgentID = Convert.ToInt32(Request.Form["agentID"]);
                 var leadIDList = Request.Form["leadID"].ToString().Split(",");
                 if (leadIDList.Count() > 0)
                 {
                     foreach (var item in leadIDList)
                     {
-                        TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == Convert.ToInt32(item) && x.CompanyId == CompanyId).FirstOrDefault();
+                        TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == Convert.ToInt32(item) && x.AccountId == AccountId).FirstOrDefault();
                         lead.AgentId = intAgentID <= 0 ? Convert.ToInt32(DBNull.Value) : intAgentID;
                         _dbContext.Entry(lead).State = EntityState.Modified;
                         _dbContext.SaveChanges();
@@ -877,8 +928,8 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                        var oStageList = DB.TblStages.Where(x => x.CompanyId == CompanyId).ToList().Select(s => new StageViewModel
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oStageList = DB.TblStages.Where(x => x.AccountId == AccountId).ToList().Select(s => new StageViewModel
                         {
                             StageId = s.StageId,
                             StageName = s.StageName,
@@ -935,9 +986,9 @@ namespace RealEstate.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                     TblStage oData = new TblStage();
-                    oData.CompanyId = CompanyId;
+                    oData.AccountId = AccountId;
                     oData.StageName = string.IsNullOrEmpty(model.StageName) ? string.Empty : model.StageName;
                     oData.CreatedDate = DateTime.Now;
 
@@ -974,9 +1025,9 @@ namespace RealEstate.Controllers
                 if (!IsUserAuthorize())
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int stageId = Convert.ToInt32(Request.Form["stageId"]);
-                return Json(_dbContext.TblStages.Where(x => x.CompanyId == CompanyId && x.StageId == stageId).Select(x => new
+                return Json(_dbContext.TblStages.Where(x => x.AccountId == AccountId && x.StageId == stageId).Select(x => new
                 {
                     success = true,
                     StageId = x.StageId,
@@ -1004,11 +1055,11 @@ namespace RealEstate.Controllers
                 if (!IsUserAuthorize())
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int stageId = Convert.ToInt32(Request.Form["stageId"]);
                 string stageName = Request.Form["stageName"];
 
-                TblStage oStage = _dbContext.TblStages.Where(x => x.StageId == stageId && x.CompanyId == CompanyId).FirstOrDefault();
+                TblStage oStage = _dbContext.TblStages.Where(x => x.StageId == stageId && x.AccountId == AccountId).FirstOrDefault();
                 if (oStage != null)
                 {
                     oStage.StageName = stageName;
@@ -1042,10 +1093,10 @@ namespace RealEstate.Controllers
                 return RedirectToAction("Login", "Account");
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int stageId = Convert.ToInt32(Request.Form["stageId"]);
                 if (stageId <= 0) { throw new Exception("Identity can not be blank!"); }
-                TblStage oData = _dbContext.TblStages.Where(x => x.StageId == stageId && x.CompanyId == CompanyId).FirstOrDefault();
+                TblStage oData = _dbContext.TblStages.Where(x => x.StageId == stageId && x.AccountId == AccountId).FirstOrDefault();
                 _dbContext.TblStages.Remove(oData);
                 _dbContext.SaveChanges();
                 return Json(new { success = true, message = "Stage deleted Sucessfully." });
@@ -1067,14 +1118,17 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int intstageID = Convert.ToInt32(Request.Form["stageID"]);
                 var leadIDList = Request.Form["leadID"].ToString().Split(",");
                 if (leadIDList.Count() > 0)
                 {
                     foreach (var item in leadIDList)
                     {
-                        TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == Convert.ToInt32(item) && x.CompanyId == CompanyId).FirstOrDefault();
+                        TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == Convert.ToInt32(item) && x.AccountId == AccountId).FirstOrDefault();
                         lead.StageId = intstageID <= 0 ? Convert.ToInt32(DBNull.Value) : intstageID;
                         _dbContext.Entry(lead).State = EntityState.Modified;
                         _dbContext.SaveChanges();
@@ -1103,10 +1157,13 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int stageId = Convert.ToInt32(Request.Form["stageId"]);
                 int intLeadID = Convert.ToInt32(Request.Form["leadID"]);
-                TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == intLeadID && x.CompanyId == CompanyId).FirstOrDefault();
+                TblLead lead = _dbContext.TblLeads.Where(x => x.LeadId == intLeadID && x.AccountId == AccountId).FirstOrDefault();
                 lead.StageId = stageId <= 0 ? Convert.ToInt32(DBNull.Value) : stageId;
                 _dbContext.Entry(lead).State = EntityState.Modified;
                 _dbContext.SaveChanges();
@@ -1125,7 +1182,6 @@ namespace RealEstate.Controllers
 
         #endregion
 
-
         #region Tags
         public IActionResult Tags()
         {
@@ -1138,8 +1194,8 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                        var oTagsList = DB.TblTags.Where(x => x.CompanyId == CompanyId).ToList().Select(s => new TagsViewModel
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oTagsList = DB.TblTags.Where(x => x.AccountId == AccountId).ToList().Select(s => new TagsViewModel
                         {
                             TagsId = s.TagId,
                             TagsName = s.TagName,
@@ -1196,9 +1252,9 @@ namespace RealEstate.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                     TblTag oData = new TblTag();
-                    oData.CompanyId = CompanyId;
+                    oData.AccountId = AccountId;
                     oData.TagName = string.IsNullOrEmpty(model.TagsName) ? string.Empty : model.TagsName;
                     oData.CreatedDate = DateTime.Now;
 
@@ -1235,9 +1291,9 @@ namespace RealEstate.Controllers
                 if (!IsUserAuthorize())
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int tagId = Convert.ToInt32(Request.Form["TagId"]);
-                return Json(_dbContext.TblTags.Where(x => x.CompanyId == CompanyId && x.TagId == tagId).Select(x => new
+                return Json(_dbContext.TblTags.Where(x => x.AccountId == AccountId && x.TagId == tagId).Select(x => new
                 {
                     success = true,
                     tagId = x.TagId,
@@ -1265,11 +1321,11 @@ namespace RealEstate.Controllers
                 if (!IsUserAuthorize())
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int tagId = Convert.ToInt32(Request.Form["tagId"]);
                 string tagName = Request.Form["TagName"];
 
-                TblTag oStage = _dbContext.TblTags.Where(x => x.TagId == tagId && x.CompanyId == CompanyId).FirstOrDefault();
+                TblTag oStage = _dbContext.TblTags.Where(x => x.TagId == tagId && x.AccountId == AccountId).FirstOrDefault();
                 if (oStage != null)
                 {
                     oStage.TagName = tagName;
@@ -1295,14 +1351,17 @@ namespace RealEstate.Controllers
 
         public IActionResult DeleteTags()
         {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
             if (!IsUserAuthorize())
                 return RedirectToAction("Login", "Account");
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int TagId = Convert.ToInt32(Request.Form["TagId"]);
                 if (TagId <= 0) { throw new Exception("Identity can not be blank!"); }
-                TblTag oData = _dbContext.TblTags.Where(x => x.TagId == TagId && x.CompanyId == CompanyId).FirstOrDefault();
+                TblTag oData = _dbContext.TblTags.Where(x => x.TagId == TagId && x.AccountId == AccountId).FirstOrDefault();
                 _dbContext.TblTags.Remove(oData);
                 _dbContext.SaveChanges();
                 return Json(new { success = true, message = "Tags deleted Sucessfully." });
@@ -1324,7 +1383,10 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 var tageIDList = Request.Form["tagID"].ToString().Split(",");
                 var leadIDList = Request.Form["leadID"].ToString().Split(",");
                 if (leadIDList.Count() > 0)
@@ -1332,7 +1394,7 @@ namespace RealEstate.Controllers
                     foreach (var item in leadIDList)
                     {
                         int LeadId = Convert.ToInt32(item);
-                        var model = _dbContext.TblLeadTags.Where(x => x.LeadId == LeadId && x.CompanyId == CompanyId).ToList();
+                        var model = _dbContext.TblLeadTags.Where(x => x.LeadId == LeadId && x.AccountId == AccountId).ToList();
                         if (model.Count > 0)
                         {
                             foreach (var obj in model)
@@ -1346,7 +1408,7 @@ namespace RealEstate.Controllers
                         {
                             //TblLeadTag leadTag = _dbContext.TblLeadTags.Where(x => x.LeadId == Convert.ToInt32(item) && x.CompanyId == CompanyId).FirstOrDefault();
                             TblLeadTag oData = new TblLeadTag();
-                            oData.CompanyId = CompanyId;
+                            oData.AccountId = AccountId;
                             oData.TagId = Convert.ToInt32(itemTag);
                             oData.LeadId = Convert.ToInt32(item);
                             _dbContext.TblLeadTags.Add(oData);
@@ -1378,8 +1440,10 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
 
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int leadID = Convert.ToInt32(Request.Form["leadID"]);
                 List<int?> selectedTags = _dbContext.TblLeadTags.Where(x => x.LeadId == leadID).Select(x => x.TagId).ToList();
                 if (selectedTags.Count > 0)
@@ -1402,5 +1466,1225 @@ namespace RealEstate.Controllers
 
         }
         #endregion
+
+        #region AppointmentTypes
+        public IActionResult AppointmentTypes()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                {
+                    using (var DB = _dbContext)
+                    {
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oAppointmentTypeList = DB.TblAppointmentTypes.Where(x => x.AccountId == AccountId).ToList().Select(s => new AppointmentTypeViewModel
+                        {
+                            AppointmenTypeId = s.AppointmenTypeId,
+                            AppointmentTypeName = s.AppointmentTypeName,
+                        });
+                        return View(oAppointmentTypeList);
+                    }
+                }
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        //[HttpGet]
+        public IActionResult AddAppointmentTypes()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                    return View();
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddAppointmentTypes(AppointmentTypeViewModel model)
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                if (ModelState.IsValid)
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    TblAppointmentType oData = new TblAppointmentType();
+                    oData.AccountId = AccountId;
+                    oData.AppointmentTypeName = string.IsNullOrEmpty(model.AppointmentTypeName) ? string.Empty : model.AppointmentTypeName;
+                    oData.CreatedDate = DateTime.Now;
+
+                    _dbContext.TblAppointmentTypes.Add(oData);
+                    _dbContext.SaveChanges();
+
+                    ShowSuccessMessage("Appointment Type added Successfully.", true);
+                    return RedirectToAction("AppointmentTypes", "Admin");
+                }
+                else
+                {
+                    return View(model);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ShowErrorMessage(ex.Message, true);
+                return View(model);
+            }
+        }
+
+
+        public IActionResult GetAppointmentTypeDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentTypeID = Convert.ToInt32(Request.Form["AppointmentTypeID"]);
+                return Json(_dbContext.TblAppointmentTypes.Where(x => x.AccountId == AccountId && x.AppointmenTypeId == AppointmentTypeID).Select(x => new
+                {
+                    success = true,
+                    AppointmenTypeId = x.AppointmenTypeId,
+                    AppointmentTypeName = x.AppointmentTypeName
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+
+        public IActionResult UpdateAppointmentTypeDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentTypeId = Convert.ToInt32(Request.Form["AppointmentTypeId"]);
+                string Name = Request.Form["Name"];
+
+                TblAppointmentType oAppointmentType = _dbContext.TblAppointmentTypes.Where(x => x.AppointmenTypeId == AppointmentTypeId && x.AccountId == AccountId).FirstOrDefault();
+                if (oAppointmentType != null)
+                {
+                    oAppointmentType.AppointmentTypeName = Name;
+                    oAppointmentType.UpdatedDate = DateTime.Now;
+                    _dbContext.Entry(oAppointmentType).State = EntityState.Modified;
+                    _dbContext.SaveChanges();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Appointment Type Found." });
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+
+        public IActionResult DeleteAppointmentType()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentTypeId = Convert.ToInt32(Request.Form["AppointmentTypeId"]);
+                if (AppointmentTypeId <= 0) { throw new Exception("Identity can not be blank!"); }
+                TblAppointmentType oData = _dbContext.TblAppointmentTypes.Where(x => x.AppointmenTypeId == AppointmentTypeId && x.AccountId == AccountId).FirstOrDefault();
+                _dbContext.TblAppointmentTypes.Remove(oData);
+                _dbContext.SaveChanges();
+                return Json(new { success = true, message = "Appointment Type deleted Sucessfully." });
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+
+        #region AppointmentOutcomes
+        public IActionResult AppointmentOutcomes()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                {
+                    using (var DB = _dbContext)
+                    {
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oAppointmentOutcomeList = DB.TblAppointmentOutcomes.Where(x => x.AccountId == AccountId).ToList().Select(s => new AppointmentOutcomeViewModel
+                        {
+                            AppointmentOutcomeId = s.AppointmentOutcomeId,
+                            AppointmentOutcomeName = s.AppointmentOutcomeName,
+                        });
+                        return View(oAppointmentOutcomeList);
+                    }
+                }
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        //[HttpGet]
+        public IActionResult AddAppointmentOutcomes()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                    return View();
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddAppointmentOutcomes(AppointmentOutcomeViewModel model)
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                if (ModelState.IsValid)
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    TblAppointmentOutcome oData = new TblAppointmentOutcome();
+                    oData.AccountId = AccountId;
+                    oData.AppointmentOutcomeName = string.IsNullOrEmpty(model.AppointmentOutcomeName) ? string.Empty : model.AppointmentOutcomeName;
+                    oData.CreatedDate = DateTime.Now;
+
+                    _dbContext.TblAppointmentOutcomes.Add(oData);
+                    _dbContext.SaveChanges();
+
+                    ShowSuccessMessage("Appointment Outcome added Successfully.", true);
+                    return RedirectToAction("AppointmentOutcomes", "Admin");
+                }
+                else
+                {
+                    return View(model);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ShowErrorMessage(ex.Message, true);
+                return View(model);
+            }
+        }
+
+
+        public IActionResult GetAppointmentOutcomeDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentOutcomeId = Convert.ToInt32(Request.Form["AppointmentOutcomeId"]);
+                return Json(_dbContext.TblAppointmentOutcomes.Where(x => x.AccountId == AccountId && x.AppointmentOutcomeId == AppointmentOutcomeId).Select(x => new
+                {
+                    success = true,
+                    AppointmentOutcomeId = x.AppointmentOutcomeId,
+                    AppointmentOutcomeName = x.AppointmentOutcomeName
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+
+        public IActionResult UpdateAppointmentOutcomeDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentOutcomeId = Convert.ToInt32(Request.Form["AppointmentOutcomeId"]);
+                string Name = Request.Form["Name"];
+
+                TblAppointmentOutcome oAppointmentOutCome = _dbContext.TblAppointmentOutcomes.Where(x => x.AppointmentOutcomeId == AppointmentOutcomeId && x.AccountId == AccountId).FirstOrDefault();
+                if (oAppointmentOutCome != null)
+                {
+                    oAppointmentOutCome.AppointmentOutcomeName = Name;
+                    oAppointmentOutCome.UpdatedDate = DateTime.Now;
+                    _dbContext.Entry(oAppointmentOutCome).State = EntityState.Modified;
+                    _dbContext.SaveChanges();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Appointment Type Found." });
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+
+        public IActionResult DeleteAppointmentOutcome()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int AppointmentOutcomeId = Convert.ToInt32(Request.Form["AppointmentOutcomeId"]);
+                if (AppointmentOutcomeId <= 0) { throw new Exception("Identity can not be blank!"); }
+                TblAppointmentOutcome oData = _dbContext.TblAppointmentOutcomes.Where(x => x.AppointmentOutcomeId == AppointmentOutcomeId && x.AccountId == AccountId).FirstOrDefault();
+                _dbContext.TblAppointmentOutcomes.Remove(oData);
+                _dbContext.SaveChanges();
+                return Json(new { success = true, message = "Appointment Outcome deleted Sucessfully." });
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+
+        #region CustomFields
+        public IActionResult CustomFields()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                {
+                    using (var DB = _dbContext)
+                    {
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oCustomFieldList = DB.TblCustomFields.Where(x => x.AccountId == AccountId).Include(x => x.FieldType).ToList().Select(s => new CustomFieldViewModel
+                        {
+                            Id = s.Id,
+                            FieldName = s.FieldName,
+                            FieldTypeId = (int)s.FieldTypeId,
+                            CustomFieldType = s.FieldType,
+                            HideIfEmpty = (bool)s.HideIfEmpty
+                        });
+                        return View(oCustomFieldList);
+                    }
+                }
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        public IActionResult AddCustomFields()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (IsUserAuthorize())
+                    return View();
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddCustomFields(CustomFieldViewModel model, string[] DynamicTextBox)
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (ModelState.IsValid)
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    TblCustomField oData = new TblCustomField();
+                    oData.AccountId = AccountId;
+                    oData.FieldTypeId = model.FieldTypeId;
+                    oData.FieldName = string.IsNullOrEmpty(model.FieldName) ? string.Empty : model.FieldName;
+                    oData.HideIfEmpty = model.HideIfEmpty;
+                    oData.CreatedDate = DateTime.Now;
+
+                    _dbContext.TblCustomFields.Add(oData);
+                    _dbContext.SaveChanges();
+
+                    if (DynamicTextBox[0] != null)
+                    {
+                        foreach (var item in DynamicTextBox)
+                        {
+                            TblCustomFieldValue oFieldValue = new TblCustomFieldValue();
+                            oFieldValue.CustomFieldId = oData.Id;
+                            oFieldValue.AccountId = AccountId;
+                            oFieldValue.FieldValue = item.Trim();
+                            oFieldValue.CreatedDate = DateTime.Now;
+                            _dbContext.TblCustomFieldValues.Add(oFieldValue);
+                            _dbContext.SaveChanges();
+                        }
+                    }
+                    ShowSuccessMessage("Custom Field added Successfully.", true);
+                    return RedirectToAction("CustomFields", "Admin");
+                }
+                else
+                {
+                    return View(model);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ShowErrorMessage(ex.Message, true);
+                return View(model);
+            }
+        }
+
+        public IActionResult GetCustomFieldDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int CustomFieldId = Convert.ToInt32(Request.Form["CustomFieldId"]);
+                return Json(_dbContext.TblCustomFields.Where(x => x.AccountId == AccountId && x.Id == CustomFieldId).Include(x => x.TblCustomFieldValues.Where(y => y.CustomFieldId == CustomFieldId)).Select(x => new
+                {
+                    success = true,
+                    Id = x.Id,
+                    FieldTypeId = x.FieldTypeId,
+                    FieldName = x.FieldName,
+                    FieldValues = x.TblCustomFieldValues
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+
+        public IActionResult getCustomFieldType()
+        {
+            int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+            //DatabaseEntities db = new DatabaseEntities();
+            return Json(_dbContext.TblCustomFieldTypes.Select(x => new
+            {
+                FieldTypeId = x.Id,
+                FieldType = x.FieldType
+            }).ToList());
+        }
+
+        public IActionResult UpdateCustomFieldDetails()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int CustomFieldId = Convert.ToInt32(Request.Form["CustomFieldId"]);
+                int CustomFieldTypeId = Convert.ToInt32(Request.Form["CustomFieldTypeId"]);
+                string Name = Request.Form["Name"];
+                string DropDownOption = Request.Form["DropDownOption"];
+                string[] ddlOptionvalue = null;
+                if (DropDownOption != null)
+                {
+                    ddlOptionvalue = DropDownOption.Split(",");
+                }
+
+                TblCustomField oCustomField = _dbContext.TblCustomFields.Where(x => x.Id == CustomFieldId && x.AccountId == AccountId).FirstOrDefault();
+                if (oCustomField != null)
+                {
+                    oCustomField.FieldName = Name;
+                    oCustomField.UpdatedDate = DateTime.Now;
+                    _dbContext.Entry(oCustomField).State = EntityState.Modified;
+                    _dbContext.SaveChanges();
+                    if (ddlOptionvalue.Length > 0)
+                    {
+                        var model = _dbContext.TblCustomFieldValues.Where(x => x.CustomFieldId == CustomFieldId && x.AccountId == AccountId).ToList();
+                        if (model.Count > 0)
+                        {
+                            foreach (var obj in model)
+                            {
+                                _dbContext.Entry(obj).State = EntityState.Deleted;
+                            }
+                            _dbContext.SaveChanges();
+                        }
+
+                        foreach (var item in ddlOptionvalue)
+                        {
+                            TblCustomFieldValue oCustomFieldValue = new TblCustomFieldValue();
+                            oCustomFieldValue.CustomFieldId = CustomFieldId;
+                            oCustomFieldValue.AccountId = AccountId;
+                            oCustomFieldValue.FieldValue = item.Trim();
+                            oCustomFieldValue.CreatedDate = DateTime.Now;
+                            _dbContext.TblCustomFieldValues.Add(oCustomFieldValue);
+                            _dbContext.SaveChanges();
+                        }
+                    }
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Custom Field Found." });
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        public IActionResult DeleteCustomField()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int CustomFieldId = Convert.ToInt32(Request.Form["CustomFieldId"]);
+                if (CustomFieldId <= 0) { throw new Exception("Identity can not be blank!"); }
+
+                var model = _dbContext.TblCustomFieldValues.Where(x => x.CustomFieldId == CustomFieldId && x.AccountId == AccountId).ToList();
+                if (model.Count > 0)
+                {
+                    foreach (var obj in model)
+                    {
+                        _dbContext.Entry(obj).State = EntityState.Deleted;
+                    }
+                    _dbContext.SaveChanges();
+                }
+
+                TblCustomField oData = _dbContext.TblCustomFields.Where(x => x.Id == CustomFieldId && x.AccountId == AccountId).FirstOrDefault();
+                _dbContext.TblCustomFields.Remove(oData);
+                _dbContext.SaveChanges();
+
+
+                return Json(new { success = true, message = "Custom Field deleted Sucessfully." });
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+
+
+        #region EmailTemplate
+        public IActionResult EmailTemplate()
+        {
+            try
+            {
+                LoadDropDown();
+
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                {
+                    using (var DB = _dbContext)
+                    {
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oEmailTemplateList = DB.TblEmailTemplates.Where(x => x.AccountId == AccountId && x.IsType == EmailType.EmailTemplate.GetHashCode()).ToList().Select(s => new EmailTemplateViewModel
+                        {
+                            EmailTemplateID = s.EmailTemplateId,
+                            EmailSubject = s.EmailSubject,
+                            EmailName = s.EmailName,
+                            EmailTemplateDescription = s.EmailTemplateDescription,
+                            IsActive = (bool)s.IsActive
+                        });
+                        return View(oEmailTemplateList);
+                    }
+                }
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        public IActionResult AddEmailTemplate()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (IsUserAuthorize())
+                    return View();
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddEmailTemplate(EmailTemplateViewModel model)
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (ModelState.IsValid)
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    TblEmailTemplate oData = new TblEmailTemplate();
+                    oData.AccountId = AccountId;
+                    oData.TemplateTypeId = model.TemplateTypeId;
+                    oData.EmailName = string.IsNullOrEmpty(model.EmailName) ? string.Empty : model.EmailName;
+                    oData.EmailTemplateDescription = string.IsNullOrEmpty(model.EmailTemplateDescription) ? string.Empty : model.EmailTemplateDescription;
+                    oData.FromEmail = string.IsNullOrEmpty(model.FromEmail) ? string.Empty : model.FromEmail;
+                    oData.EmailSubject = string.IsNullOrEmpty(model.EmailSubject) ? string.Empty : model.EmailSubject;
+                    oData.Body = string.IsNullOrEmpty(model.Body) ? string.Empty : model.Body;
+                    oData.IsType = EmailType.EmailTemplate.GetHashCode();
+                    oData.IsActive = model.IsActive;
+                    oData.CreatedDate = DateTime.Now;
+                    //oData.UpdatedDate = DateTime.Now;
+                    _dbContext.TblEmailTemplates.Add(oData);
+                    _dbContext.SaveChanges();
+
+                    ShowSuccessMessage("Email template added Successfully.", true);
+                    return RedirectToAction("EmailTemplate", "Admin");
+                }
+                else
+                {
+                    return View(model);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ShowErrorMessage(ex.Message, true);
+                return View(model);
+            }
+        }
+
+        public IActionResult GetEmailTemplateById()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                return Json(_dbContext.TblEmailTemplates.Where(x => x.AccountId == AccountId && x.IsType == EmailType.EmailTemplate.GetHashCode() && x.EmailTemplateId == EmailTemplateID).Select(x => new
+                {
+                    success = true,
+                    TemplateTypeId = x.TemplateTypeId,
+                    EmailTemplateId = x.EmailTemplateId,
+                    EmailName = x.EmailName,
+                    EmailSubject = x.EmailSubject,
+                    EmailTemplateDescription = x.EmailTemplateDescription,
+                    Body = x.Body,
+                    FromEmail = x.FromEmail,
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+
+        public IActionResult UpdateEmailTemplate()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                int TemplateTypeID = Convert.ToInt32(Request.Form["TemplateTypeID"]);
+                string EmailName = Request.Form["EmailName"];
+                string Description = Request.Form["Description"];
+                string FromEmail = Request.Form["FromEmail"];
+                string EmailSubject = Request.Form["EmailSubject"];
+                string MailBody = Request.Form["MailBody"];
+               
+                TblEmailTemplate oEmailTemplate = _dbContext.TblEmailTemplates.Where(x => x.EmailTemplateId == EmailTemplateID && x.AccountId == AccountId && x.IsType == EmailType.EmailTemplate.GetHashCode()).FirstOrDefault();
+                if (oEmailTemplate != null)
+                {
+                    oEmailTemplate.AccountId = AccountId;
+                    oEmailTemplate.TemplateTypeId = TemplateTypeID;
+                    oEmailTemplate.EmailName = EmailName;
+                    oEmailTemplate.EmailTemplateDescription = Description;
+                    oEmailTemplate.FromEmail = FromEmail;
+                    oEmailTemplate.EmailSubject = EmailSubject;
+                    oEmailTemplate.Body = MailBody;
+                    oEmailTemplate.IsType = EmailType.EmailTemplate.GetHashCode();
+                    oEmailTemplate.UpdatedDate = DateTime.Now;
+                    _dbContext.Entry(oEmailTemplate).State = EntityState.Modified;
+                    _dbContext.SaveChanges();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Email Template Found." });
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        public IActionResult ActivateDeactivateEmailTemplate()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                int Flag = Convert.ToInt32(Request.Form["flag"]);
+                TblEmailTemplate EmailTemplate = _dbContext.TblEmailTemplates.FirstOrDefault(c => c.EmailTemplateId == EmailTemplateID && c.AccountId == AccountId && c.IsType == EmailType.EmailTemplate.GetHashCode());
+                if (Flag >= 1)
+                    EmailTemplate.IsActive = true;
+                else
+                    EmailTemplate.IsActive = false;
+                EmailTemplate.UpdatedDate = DateTime.Now;
+                _dbContext.Entry(EmailTemplate).State = EntityState.Modified;
+                _dbContext.SaveChanges();
+                if (Flag >= 1)
+                    return Json(new { Act = true, message = "Email template is activated" });
+                else
+                    return Json(new { DeAct = true, message = "Email template is de-activated" });
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { Error = false });
+            }
+        }
+
+        public IActionResult DeleteEmailTemplate()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                if (EmailTemplateID <= 0) { throw new Exception("Identity can not be blank!"); }
+                TblEmailTemplate oData = _dbContext.TblEmailTemplates.Where(x => x.EmailTemplateId == EmailTemplateID && x.AccountId == AccountId && x.IsType == EmailType.EmailTemplate.GetHashCode()).FirstOrDefault();
+                _dbContext.TblEmailTemplates.Remove(oData);
+                _dbContext.SaveChanges();
+                return Json(new { success = true, message = "Email template deleted Sucessfully." });
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+
+
+        #region TextTemplate
+        public IActionResult TextTemplate()
+        {
+            try
+            {
+                LoadDropDown();
+
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (IsUserAuthorize())
+                {
+                    using (var DB = _dbContext)
+                    {
+                        int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        var oEmailTemplateList = DB.TblEmailTemplates.Where(x => x.AccountId == AccountId && x.IsType == EmailType.TextTemplate.GetHashCode()).ToList().Select(s => new EmailTemplateViewModel
+                        {
+                            EmailTemplateID = s.EmailTemplateId,
+                            EmailSubject = s.EmailSubject,
+                            EmailName = s.EmailName,
+                            EmailTemplateDescription = s.EmailTemplateDescription,
+                            IsActive = (bool)s.IsActive
+                        });
+                        return View(oEmailTemplateList);
+                    }
+                }
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        public IActionResult AddTextTemplate()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (IsUserAuthorize())
+                    return View();
+                else
+                    return RedirectToAction("Login", "Account");
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult AddTextTemplate(EmailTemplateViewModel model)
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+
+                if (ModelState.IsValid)
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    TblEmailTemplate oData = new TblEmailTemplate();
+                    oData.AccountId = AccountId;
+                    oData.TemplateTypeId = model.TemplateTypeId;
+                    oData.EmailName = string.IsNullOrEmpty(model.EmailName) ? string.Empty : model.EmailName;
+                    oData.EmailTemplateDescription = string.IsNullOrEmpty(model.EmailTemplateDescription) ? string.Empty : model.EmailTemplateDescription;
+                    oData.FromEmail = string.IsNullOrEmpty(model.FromEmail) ? string.Empty : model.FromEmail;
+                    oData.EmailSubject = string.IsNullOrEmpty(model.EmailSubject) ? string.Empty : model.EmailSubject;
+                    oData.Body = string.IsNullOrEmpty(model.Body) ? string.Empty : model.Body;
+                    oData.IsType = EmailType.TextTemplate.GetHashCode();
+                    oData.IsActive = model.IsActive;
+                    oData.CreatedDate = DateTime.Now;
+                    //oData.UpdatedDate = DateTime.Now;
+                    _dbContext.TblEmailTemplates.Add(oData);
+                    _dbContext.SaveChanges();
+
+                    ShowSuccessMessage("Text template added Successfully.", true);
+                    return RedirectToAction("TextTemplate", "Admin");
+                }
+                else
+                {
+                    return View(model);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ShowErrorMessage(ex.Message, true);
+                return View(model);
+            }
+        }
+
+        public IActionResult GetTextTemplateById()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                return Json(_dbContext.TblEmailTemplates.Where(x => x.AccountId == AccountId && x.IsType == EmailType.TextTemplate.GetHashCode() && x.EmailTemplateId == EmailTemplateID).Select(x => new
+                {
+                    success = true,
+                    TemplateTypeId = x.TemplateTypeId,
+                    EmailTemplateId = x.EmailTemplateId,
+                    EmailName = x.EmailName,
+                    EmailSubject = x.EmailSubject,
+                    EmailTemplateDescription = x.EmailTemplateDescription,
+                    Body = x.Body,
+                    FromEmail = x.FromEmail,
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+
+        public IActionResult UpdateTextTemplate()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                int TemplateTypeID = Convert.ToInt32(Request.Form["TemplateTypeID"]);
+                string EmailName = Request.Form["EmailName"];
+                string Description = Request.Form["Description"];
+                string FromEmail = Request.Form["FromEmail"];
+                string EmailSubject = Request.Form["EmailSubject"];
+                string MailBody = Request.Form["MailBody"];
+
+                TblEmailTemplate oEmailTemplate = _dbContext.TblEmailTemplates.Where(x => x.EmailTemplateId == EmailTemplateID && x.AccountId == AccountId && x.IsType == EmailType.TextTemplate.GetHashCode()).FirstOrDefault();
+                if (oEmailTemplate != null)
+                {
+                    oEmailTemplate.AccountId = AccountId;
+                    oEmailTemplate.TemplateTypeId = TemplateTypeID;
+                    oEmailTemplate.EmailName = EmailName;
+                    oEmailTemplate.EmailTemplateDescription = Description;
+                    oEmailTemplate.FromEmail = FromEmail;
+                    oEmailTemplate.EmailSubject = EmailSubject;
+                    oEmailTemplate.Body = MailBody;
+                    oEmailTemplate.IsType = EmailType.TextTemplate.GetHashCode();
+                    oEmailTemplate.UpdatedDate = DateTime.Now;
+                    _dbContext.Entry(oEmailTemplate).State = EntityState.Modified;
+                    _dbContext.SaveChanges();
+                    return Json(new { success = true });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "No Text Template Found." });
+                }
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        public IActionResult ActivateDeactivateTextTemplate()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                int Flag = Convert.ToInt32(Request.Form["flag"]);
+                TblEmailTemplate EmailTemplate = _dbContext.TblEmailTemplates.FirstOrDefault(c => c.EmailTemplateId == EmailTemplateID && c.AccountId == AccountId && c.IsType == EmailType.TextTemplate.GetHashCode());
+                if (Flag >= 1)
+                    EmailTemplate.IsActive = true;
+                else
+                    EmailTemplate.IsActive = false;
+                EmailTemplate.UpdatedDate = DateTime.Now;
+                _dbContext.Entry(EmailTemplate).State = EntityState.Modified;
+                _dbContext.SaveChanges();
+                if (Flag >= 1)
+                    return Json(new { Act = true, message = "Text template is activated" });
+                else
+                    return Json(new { DeAct = true, message = "Text template is de-activated" });
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { Error = false });
+            }
+        }
+
+        public IActionResult DeleteTextTemplate()
+        {
+            if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                return RedirectToAction("Login", "Account");
+
+            if (!IsUserAuthorize())
+                return RedirectToAction("Login", "Account");
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                if (EmailTemplateID <= 0) { throw new Exception("Identity can not be blank!"); }
+                TblEmailTemplate oData = _dbContext.TblEmailTemplates.Where(x => x.EmailTemplateId == EmailTemplateID && x.AccountId == AccountId && x.IsType == EmailType.TextTemplate.GetHashCode()).FirstOrDefault();
+                _dbContext.TblEmailTemplates.Remove(oData);
+                _dbContext.SaveChanges();
+                return Json(new { success = true, message = "Text template deleted Sucessfully." });
+            }
+            catch (Exception ex)
+            {
+
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+        public void LoadDropDown()
+        {
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+
+                Dictionary<int, string> sFieldTypeList = new Dictionary<int, string>();
+                var FieldTypes = _dbContext.TblCustomFieldTypes.ToList();
+                foreach (var item in FieldTypes)
+                {
+                    sFieldTypeList.Add(item.Id, item.FieldType);
+                }
+                ViewBag.FieldTypeList = sFieldTypeList;
+
+
+                Dictionary<int, string> sTemplateTypeList = new Dictionary<int, string>();
+                var TemplateTypes = _dbContext.TblTemplateTypes.ToList();
+                foreach (var item in TemplateTypes)
+                {
+                    sTemplateTypeList.Add(item.TemplateTypeId, item.TypeName);
+                }
+                ViewBag.TemplateTypeList = sTemplateTypeList;
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+            }
+        }
     }
 }

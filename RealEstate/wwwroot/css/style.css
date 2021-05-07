@@ -778,3 +778,11 @@ border-bottom: 5px solid #BF0D1C;
     display: flex;
     flex-wrap: wrap;
 }
+.custom-card-text.upcoming-appointment {
+    width: 100%;
+}
+
+.appointment-title {
+    display: flex;
+    justify-content: space-between;
+}

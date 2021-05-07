@@ -1,0 +1,78 @@
+﻿@model EmailTemplateViewModel
+@{
+    ViewData["Title"] = "AddTextTemplate";
+}
+
+<partial name="_MenuBar" />
+<div class="row  mt-3">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header top-header">
+                <div class="col-lg-12">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="m-b-0 text-white">Email Template</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="post" id="f3" role="form" asp-action="AddTextTemplate" asp-controller="Admin">
+                    <div class="form-body">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Template Type:</label>
+                                <select class="form-control" asp-for="TemplateTypeId" asp-items="@(new SelectList(ViewBag.TemplateTypeList,"Key","Value"))" style="width:80%">
+                                    <option value="">Select Template</option>
+                                </select>
+                                <span asp-validation-for="TemplateTypeId" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">Email Name:</label>
+                                <input type="text" asp-for="EmailName" placeholder="Email Name" class="form-control" style="width:80%" />
+                                <span asp-validation-for="EmailName" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Description :</label>
+                                <input type="text" asp-for="EmailTemplateDescription" placeholder="Description" class="form-control" style="width:80%" />
+                                <span asp-validation-for="EmailTemplateDescription" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="inputPassword4">From Email:</label>
+                                <input type="text" asp-for="FromEmail" placeholder="From Email" class="form-control" style="width:80%" />
+                                <span asp-validation-for="FromEmail" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <label for="inputEmail4">Email Subject:</label>
+                                <input type="text" asp-for="EmailSubject" class="form-control" placeholder="Email Subject" style="width:80%" />
+                                <span asp-validation-for="EmailSubject" class="text-danger"></span>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <div class="form-checkbox-group">
+                                    <input type="checkbox" asp-for="IsActive" value="true" id="IsActive">
+                                    <label for="IsActive"> Status </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-12">
+                                <label for="inputEmail4">Email Body:</label>
+                                <textarea id="txtMailBody" class="form-control" asp-for="Body" rows="10" cols="10"></textarea>
+                                <span asp-validation-for="Body" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <div class="form-row m-3">
+                            <div class="form-group col-md-6">
+                                <input type="submit" value="Submit" name="TextTemplate" class="btn btn-success" />
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,139 @@
+﻿@model IEnumerable<EmailTemplateViewModel>
+@{
+    ViewData["Title"] = "TextTemplate";
+}
+
+
+<div role="alert" id="divAlertMessage" style="display:none"></div>
+<div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+<div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+<partial name="_MenuBar" />
+<div class="modal fade" id="divEmailTemplateModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalTitle">Edit Text Template</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgEmailTemplate" style="display:none"></div>
+                <input type="hidden" id="hdnAccountID" />
+                <input type="hidden" id="hdnEmailTemplateID" />
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Template Type</label>
+                        <select id="cmdTemplateType" class="form-control" asp-items="@(new SelectList(ViewBag.TemplateTypeList,"Key","Value"))">
+                            <option value="">Select Template</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Email Name</label><input type="text" id="txtEmailName" class="form-control" placeholder="Email Name" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Description</label><textarea id="txtDescription" cols="40" rows="3" class="form-control" placeholder="Description"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>FromEmail</label><input type="text" id="txtFromEmail" class="form-control" placeholder="From Email" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Email Subject</label><input type="text" id="txtEmailSubject" class="form-control" placeholder="Email Subject" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Email Body</label><textarea id="txtMailBody" class="form-control" rows="10" cols="10"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnUpdateTextTemplate()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content-bg mt-3">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header top-header">
+                    <div class="col-lg-12">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="m-b-0 text-white">Text Template</h4>
+                            <a asp-action="AddTextTemplate" class="btn btn-primary mr-2">+ Add Text Template</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-all-people" role="tabpanel"
+                             aria-labelledby="pills-all-people-tab">
+                            <div class="custom-card-text">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Email Name</th>
+                                            <th scope="col">Description </th>
+                                            <th scope="col">Email Subject</th>
+                                            <th scope="col">Status</th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Count() > 0)
+                                        {
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        @item.EmailName
+                                                    </td>
+                                                    <td>@item.EmailTemplateDescription</td>
+                                                    <td>@item.EmailSubject</td>
+                                                    @if (item.IsActive == true)
+                                                    {
+                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateTemplate(@item.EmailTemplateID,0)">1</a></b></font></td>
+                                                    }
+                                                    else
+                                                    {
+                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateTemplate(@item.EmailTemplateID,1)">0</a></b></font></td>
+                                                    }
+                                                    <td>
+                                                        <b>
+                                                            <a onclick="fnPopulateControls(@item.EmailTemplateID)" style="color:#007bff" title="Click to edit record.">
+                                                                Edit
+                                                            </a>
+                                                        </b> @("|")
+                                                        <b><a onclick="return ConfirmationDialog(@item.EmailTemplateID)" style="color:#dc3545" title="Click to delete record."> Delete </a></b>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="4"><h5>No Text Template Found.</h5></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/SiteJavascripts/TextTemplateList.js"></script>
+

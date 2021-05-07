@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RealEstate.Models;
@@ -29,8 +30,19 @@ namespace RealEstate.Controllers
 
         public IActionResult GetAllLead()
         {
-            int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-            var oLeadList = _dbContext.TblLeads.Where(x => x.CompanyId == CompanyId).Include(x => x.Agent).ToList().Select(s => new LeadViewModel
+            var draw = Request.Form["draw"].FirstOrDefault();
+            // Skiping number of Rows count
+            var start = Request.Form["start"].FirstOrDefault();
+            // Paging Length 10,20
+            var length = Request.Form["length"].FirstOrDefault();
+
+            int pageSize = length != null ? Convert.ToInt32(length) : 0;
+            int skip = start != null ? Convert.ToInt32(start) : 0;
+            int recordsTotal = 0;
+
+
+            int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+            var oLeadList = _dbContext.TblLeads.Where(x => x.AccountId == AccountId).Include(x => x.Agent).ToList().Select(s => new LeadViewModel
             {
                 LeadId = s.LeadId,
                 LeadSource = s.LeadSource,
@@ -47,6 +59,7 @@ namespace RealEstate.Controllers
                 Company = s.Company,
                 FirstName = s.FirstName,
                 LastName = s.LastName,
+                FullName = s.FirstName + " " + s.LastName,
                 Title = s.Title,
                 EmailAddress = s.EmailAddress,
                 PhoneNumber = s.PhoneNumber,
@@ -67,9 +80,23 @@ namespace RealEstate.Controllers
                 ZipCode = s.ZipCode,
                 Description = s.Description,
                 CreatedDate = s.CreatedDate
-            });
+            }).Skip(skip).Take(pageSize);
             LoadComboBoxes();
-            return Json(oLeadList);
+            return new JsonResult(new
+            {
+                draw = draw,
+                recordsFiltered = recordsTotal,
+                recordsTotal = recordsTotal,
+                data = oLeadList
+            });
+            //return Json(new
+            //{
+            //    draw = draw,
+            //    recordsFiltered = recordsTotal,
+            //    recordsTotal = recordsTotal,
+            //    data = oLeadList
+            //}, new Newtonsoft.Json.JsonSerializerSettings());
+            //return Json(oLeadList);
         }
 
 
@@ -77,10 +104,10 @@ namespace RealEstate.Controllers
         {
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
                 Dictionary<string, string> sOwnerList = new Dictionary<string, string>();
-                var users = _dbContext.TblUsers.Where(u => u.UserLoginTypeId == UserLoginType.Admin.GetHashCode() && u.IsActive == true).ToList();
+                var users = _dbContext.TblAccounts.Where(u => u.RoleId == RoleType.Admin.GetHashCode() && u.Status == true).ToList();
                 foreach (var item in users)
                 {
                     sOwnerList.Add(item.FullName, item.FullName);
@@ -100,7 +127,7 @@ namespace RealEstate.Controllers
 
 
                 Dictionary<int, string> oAgentlist = new Dictionary<int, string>();
-                var agents = _dbContext.TblAgents.Where(u => u.IsActive == true && u.CompanyId == CompanyId).ToList();
+                var agents = _dbContext.TblAgents.Where(u => u.IsActive == true && u.AccountId == AccountId).ToList();
                 foreach (var item in agents)
                 {
                     oAgentlist.Add(item.Id, item.FullName);
@@ -110,7 +137,7 @@ namespace RealEstate.Controllers
 
 
                 Dictionary<int, string> oStagelist = new Dictionary<int, string>();
-                var stages = _dbContext.TblStages.Where(u => u.CompanyId == CompanyId).ToList();
+                var stages = _dbContext.TblStages.Where(u => u.AccountId == AccountId).ToList();
                 foreach (var item in stages)
                 {
                     oStagelist.Add(item.StageId, item.StageName);
@@ -119,7 +146,7 @@ namespace RealEstate.Controllers
 
 
                 Dictionary<int, string> oTaglist = new Dictionary<int, string>();
-                var tags = _dbContext.TblTags.Where(u => u.CompanyId == CompanyId).ToList();
+                var tags = _dbContext.TblTags.Where(u => u.AccountId == AccountId).ToList();
                 foreach (var item in tags)
                 {
                     oTaglist.Add(item.TagId, item.TagName);
@@ -139,8 +166,8 @@ namespace RealEstate.Controllers
         {
             try
             {
-                int CompanyId = Convert.ToInt32(Request.Cookies["LoginCompanyId"]);
-                var leadTag = _dbContext.TblLeadTags.Where(x => x.LeadId == LeadId && x.CompanyId == CompanyId).ToList();
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                var leadTag = _dbContext.TblLeadTags.Where(x => x.LeadId == LeadId && x.AccountId == AccountId).ToList();
                 var TagsName = string.Empty;
                 foreach (var data in leadTag)
                 {

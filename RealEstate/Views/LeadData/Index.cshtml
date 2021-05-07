@@ -10,7 +10,8 @@
                 <thead style="background-color:white">
                     <tr>
                         @*<th><input type="checkbox" name='ID' id="checkBoxAll" class="custom-checkbox" /></th>*@
-                        <th><input type="checkbox" name='ID' id="checkBoxAll" class="custom-checkbox" /></th>
+                        @*<th><input type="checkbox" name='ID' id="checkBoxAll" class="custom-checkbox" /></th>*@
+                        <th><input type="checkbox" id="checkBoxAll" /></th>
                         <th scope="col">Name</th>
                         <th scope="col">Phone</th>
                         <th scope="col">Email</th>
@@ -35,10 +36,141 @@
 <script src="~/js/datatable/dataTables.fixedColumns.min.js"></script>
 <script src="~/js/select2.js"></script>
 <script src="~/js/select2.min.js"></script>
-<script type="text/javascript">
+<script>
+
+    $(document).ready(function () {
+        $('#checkBoxAll').click(function () {
+            alert("aaa");
+            if ($(this).is(":checked")) {
+                $(".chkCheckBoxId").prop("checked", true)
+            }
+            else {
+                $(".chkCheckBoxId").prop("checked", false)
+            }
+        });
+
+        var table = $("#tblLeadList").DataTable({
+            "processing": true, // for show progress bar
+            "serverSide": true, // for process server side
+            "filter": true, // this is for disable filter (search box)
+            "orderMulti": false, // for disable multiple column at once
+            //"dom": '<"top"i>rt<"bottom"lp><"clear">',
+            "ajax": {
+                "url": '@Url.Action("GetAllLead", "LeadData")',
+                "type": "POST",
+                "datatype": "json"
+            },
+            "columns": [
+                {
+                    "data": null,
+                    render: function (data, type, row) {
+                        console.log(data);
+                        if (type === 'display') {
+                            return '<input type="checkbox" value="' + data.leadId + '" class="custom-checkbox chkCheckBoxId">';
+                        }
+                        return data;
+                    },
+                    bSortable: false,
+                    "bSearchable": false,
+                },
+                { "data": "fullName", "name": "fullName"},
+                { "data": "phoneNumber", "name": "phoneNumber"},
+                { "data": "emailAddress", "name": "emailAddress"},
+                {
+                    "data": null,
+                    "defaultContent": "5000",
+                    "autoWidth": true
+                },
+                { "data": "leadSource", "defaultContent": "<i>N/A</i>"},
+                { "data": "leadStatus", "defaultContent": "<i>N/A</i>"},
+                { "data": "industry", "defaultContent": "<i>N/A</i>"},
+                {
+                    "data": null,
+                    "defaultContent": "02/01/2021",
+                    "autoWidth": true
+                },
+                {
+                    "data": null,
+                    "defaultContent": "02/01/2021",
+                    "autoWidth": true
+                },
+                { "data": "stage.stageName", "defaultContent": "<i>N/A</i>"},
+                { "data": "tagsName", "defaultContent": "<i>N/A</i>"},
+                {
+                    "data": "createdDate",
+                    "render": function (data) {
+                        var date = new Date(data);
+                        var month = date.getMonth() + 1;
+                        var odate = date.getDate() + 1;
+                        return (odate.toString().length > 1 ? odate : "0" + odate) + "/" + (month.toString().length > 1 ? month : "0" + month) + "/" + date.getFullYear() + "&nbsp;&nbsp;" + (date.getHours() < 10 ? ("0" + date.getHours()) : date.getHours()) + ":" + (date.getMinutes() < 10 ? ("0" + date.getMinutes()) : date.getMinutes()) ;
+                    },
+                    "autoWidth": true
+                },
+                { "data": "agent.fullName", "defaultContent": "<i>N/A</i>"},
+                {
+                    data: "leadId", "bSearchable": false,
+                    bSortable: false,
+                    mRender: function (data, type, full) {
+                        return '<a href="Brand/Edit/' + data + '"" class="openDialog btn btn-default btn-warning"  >Edit</a> &nbsp;&nbsp;'
+                            + '<a href="Brand/Delete/' + data + '"" Class="deleteDialog btn btn-default btn-danger " >Delete</a>&nbsp;&nbsp;'
+                    }
+                }
+                //{ "data": null, "name": "Action", "defaultContent": '<a href="#" class="editLink"><i class="glyphicon glyphicon-pencil"></i></a> | <a href="#" class="deleteLink"><i class="glyphicon glyphicon-trash"></i></a>'}
+
+            ],
+            "fixedColumns": {
+                "leftColumns": 2
+            },
+            "scrollX": true,
+            "scrollCollapse": true,
+            "pageLength": 10,
+        });
+
+
+        $(document).on("click", '.editLink', function (e) {
+            e.preventDefault();
+            var data = table.row($(this).parents('tr')).data();
+            console.log(data);
+
+        });
+
+        $(document).on("click", '.deleteLink', function (e) {
+            e.preventDefault();
+            var data = table.row($(this).parents('tr')).data();
+            console.log(data);
+
+        });
+
+        var custCodeArr = [];
+
+        $("#getCheckData").click(function (e) {
+            e.preventDefault();
+            custCodeArr.length = 0;
+            custCodeArr = [];
+            var rows = $(table.$('input[type="checkbox"]').map(function () {
+                return $(this).prop("checked") ? $(this).val() : 0;
+            }));
+
+            $.each(rows, function (i, v) {
+                if (v != 0) {
+                    custCodeArr.push(v);
+                    }
+
+            });
+
+            console.log(custCodeArr);
+        })
+
+
+
+
+    });
+
+</script>
+@*<script type="text/javascript">
     $(document).ready(function () {
         $.ajax({
-            type: 'GET',
+            type: 'POST',
             dataType: 'json',
             url: "/LeadData/GetAllLead",
             async: false,
@@ -108,4 +240,4 @@
         }
     });
 
-</script>
+</script>*@

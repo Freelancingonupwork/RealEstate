@@ -13,12 +13,12 @@ namespace RealEstateDB
         }
 
         public int StageId { get; set; }
-        public int? CompanyId { get; set; }
+        public int? AccountId { get; set; }
         public string StageName { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
-        public virtual TblCompany Company { get; set; }
+        public virtual TblAccount Account { get; set; }
         public virtual ICollection<TblLead> TblLeads { get; set; }
     }
 }

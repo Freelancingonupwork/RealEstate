@@ -13,7 +13,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Assign Agent</h5>
+                <h5 class="modal-title" id="exampleModalLongTitle">Edit User</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -74,23 +74,27 @@
                                                         </div>
                                                     </td>
                                                     <td>@item.EmailAddress</td>
-                                                    @if (item.IsActive == true)
+                                                    @if (item.Status == true)
                                                     {
-                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateUser(@item.UserId,0)">Active</a></b></font></td>
+                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateUser(@item.AccountId,0)">Active</a></b></font></td>
                                                     }
                                                     else
                                                     {
-                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateUser(@item.UserId,1)">In-Active</a></b></font></td>
+                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateUser(@item.AccountId,1)">In-Active</a></b></font></td>
                                                     }
                                                     <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td>
                                                     <td>
                                                         @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
-                                                        <b>
-                                                            <a onclick="fnPopulateControls(@item.UserId)" style="color:#007bff" title="Click to edit record.">
-                                                                Edit
-                                                            </a>
-                                                        </b>|
-                                                        <b><a onclick="return ConfirmationDialog(@item.UserId)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
+                                                        @if (item.IsOwner == false)
+                                                        {
+                                                            <b>
+                                                                <a onclick="fnPopulateControls(@item.AccountId)" style="color:#007bff" title="Click to edit record.">
+                                                                    Edit
+                                                                </a>
+                                                            </b> @("|")
+                                                            <b><a onclick="return ConfirmationDialog(@item.AccountId)" style="color:#dc3545" title="Click to delete record."> Delete </a></b>
+                                                        }
+
                                                     </td>
                                                 </tr>
                                             }

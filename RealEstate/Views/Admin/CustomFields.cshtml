@@ -1,0 +1,116 @@
+﻿@model IEnumerable<CustomFieldViewModel>
+@{
+    ViewData["Title"] = "CustomFields";
+}
+
+<div role="alert" id="divAlertMessage" style="display:none"></div>
+<div class="alert alert-success" id="SuccessMsg" role="alert" style="display:none;"></div>
+<div class="alert alert-danger" id="ErrorMsg" role="alert" style="display:none;"></div>
+
+<div class="modal fade" id="divEditCustomField" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Edit Custom Field</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgStage" style="display:none"></div>
+                <input type="hidden" id="hdnAccountID" />
+                <input type="hidden" id="hdnCustomFieldId" />
+                <input type="hidden" id="hdnCustomFieldTypeId" />
+                <label>Field Name:</label><input type="text" id="txtName" class="form-control" placeholder="Name" /><br />
+                <label>Field Type:</label><select disabled class="form-control" id="cmbcustomFieldType"></select><br />
+                <input id="btnAdd" type="button" value="Add" onclick="AddTextBox()" style="margin-left:16px;display:none" />
+                <div class="form-group col-md-6" id="TextBoxContainer" style="display:none">
+                    <label for="inputEmail4">Dropdown Options:</label>
+                    <div style="display:flex">
+                        @*<input type="text" name="DynamicTextBox" class="form-control" style="width:70%" />&nbsp;&nbsp;*@
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" onclick="fnUpdateCustomFieldDetails()" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<partial name="_MenuBar" />
+<div class="content-bg mt-3">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-header top-header">
+                    <div class="col-lg-12">
+                        @*<div class="d-flex justify-content-between align-items-center">
+                                <h4 class="m-b-0 text-white">Stage</h4>
+                            </div>*@
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h4 class="m-b-0 text-white">
+                                Custom Fields
+                            </h4>
+                            <a asp-action="AddCustomFields" class="btn btn-primary mr-2">
+                                + Add Custom Field
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-all-people" role="tabpanel"
+                             aria-labelledby="pills-all-people-tab">
+                            <div class="custom-card-text">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Field Name</th>
+                                            <th scope="col">Type</th>
+                                            <th scope="col">Hide if empty </th>
+                                            <th scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (Model.Count() > 0)
+                                        {
+                                            @foreach (var item in Model)
+                                            {
+                                                <tr>
+                                                    <td>@item.FieldName</td>
+                                                    <td>@item.CustomFieldType.FieldType</td>
+                                                    <td>@(item.HideIfEmpty == false ? 0 : 1)</td>
+                                                    <td>
+                                                        @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
+                                                        <b>
+                                                            <a onclick="fnPopulateControls(@item.Id,@item.FieldTypeId)" style="color:#007bff" title="Click to edit record.">
+                                                                Edit
+                                                            </a>
+                                                        </b>|
+                                                        <b><a onclick="return ConfirmationDialog(@item.Id)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="5">
+                                                    <h5>
+                                                        No Custom Fields Found.
+                                                    </h5>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/SiteJavascripts/CustomFieldList.js"></script>

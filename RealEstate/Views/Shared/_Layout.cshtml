@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="~/css/bootstrap.min.css" />
     <!--Style CSS-->
     <link rel="stylesheet" href="~/css/style.css" />
-
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css" type="text/css" />
     @*<link href="~/css/datatable/jquery.dataTables.min.css" rel="stylesheet" />*@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -27,6 +27,12 @@
         <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>*@
     <script src="~/js/jquery-3.3.1.js"></script>
     <script src="~/js/jquery-3.3.1.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.5.1/jquery.nicescroll.min.js"></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.8.1/jquery.timepicker.min.css">
+
     @*<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
         integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
         crossorigin="anonymous"></script>*@
@@ -219,8 +225,8 @@
                             }
 
                         }
-                        @*@if (userTypeAdmin == UserLoginType.Admin.GetHashCode())*@
-                        @if (userTypeAdmin == UserLoginType.Company.GetHashCode())
+                        @if (userTypeAdmin == UserLoginType.Admin.GetHashCode())
+                        @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                         {
                             <li id="liAdmin" class="@Html.IsSelectedMultiple(controllers: "Admin", actions: "Team,AdminUser,AddAdminUser,AddAgents")">
                                 <a asp-action="Team" asp-controller="Admin">
