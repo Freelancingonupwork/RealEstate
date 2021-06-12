@@ -1,6 +1,6 @@
-﻿function fnActivateDeactivateAgent(AgentID, ADAFlag) {
+﻿function fnActivateDeactivateAgent(AccountId, ADAFlag) {
     var formData = new FormData();
-    formData.append("id", AgentID);
+    formData.append("id", AccountId);
     formData.append("flag", ADAFlag);
     var result = __glb_fnIUDOperation(formData, '/Admin/ActivateDeactivateAgent');
     if (result.act == true) {
@@ -53,13 +53,13 @@ function fnDeleteRecord(id) {
 }
 
 
-function fnPopulateControls(agentID) {
+function fnPopulateControls(AccountId) {
 
     var formData = new FormData();
-    formData.append("agentID", agentID);
+    formData.append("AccountId", AccountId);
     var result = __glb_fnIUDOperation(formData, "/Admin/GetAgentDetails");
     if (result.success === true) {
-        document.getElementById("hdnEditAgentID").value = result.agentID;
+        document.getElementById("hdnEditAgentID").value = result.accountId;
         document.getElementById("txtEditAgentFullName").value = result.fullName;
         document.getElementById("txtEditEmailAddress").value = result.emailAddress;
         document.getElementById("txtEditCellPhone").value = result.cellPhone;
@@ -74,7 +74,7 @@ function fnPopulateControls(agentID) {
 }
 
 function fnUpdateAgentDetails() {
-    var hdnAgentID = document.getElementById("hdnEditAgentID");
+    var AccountId = document.getElementById("hdnEditAgentID");
     var txtfullName = document.getElementById("txtEditAgentFullName");
     var txtemailAddress = document.getElementById("txtEditEmailAddress");
     var txtcellPhone = document.getElementById("txtEditCellPhone");
@@ -100,7 +100,7 @@ function fnUpdateAgentDetails() {
     //}
 
     var formData = new FormData();
-    formData.append("agentID", hdnAgentID.value);
+    formData.append("AccountId", AccountId.value);
     formData.append("fullName", txtfullName.value);
     formData.append("emailAddress", txtemailAddress.value);
     formData.append("cellPhone", txtcellPhone.value);

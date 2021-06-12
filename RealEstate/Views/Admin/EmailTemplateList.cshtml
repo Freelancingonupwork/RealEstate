@@ -1,0 +1,172 @@
+﻿@model TemplateCategoryHTMLEmailList
+@{
+    ViewData["Title"] = "EmailTemplateList";
+}
+
+<div role="alert" id="divAlertMessage" style="display:none"></div>
+<partial name="_MenuBar" />
+<div class="modal fade" id="divEmailTemplateListModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ModalTitle">Edit Email Template</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgEmailTemplate" style="display:none"></div>
+                <input type="hidden" id="hdnTemplateCategoryHtmlemailId" />
+                <input type="hidden" id="hdnTemplateCategoryId" />
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label>Template Type</label>
+                        <select id="cmdTemplateType" class="form-control" asp-items="@(new SelectList(ViewBag.TemplateTypeList,"Key","Value"))">
+                            <option value="">Select Template</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Email Name</label><input type="text" id="txtEmailName" class="form-control" placeholder="Email Name" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Description</label><textarea id="txtDescription" cols="40" rows="3" class="form-control" placeholder="Description"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <label>From Email</label><input type="text" id="txtFromEmail" class="form-control" placeholder="From Email" />
+                    </div>
+                    <div class="col-md-6">
+                        <label>Email Subject</label><input type="text" id="txtEmailSubject" class="form-control" placeholder="Email Subject" />
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Email Body</label><textarea id="txtMailBody" class="form-control" rows="200"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <label>Status</label><input class="form-checkbox-group" type="checkbox" id="ChkStatus"  value="false"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" id="BtCreateAppointment" onclick="fnUpdateTemplateCategoryHTMLEmail()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        @if (Model != null)
+        {
+            <div class="gallery col-lg-12 col-md-12 col-sm-12 col-xs-12 mt-5">
+                <div align="center">
+                    @if (ViewBag.TemplateCategoryList != null)
+                    {
+                        @foreach (var item in ViewBag.TemplateCategoryList)
+                        {
+                            if (item.Value.ToLower() == "all")
+                            {
+                                <button class="btn btn-default filter-button active" data-filter="@item.Value.ToLower().Replace(" ","")">@item.Value</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-default filter-button" data-filter="@item.Value.ToLower().Replace(" ","")">@item.Value</button>
+                            }
+                        }
+                    }
+                </div>
+            </div>
+            @if (Model.TemplateCategoryHTMLDetails != null)
+            {
+                for (int i = 0; i < Model.TemplateCategoryHTMLDetails.Count(); i++)
+                {
+                    @if (Model.TemplateCategoryHTMLDetails[i].TemplateCategoryHTMLEmailList.Count() >= 1)
+                    {
+                        for (int j = 0; j < Model.TemplateCategoryHTMLDetails[i].TemplateCategoryHTMLEmailList.Count(); j++)
+                        {
+                            <a onclick="fnPopulateControlsEmailTemplate(@Model.TemplateCategoryHTMLDetails[i].TemplateCategoryHTMLEmailList[j].TemplateCategoryHTMLEmailID)">
+                                <div class="@("gallery_product col-lg-4 col-md-4 col-sm-4 col-xs-6 filter " + Model.TemplateCategoryHTMLDetails[i].CategotyName.ToLower().Replace(" ",""))">
+                                    <img style="height: 444px; width: 320px;" src="@("../image/email-img/" + Model.TemplateCategoryHTMLDetails[i].TemplateCategoryHTMLEmailList[j].TemplateHTMLImage)" class="img-responsive">
+                                    <div class="desc mt-2" style="color: #64656c;">@Model.TemplateCategoryHTMLDetails[i].TemplateCategoryHTMLEmailList[j].TemplateHTMLEmailDescription</div>
+                                </div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+        }
+        else
+        {
+            <div class="wrapper wrapper-content">
+                <div class="row">
+                    <div class="col-lg-10">
+                        No Data Found.
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<script src="~/SiteJavascripts/EmailTemplateList.js"></script>
+<script type="text/javascript">
+    $(function () {
+
+        $(".filter-button").click(function () {
+            var value = $(this).attr('data-filter');
+
+            if (value == "all") {
+                //$('.filter').removeClass('hidden');
+                $('.filter').show();
+            }
+            else {
+                //            $('.filter[filter-item="'+value+'"]').removeClass('hidden');
+                //            $(".filter").not('.filter[filter-item="'+value+'"]').addClass('hidden');
+                $(".filter").not('.' + value).hide();
+                $('.filter').filter('.' + value).show();
+
+            }
+
+            if ($(".filter-button").removeClass("active")) {
+                $(this).removeClass("active");
+            }
+            $(this).addClass("active");
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        CKEDITOR.replace('txtMailBody', {
+            filebrowserImageBrowseUrl: '/Admin/uploadPartial',
+            filebrowserImageUploadUrl: '/Admin/UploadImage'
+        });
+    });
+
+    function updateValue(id, value) {
+        // this gets called from the popup window and updates the field with a new value
+        //document.getElementById(id).value = value1;
+
+        var jqueryObjectByClass = $(".cke_dialog_ui_input_text")[1];
+        jqueryObjectByClass.value = value;
+    }
+
+    $('#divEmailTemplateListModel').on('hidden.bs.modal', function (e) {
+        $(this)
+            .find("input,textarea")
+            .val('')
+            .end()
+            .find("input[type=checkbox], input[type=radio]")
+            .prop("checked", "")
+            .end();
+        $('#cmdTemplateType').prop('selectedIndex', 0);
+    });
+</script>

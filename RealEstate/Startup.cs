@@ -48,6 +48,7 @@ namespace RealEstate
             {
                 options.ClientId = Configuration.GetSection("Google")["GoogleClientId"];
                 options.ClientSecret = Configuration.GetSection("Google")["GoogleClientSecret"];
+
             }).AddMicrosoftAccount(o =>
             {
                 o.CallbackPath = Configuration.GetSection("Microsoft")["MicrosoftCallbackPath"];
@@ -94,6 +95,7 @@ namespace RealEstate
 
             context.HandleResponse();
         }
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {

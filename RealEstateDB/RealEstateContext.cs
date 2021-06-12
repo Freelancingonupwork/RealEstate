@@ -17,16 +17,32 @@ namespace RealEstateDB
         {
         }
 
+        public virtual DbSet<TblAccount> TblAccounts { get; set; }
+        public virtual DbSet<TblAccountCompany> TblAccountCompanies { get; set; }
+        public virtual DbSet<TblAccountIntegration> TblAccountIntegrations { get; set; }
         public virtual DbSet<TblAgent> TblAgents { get; set; }
-        public virtual DbSet<TblCompany> TblCompanies { get; set; }
+        public virtual DbSet<TblAppointmentOutcome> TblAppointmentOutcomes { get; set; }
+        public virtual DbSet<TblAppointmentType> TblAppointmentTypes { get; set; }
+        public virtual DbSet<TblCustomField> TblCustomFields { get; set; }
+        public virtual DbSet<TblCustomFieldAnswer> TblCustomFieldAnswers { get; set; }
+        public virtual DbSet<TblCustomFieldType> TblCustomFieldTypes { get; set; }
+        public virtual DbSet<TblCustomFieldValue> TblCustomFieldValues { get; set; }
+        public virtual DbSet<TblEmailTemplate> TblEmailTemplates { get; set; }
         public virtual DbSet<TblIndustry> TblIndustries { get; set; }
         public virtual DbSet<TblLead> TblLeads { get; set; }
+        public virtual DbSet<TblLeadAppointment> TblLeadAppointments { get; set; }
+        public virtual DbSet<TblLeadEmailMessage> TblLeadEmailMessages { get; set; }
+        public virtual DbSet<TblLeadEmailMessageAttachment> TblLeadEmailMessageAttachments { get; set; }
+        public virtual DbSet<TblLeadFile> TblLeadFiles { get; set; }
         public virtual DbSet<TblLeadSource> TblLeadSources { get; set; }
         public virtual DbSet<TblLeadStatus> TblLeadStatuses { get; set; }
         public virtual DbSet<TblLeadTag> TblLeadTags { get; set; }
+        public virtual DbSet<TblRole> TblRoles { get; set; }
         public virtual DbSet<TblStage> TblStages { get; set; }
         public virtual DbSet<TblTag> TblTags { get; set; }
-        public virtual DbSet<TblUser> TblUsers { get; set; }
+        public virtual DbSet<TblTemplateCategory> TblTemplateCategories { get; set; }
+        public virtual DbSet<TblTemplateCategoryHtmlemail> TblTemplateCategoryHtmlemails { get; set; }
+        public virtual DbSet<TblTemplateType> TblTemplateTypes { get; set; }
         public virtual DbSet<TblUserLoginType> TblUserLoginTypes { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -34,14 +50,94 @@ namespace RealEstateDB
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                //optionsBuilder.UseSqlServer("Server=DESKTOP-VC6KLNP\\SQLEXPRESSSANJU;user id=sa;password=Potenza@123;Database=RealEstate;Trusted_Connection=True;");
-                optionsBuilder.UseSqlServer(@"Server=Estajo\SQLEXPRESS;user id=sa;password=estajo@123;Database=dbEstajo;Trusted_Connection=False;MultipleActiveResultSets=true;");
+                optionsBuilder.UseSqlServer("Server=DESKTOP-VC6KLNP\\SQLEXPRESSSANJU;user id=sa;password=Potenza@123;Database=RealEstate;Trusted_Connection=True;");
+                //optionsBuilder.UseSqlServer(@"Server=Estajo\SQLEXPRESS;user id=sa;password=estajo@123;Database=EstajoCRM;Trusted_Connection=False;MultipleActiveResultSets=true;");
             }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasAnnotation("Relational:Collation", "SQL_Latin1_General_CP1_CI_AS");
+
+            modelBuilder.Entity<TblAccount>(entity =>
+            {
+                entity.HasKey(e => e.AccountId)
+                    .HasName("PK_tblUser");
+
+                entity.ToTable("tblAccount");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FullName)
+                    .HasMaxLength(25)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.IsEmailConfig).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.Password)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PhoneNumber).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UserName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.Role)
+                    .WithMany(p => p.TblAccounts)
+                    .HasForeignKey(d => d.RoleId)
+                    .HasConstraintName("FK_tblUser_tblRole");
+            });
+
+            modelBuilder.Entity<TblAccountCompany>(entity =>
+            {
+                entity.HasKey(e => e.AccountDetailsId)
+                    .HasName("PK_tblCompany");
+
+                entity.ToTable("tblAccountCompany");
+
+                entity.Property(e => e.Address).HasMaxLength(500);
+
+                entity.Property(e => e.City).HasMaxLength(50);
+
+                entity.Property(e => e.Country).HasMaxLength(50);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.State).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.ZipCode).HasMaxLength(50);
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblAccountCompanies)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblCompany_tblCompany");
+            });
+
+            modelBuilder.Entity<TblAccountIntegration>(entity =>
+            {
+                entity.ToTable("tblAccountIntegration");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.EmailAddress).HasMaxLength(50);
+
+                entity.Property(e => e.ExpiresIn).HasColumnName("Expires_In");
+
+                entity.Property(e => e.Name).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblAccountIntegrations)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblAccountIntegration_tblAccount");
+            });
 
             modelBuilder.Entity<TblAgent>(entity =>
             {
@@ -63,49 +159,158 @@ namespace RealEstateDB
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.Company)
+                entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblAgents)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblAgent_tblCompany");
-
-                entity.HasOne(d => d.UserLoginType)
-                    .WithMany(p => p.TblAgents)
-                    .HasForeignKey(d => d.UserLoginTypeId)
-                    .HasConstraintName("FK_tblAgent_tblUserLoginType");
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblAgent_tblAccount");
             });
 
-            modelBuilder.Entity<TblCompany>(entity =>
+            modelBuilder.Entity<TblAppointmentOutcome>(entity =>
             {
-                entity.HasKey(e => e.CompanyId);
+                entity.HasKey(e => e.AppointmentOutcomeId);
 
-                entity.ToTable("tblCompany");
+                entity.ToTable("tblAppointmentOutcomes");
 
-                entity.Property(e => e.Address).HasMaxLength(500);
-
-                entity.Property(e => e.CellPhone).HasMaxLength(20);
-
-                entity.Property(e => e.City).HasMaxLength(50);
-
-                entity.Property(e => e.Country).HasMaxLength(50);
+                entity.Property(e => e.AppointmentOutcomeName).HasMaxLength(50);
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.Email).HasMaxLength(50);
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.FullName).HasMaxLength(50);
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblAppointmentOutcomes)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblAppointmentOutcomes_tblAccount");
+            });
 
-                entity.Property(e => e.Password).HasMaxLength(50);
+            modelBuilder.Entity<TblAppointmentType>(entity =>
+            {
+                entity.HasKey(e => e.AppointmenTypeId);
 
-                entity.Property(e => e.State).HasMaxLength(50);
+                entity.ToTable("tblAppointmentTypes");
+
+                entity.Property(e => e.AppointmentTypeName).HasMaxLength(50);
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.ZipCode).HasMaxLength(50);
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblAppointmentTypes)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblAppointmentTypes_tblAccount");
+            });
 
-                entity.HasOne(d => d.LogionType)
-                    .WithMany(p => p.TblCompanies)
-                    .HasForeignKey(d => d.LogionTypeId)
-                    .HasConstraintName("FK_tblCompany_tblUserLoginType");
+            modelBuilder.Entity<TblCustomField>(entity =>
+            {
+                entity.ToTable("tblCustomField");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FieldName).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblCustomFields)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblCustomField_tblAccount");
+
+                entity.HasOne(d => d.FieldType)
+                    .WithMany(p => p.TblCustomFields)
+                    .HasForeignKey(d => d.FieldTypeId)
+                    .HasConstraintName("FK_tblCustomField_tblCustomFieldType");
+            });
+
+            modelBuilder.Entity<TblCustomFieldAnswer>(entity =>
+            {
+                entity.HasKey(e => e.CustomFieldAnsId);
+
+                entity.ToTable("tblCustomFieldAnswer");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FieldAns).HasMaxLength(50);
+
+                entity.Property(e => e.LeadId).HasColumnName("LeadID");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblCustomFieldAnswers)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblCustomFieldAnswer_tblAccount");
+
+                entity.HasOne(d => d.CustomField)
+                    .WithMany(p => p.TblCustomFieldAnswers)
+                    .HasForeignKey(d => d.CustomFieldId)
+                    .HasConstraintName("FK_tblCustomFieldAnswer_tblCustomField");
+
+                entity.HasOne(d => d.Lead)
+                    .WithMany(p => p.TblCustomFieldAnswers)
+                    .HasForeignKey(d => d.LeadId)
+                    .HasConstraintName("FK_tblCustomFieldAnswer_tblLead");
+            });
+
+            modelBuilder.Entity<TblCustomFieldType>(entity =>
+            {
+                entity.ToTable("tblCustomFieldType");
+
+                entity.Property(e => e.FieldType).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<TblCustomFieldValue>(entity =>
+            {
+                entity.HasKey(e => e.CustomFieldValueId);
+
+                entity.ToTable("tblCustomFieldValue");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FieldValue).HasMaxLength(50);
+
+                entity.Property(e => e.UpdateDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblCustomFieldValues)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblCustomFieldValue_tblAccount");
+
+                entity.HasOne(d => d.CustomField)
+                    .WithMany(p => p.TblCustomFieldValues)
+                    .HasForeignKey(d => d.CustomFieldId)
+                    .HasConstraintName("FK_tblCustomFieldValue_tblCustomField");
+            });
+
+            modelBuilder.Entity<TblEmailTemplate>(entity =>
+            {
+                entity.HasKey(e => e.EmailTemplateId);
+
+                entity.ToTable("tblEmailTemplates");
+
+                entity.Property(e => e.EmailTemplateId).HasColumnName("EmailTemplateID");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.EmailName).HasMaxLength(250);
+
+                entity.Property(e => e.EmailSubject).HasMaxLength(500);
+
+                entity.Property(e => e.EmailTemplateDescription).HasMaxLength(250);
+
+                entity.Property(e => e.FromEmail).HasMaxLength(500);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblEmailTemplates)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblEmailTemplates_tblAccount");
+
+                entity.HasOne(d => d.TemplateType)
+                    .WithMany(p => p.TblEmailTemplates)
+                    .HasForeignKey(d => d.TemplateTypeId)
+                    .HasConstraintName("FK_tblEmailTemplates_tblTemplateType");
             });
 
             modelBuilder.Entity<TblIndustry>(entity =>
@@ -221,21 +426,135 @@ namespace RealEstateDB
                     .HasMaxLength(20)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.Agent)
-                    .WithMany(p => p.TblLeads)
-                    .HasForeignKey(d => d.AgentId)
-                    .OnDelete(DeleteBehavior.SetNull)
-                    .HasConstraintName("FK_tblLead_tblAgent");
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblLeadAccounts)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLead_tblAccount");
 
-                entity.HasOne(d => d.CompanyNavigation)
+                entity.HasOne(d => d.Agent)
+                    .WithMany(p => p.TblLeadAgents)
+                    .HasForeignKey(d => d.AgentId)
+                    .HasConstraintName("FK_tblLead_tblAccount1");
+
+                entity.HasOne(d => d.CustomField)
                     .WithMany(p => p.TblLeads)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblLead_tblCompany");
+                    .HasForeignKey(d => d.CustomFieldId)
+                    .HasConstraintName("FK_tblLead_tblCustomField");
 
                 entity.HasOne(d => d.StageNavigation)
                     .WithMany(p => p.TblLeads)
                     .HasForeignKey(d => d.StageId)
                     .HasConstraintName("FK_tblLead_tblStage");
+            });
+
+            modelBuilder.Entity<TblLeadAppointment>(entity =>
+            {
+                entity.HasKey(e => e.LeadAppointmentId);
+
+                entity.ToTable("tblLeadAppointment");
+
+                entity.Property(e => e.AppointmentDateTime).HasColumnType("datetime");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.Location).HasMaxLength(50);
+
+                entity.Property(e => e.Title).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblLeadAppointmentAccounts)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLeadAppointment_tblAccount");
+
+                entity.HasOne(d => d.Agent)
+                    .WithMany(p => p.TblLeadAppointmentAgents)
+                    .HasForeignKey(d => d.AgentId)
+                    .HasConstraintName("FK_tblLeadAppointment_tblAccount1");
+
+                entity.HasOne(d => d.AppointmentOutcomes)
+                    .WithMany(p => p.TblLeadAppointments)
+                    .HasForeignKey(d => d.AppointmentOutcomesId)
+                    .HasConstraintName("FK_tblLeadAppointment_tblAppointmentOutcomes");
+
+                entity.HasOne(d => d.AppointmentType)
+                    .WithMany(p => p.TblLeadAppointments)
+                    .HasForeignKey(d => d.AppointmentTypeId)
+                    .HasConstraintName("FK_tblLeadAppointment_tblAppointmentTypes");
+
+                entity.HasOne(d => d.Lead)
+                    .WithMany(p => p.TblLeadAppointments)
+                    .HasForeignKey(d => d.LeadId)
+                    .HasConstraintName("FK_tblLeadAppointment_tblLead");
+            });
+
+            modelBuilder.Entity<TblLeadEmailMessage>(entity =>
+            {
+                entity.HasKey(e => e.LeadEmailMessageId);
+
+                entity.ToTable("tblLeadEmailMessage");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.EmailMessageId).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.FromName).HasMaxLength(50);
+
+                entity.Property(e => e.IsReplay).HasDefaultValueSql("((0))");
+
+                entity.Property(e => e.ToName).HasMaxLength(50);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblLeadEmailMessages)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLeadEmailMessage_tblAccount");
+
+                entity.HasOne(d => d.Lead)
+                    .WithMany(p => p.TblLeadEmailMessages)
+                    .HasForeignKey(d => d.LeadId)
+                    .HasConstraintName("FK_tblLeadEmailMessage_tblLead");
+            });
+
+            modelBuilder.Entity<TblLeadEmailMessageAttachment>(entity =>
+            {
+                entity.HasKey(e => e.LeadEmailMessageAttachmentId);
+
+                entity.ToTable("tblLeadEmailMessageAttachment");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.LeadEmailMessage)
+                    .WithMany(p => p.TblLeadEmailMessageAttachments)
+                    .HasForeignKey(d => d.LeadEmailMessageId)
+                    .HasConstraintName("FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage");
+            });
+
+            modelBuilder.Entity<TblLeadFile>(entity =>
+            {
+                entity.HasKey(e => e.LeadFileId);
+
+                entity.ToTable("tblLeadFile");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+
+                entity.Property(e => e.FileName).HasMaxLength(500);
+
+                entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.TblLeadFiles)
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLeadFile_tblAccount");
+
+                entity.HasOne(d => d.Lead)
+                    .WithMany(p => p.TblLeadFiles)
+                    .HasForeignKey(d => d.LeadId)
+                    .HasConstraintName("FK_tblLeadFile_tblLead");
             });
 
             modelBuilder.Entity<TblLeadSource>(entity =>
@@ -252,10 +571,10 @@ namespace RealEstateDB
                     .HasMaxLength(50)
                     .IsUnicode(false);
 
-                entity.HasOne(d => d.Company)
+                entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadSources)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblLeadSource_tblCompany");
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLeadSource_tblAccount");
             });
 
             modelBuilder.Entity<TblLeadStatus>(entity =>
@@ -280,10 +599,10 @@ namespace RealEstateDB
 
                 entity.ToTable("tblLeadTag");
 
-                entity.HasOne(d => d.Company)
+                entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadTags)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblLeadTag_tblCompany");
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblLeadTag_tblAccount");
 
                 entity.HasOne(d => d.Lead)
                     .WithMany(p => p.TblLeadTags)
@@ -294,6 +613,17 @@ namespace RealEstateDB
                     .WithMany(p => p.TblLeadTags)
                     .HasForeignKey(d => d.TagId)
                     .HasConstraintName("FK_tblLeadTag_tblTags");
+            });
+
+            modelBuilder.Entity<TblRole>(entity =>
+            {
+                entity.HasKey(e => e.RoleId);
+
+                entity.ToTable("tblRole");
+
+                entity.Property(e => e.RoleName)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<TblStage>(entity =>
@@ -308,10 +638,10 @@ namespace RealEstateDB
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Company)
+                entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblStages)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblStage_tblCompany");
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblStage_tblAccount");
             });
 
             modelBuilder.Entity<TblTag>(entity =>
@@ -326,41 +656,58 @@ namespace RealEstateDB
 
                 entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
 
-                entity.HasOne(d => d.Company)
+                entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblTags)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblTags_tblCompany");
+                    .HasForeignKey(d => d.AccountId)
+                    .HasConstraintName("FK_tblTags_tblAccount");
             });
 
-            modelBuilder.Entity<TblUser>(entity =>
+            modelBuilder.Entity<TblTemplateCategory>(entity =>
             {
-                entity.HasKey(e => e.UserId);
+                entity.HasKey(e => e.TemplateCategoryId)
+                    .HasName("PK_tblTemplateCategory_1");
 
-                entity.ToTable("tblUser");
+                entity.ToTable("tblTemplateCategory");
+
+                entity.Property(e => e.TemplateCategoryName)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<TblTemplateCategoryHtmlemail>(entity =>
+            {
+                entity.HasKey(e => e.TemplateCategoryHtmlemailId);
+
+                entity.ToTable("tblTemplateCategoryHTMLEmail");
+
+                entity.Property(e => e.TemplateCategoryHtmlemailId).HasColumnName("TemplateCategoryHTMLEmailID");
 
                 entity.Property(e => e.CreatedDate).HasColumnType("datetime");
 
-                entity.Property(e => e.EmailAddress)
+                entity.Property(e => e.TemplateHtmlemail).HasColumnName("TemplateHTMLEmail");
+
+                entity.Property(e => e.TemplateHtmlemailDescription)
                     .HasMaxLength(50)
-                    .IsUnicode(false);
+                    .HasColumnName("TemplateHTMLEmailDescription");
 
-                entity.Property(e => e.FullName)
-                    .HasMaxLength(25)
-                    .IsUnicode(false);
+                entity.Property(e => e.TemplateHtmlimage)
+                    .HasMaxLength(100)
+                    .HasColumnName("TemplateHTMLImage");
 
-                entity.Property(e => e.Password)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
+                entity.HasOne(d => d.TemplateCategory)
+                    .WithMany(p => p.TblTemplateCategoryHtmlemails)
+                    .HasForeignKey(d => d.TemplateCategoryId)
+                    .HasConstraintName("FK_tblTemplateCategoryHTMLEmail_tblTemplateCategory");
+            });
 
-                entity.HasOne(d => d.Company)
-                    .WithMany(p => p.TblUsers)
-                    .HasForeignKey(d => d.CompanyId)
-                    .HasConstraintName("FK_tblUser_tblCompany");
+            modelBuilder.Entity<TblTemplateType>(entity =>
+            {
+                entity.HasKey(e => e.TemplateTypeId)
+                    .HasName("PK_tblTemplateCategory");
 
-                entity.HasOne(d => d.UserLoginType)
-                    .WithMany(p => p.TblUsers)
-                    .HasForeignKey(d => d.UserLoginTypeId)
-                    .HasConstraintName("FK_tblUser_tblUserLoginType");
+                entity.ToTable("tblTemplateType");
+
+                entity.Property(e => e.TypeName).HasMaxLength(50);
             });
 
             modelBuilder.Entity<TblUserLoginType>(entity =>

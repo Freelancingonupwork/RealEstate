@@ -1,4 +1,7 @@
-﻿function ConfirmationDialog(ID) {
+﻿$(document).ready(function () {
+    fnGetLeadDetailMails();
+});
+function ConfirmationDialog(ID) {
     if (confirm("Are you sure to delete?"))
         fnDeleteLead(ID);
     else
@@ -16,7 +19,7 @@ function fnDeleteLead(ID) {
     else if (result === false) {
         window.location = "/";
     }
-    
+
 }
 
 
@@ -539,6 +542,69 @@ function fnDeleteLeadAppointment(LeadId, LeadAppointmentId) {
     }
 }
 
+function fnPopulateControlsLeadFile(LeadId) {
+    $("#divLeadFileModel").modal('show');
+}
+
+function fnUploadLeadFile(LeadId) {
+    var formData = new FormData(); //FormData object
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput.files.length == 0) {
+        $("#divErrorMsgLeadFile").html("Please select file for upload.");
+        $('#divErrorMsgLeadFile').show();
+        document.getElementById("divErrorMsgLeadFile").classList.add("alert", "alert-danger");
+        setTimeout(function () {
+            $("#divErrorMsgLeadFile").fadeOut();
+        }, 5000);
+        return;
+    }
+    for (i = 0; i < fileInput.files.length; i++) {
+        formData.append("files", fileInput.files[i]);
+    }
+    formData.append("leadID", LeadId);
+
+    var result = __glb_fnIUDOperation(formData, "/Lead/LeadUploadFilesByLeadID");
+    if (result.success === true) {
+        $("#divLeadFileModel").modal('hide');
+        showAlertMessage("success", result.message);
+    }
+    else {
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $(function () {
+            $("#divAlertMessage").fadeOut(2500);
+        }, 3000);
+        return;
+    }
+}
+
+function ConfirmationDialogLeadFile(LeadId, LeadFileId) {
+    fnDeleteLeadFile(LeadId, LeadFileId);
+}
+
+function fnDeleteLeadFile(LeadId, LeadFileId) {
+    var formData = new FormData();
+    formData.append("leadID", LeadId);
+    formData.append("LeadFileId", LeadFileId);
+    var result = __glb_fnIUDOperation(formData, "/Lead/DeleteLeadFile");
+    if (result.success === true) {
+        showAlertMessage("success", result.message);
+    }
+    else if (result.success === false) {
+        window.location = "/";
+    }
+    else {
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $(function () {
+            $("#divAlertMessage").fadeOut(2500);
+        }, 3000);
+        return;
+    }
+}
+
 //function format(inputDate) {
 //    var date = new Date(inputDate);
 //    if (!isNaN(date.getTime())) {
@@ -571,4 +637,279 @@ function changeDateFormat(inputDate) {  // expects Y-m-d
     var day = splitDate[2];
 
     return month + '/' + day + '/' + year;
+}
+
+
+
+function fnSendEmail(LeadId) {
+    var ToMailAddress = document.getElementById('hdnToMailAddress');
+    var MailSubject = document.getElementById("txtMailSubject");
+    var MailBody = CKEDITOR.instances['txtMailBody'].getData()
+    var fileInput = document.getElementById('fileInput');
+
+    if (MailSubject.value == '' && MailBody == '') {
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $("#divAlertMessage").html("Please enter email subject or body.");
+        $('#divAlertMessage').show();
+        $("#divAlertMessage").addClass("alert alert-danger");
+        setTimeout(function () {
+            $("#divAlertMessage").fadeOut();
+        }, 5000);
+        return;
+    }
+
+    var formData = new FormData(); //FormData object
+    formData.append("EmailSubject", MailSubject.value);
+    formData.append("MailBody", MailBody);
+    formData.append("ToMailAddress", ToMailAddress.value);
+    formData.append("LeadEmailMsgId", document.getElementById("hdnLeadEmailMsgId").value);
+    formData.append("EmailMsgId", document.getElementById("hdnEmailMessageId").value);
+    formData.append("FromName", document.getElementById("hdnFromName").value);
+    formData.append("ToName", document.getElementById("hdnToName").value);
+    formData.append("IsReplay", document.getElementById("hdnIsReplay").value);
+    for (i = 0; i < fileInput.files.length; i++) {
+        formData.append("files", fileInput.files[i]);
+    }
+    formData.append("leadID", LeadId);
+    var result = __glb_fnIUDOperation(formData, "/Lead/LeadSendMailByLeadID");
+    if (result.success === true) {
+        console.log(result.data);
+
+        fnGetLeadDetailMails();
+        //$("#divMailList").html('');
+        //if (result.data.length > 1) {
+        //    for (i = 0; i < result.data.length; i++) {
+        //        var row = "<div class=\"custom-card-header\">" +
+        //            "<div class=\"chat-icon btn-icon\">" +
+        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" " +
+        //            "viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" " +
+        //            "stroke-linecap=\"round\" stroke-linejoin=\"round\" " +
+        //            "class=\"feather feather-mail\">" +
+        //            "<path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\">" +
+        //            "</path>" +
+        //            "<polyline points=\"22, 6 12, 13 2, 6\"></polyline>" +
+        //            "</svg>" +
+        //            "</div>" +
+        //            "<div class=\"chat-header-detail flex-grow-1 ml-3\">" +
+        //            "<h5>" +
+        //            "Dan Corkill" +
+        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-chevron-right\"><polyline points=\"9 18 15 12 9 6\"></polyline></svg>" +
+        //            "Ifiok Charles" +
+        //            "</h5>" +
+        //            "<span>8 days ago</span>" +
+        //            "<h5>Automate your lead engagement</h5>" +
+        //            "</div>" +
+        //            "<div class=\"chat-action\">" +
+        //            "<button class=\"btn btn-secondary\">Reply</button>" +
+        //            "<button class=\"btn btn-secondary\">Reply All</button>" +
+        //            "<button class=\"btn btn-secondary\">" +
+        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-more-vertical\"><circle cx=\"12\" cy=\"12\" r=\"1\"></circle><circle cx=\"12\" cy=\"5\" r=\"1\"></circle><circle cx=\"12\" cy=\"19\" r=\"1\"></circle></svg>" +
+        //            "</button>" +
+        //            "</div>" +
+        //            "</div >" +
+        //            "<div class=\"custom-card-text ml-5\">" +
+        //            "<p> Hi Ifiok,</p>" +
+        //            "<p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away.</p>" +
+        //            "<p>Need help? Just hit reply.</p>" +
+        //            "<p>Regards, <br>The Estajo Team</p>" +
+        //            "<p><br></p>" +
+        //            "</div>" +
+        //            "<div class=\"divider my-5\"></div>";
+        //        $("#divMailList").append(row);
+        //    }
+        //}
+        //else {
+        //    $("#divMailList").append("No Mail Found.");
+        //}
+        $('#txtMailSubject').val('');
+        CKEDITOR.instances.txtMailBody.setData('');
+        //$("html, body").animate({ scrollTop: $(document).height() - $(window).height() });
+        $('html, body').animate({
+            scrollTop: $("#divMailList").offset().top
+        }, 2000);
+    }
+    else {
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $(function () {
+            $("#divAlertMessage").fadeOut(2500);
+        }, 3000);
+        return;
+    }
+}
+
+function fnGetLeadDetailMails() {
+    var LeadId = document.getElementById("hdnLeadID").value;
+    var formData = new FormData(); //FormData object
+    formData.append("leadID", LeadId);
+    var result = __glb_fnIUDOperation(formData, "/Lead/GetLeadDetailsMailByLeadID");
+    if (result.success === true) {
+        $("#divMailList").html('');
+        $("#divMailList").removeAttr("style");
+        if (result.data.length > 0) {
+            console.log(result);
+            console.log(result.accountname);
+            console.log(result.data.length);
+            var AccountName = result.accountname;
+            for (i = 0; i < result.data.length; i++) {
+                var html;
+                if (result.data[i].leadEmailMessageReplayList.length > 0) {
+                    var row = "<div class=\"custom-card-header\">" +
+                        "<div class=\"chat-icon btn-icon\">" +
+                        "<i class=\"fa fa-envelope\" aria-hidden=\"true\"></i>" +
+                        "</div > " +
+                        " <div class=\"chat-header-detail flex-grow-1 ml-3\"> " +
+                        "<h5 style=\"text-transform:capitalize\">" +
+                        //capitalize(result.data[i].leadEmailMessageReplayList[0].fullName) +
+                        result.data[i].leadEmailMessageReplayList[0].fromName +
+                        " <i class=\"fa fa-chevron-right\"></i> " +
+                        //capitalize(AccountName) +
+                        result.data[i].leadEmailMessageReplayList[0].toName + 
+                        "</h5> " +
+                        fromNow(result.data[i].leadEmailMessageReplayList[0].createdDate) +
+                        "<h5>" + result.data[i].leadEmailMessageReplayList[0].subject + "</h5> " +
+                        "</div> " +
+                        "<div class=\"chat-action\"> " +
+                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageReplayList[0].leadEmailMessageId + "," + result.data[i].leadEmailMessageReplayList[0].leadId + ");\">Reply</button> " +
+                        "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button> " +
+                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +
+                        "</div>" +
+                        "</div>" +
+                        "<div class=\"custom-card-text ml-5\"> " +
+                        result.data[i].leadEmailMessageReplayList[0].body;
+                    var NestedRow = "<div class=\"custom-card-mail-reply\"> " +
+                        "<div class=\"custom-card-header\"> " +
+                        "<div class=\"chat-icon btn-icon\"> " +
+                        "<i class=\"fa fa-envelope\" aria-hidden=\"true\"></i>" +
+                        "</div> " +
+                        "<div class=\"chat-header-detail flex-grow-1 ml-3\"> " +
+                        "<h5 style=\"text-transform:capitalize\">" +
+                        " FROMADDRESSVAR " +
+                        "<i class=\"fa fa-chevron-right\"></i>" +
+                        " TOADDRESSVAR " +
+                        "</h5> " +
+                        "<span> TIMEAGOVAR </span > " +
+                        "<h5> SUBJECTVAR </h5 > " +
+                        "</div> " +
+                        "<div class=\"chat-action\"> " +
+                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(LEADMSGIDVAR,LEADIDVAR);\"> Reply</button > " +
+                        "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button > " +
+                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button> " +
+                        "</div> " +
+                        "</div> " +
+                        "<div class=\"custom-card-text\"> " +
+                        "<p> BODYVAR </p> " +
+                        "</div> " +
+                        "</div> ";
+
+                    for (j = 1; j < result.data[i].leadEmailMessageReplayList.length; j++) {
+                        html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                    }
+                    html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                    html = html + "</div>";
+                }
+                else {
+                    html = "<div class=\"custom-card-header\">" +
+                        "<div class=\"chat-icon btn-icon\">" +
+                        "<i class=\"fa fa-envelope\" aria-hidden=\"true\"></i>" +
+                        "</div > " +
+                        " <div class=\"chat-header-detail flex-grow-1 ml-3\"> " +
+                        "<h5 style=\"text-transform:capitalize\">" +
+                        (result.data[i].fromName) +
+                        " <i class=\"fa fa-chevron-right\"></i> " +
+                        (result.data[i].toName) +
+                        "</h5> " +
+                        fromNow(result.data[i].createdDate) +
+                        "<h5>" + result.data[i].subject + "</h5> " +
+                        "</div> " +
+                        "<div class=\"chat-action\"> " +
+                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageId + "," + result.data[i].leadId + ");\">Reply</button> " +
+                        "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button> " +
+                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +
+                        "</div>" +
+                        "</div>" +
+                        "<div class=\"custom-card-text ml-5\"> " +
+                        result.data[i].body +
+                        "</div>";
+                }
+                var divider = html + "<div class=\"divider my-5\"></div>";
+                $("#divMailList").append(divider);
+            }
+        }
+        else {
+            $("#divMailList").css('text-align', 'center').css('color', '#777').append("No Mail Found.");
+        }
+    }
+    else {
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $(function () {
+            $("#divAlertMessage").fadeOut(2500);
+        }, 3000);
+        return;
+    }
+}
+
+function fnGetEmailSubject(leadEmailMessageId, LeadId) {
+    //var elmntToView = document.getElementById("send-email");
+    //elmntToView.scrollIntoView(); 
+    var formData = new FormData();
+    formData.append("LeadEmailMessageId", leadEmailMessageId);
+    formData.append("LeadId", LeadId);
+    var result = __glb_fnIUDOperation(formData, "/Lead/GetMessageSubjecyByLeadMessageId");
+    if (result.success === true) {
+        console.log(result);
+        document.getElementById("txtMailSubject").value = "Re:" + result.subject;
+        document.getElementById("hdnLeadEmailMsgId").value = result.leadEmailMessageId;
+        document.getElementById("hdnEmailMessageId").value = result.emailMessageId;
+        document.getElementById("hdnFromName").value = result.fromName;
+        document.getElementById("hdnToName").value = result.toName;
+        document.getElementById("hdnIsReplay").value = true;
+        //alert(document.getElementById("hdnIsReplay").value);
+        $('html, body').animate({
+            scrollTop: $("#send-email").offset().top
+        }, 500);
+    }
+    else if (result.success === false) {
+        window.location = "/";
+    }
+
+}
+
+function fromNow(date) {
+    const SECOND = 1000;
+    const MINUTE = 60 * SECOND;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+    const WEEK = 7 * DAY;
+    const MONTH = 30 * DAY;
+    const YEAR = 365 * DAY;
+    const units = [
+        { max: 30 * SECOND, divisor: 1, past1: 'just now', pastN: 'just now', future1: 'just now', futureN: 'just now' },
+        { max: MINUTE, divisor: SECOND, past1: 'a second ago', pastN: '# seconds ago', future1: 'in a second', futureN: 'in # seconds' },
+        { max: HOUR, divisor: MINUTE, past1: 'a minute ago', pastN: '# minutes ago', future1: 'in a minute', futureN: 'in # minutes' },
+        { max: DAY, divisor: HOUR, past1: 'an hour ago', pastN: '# hours ago', future1: 'in an hour', futureN: 'in # hours' },
+        { max: WEEK, divisor: DAY, past1: 'yesterday', pastN: '# days ago', future1: 'tomorrow', futureN: 'in # days' },
+        { max: 4 * WEEK, divisor: WEEK, past1: 'last week', pastN: '# weeks ago', future1: 'in a week', futureN: 'in # weeks' },
+        { max: YEAR, divisor: MONTH, past1: 'last month', pastN: '# months ago', future1: 'in a month', futureN: 'in # months' },
+        { max: 100 * YEAR, divisor: YEAR, past1: 'last year', pastN: '# years ago', future1: 'in a year', futureN: 'in # years' },
+        { max: 1000 * YEAR, divisor: 100 * YEAR, past1: 'last century', pastN: '# centuries ago', future1: 'in a century', futureN: 'in # centuries' },
+        { max: Infinity, divisor: 1000 * YEAR, past1: 'last millennium', pastN: '# millennia ago', future1: 'in a millennium', futureN: 'in # millennia' },
+    ];
+    const diff = Date.now() - (typeof date === 'object' ? date : new Date(date)).getTime();
+    const diffAbs = Math.abs(diff);
+    for (const unit of units) {
+        if (diffAbs < unit.max) {
+            const isFuture = diff < 0;
+            const x = Math.round(Math.abs(diff) / unit.divisor);
+            if (x <= 1) return isFuture ? unit.future1 : unit.past1;
+            return (isFuture ? unit.futureN : unit.pastN).replace('#', x);
+        }
+    }
+};
+
+function capitalize(input) {
+    return input.toLowerCase().split(' ').map(s => s.charAt(0).toUpperCase() + s.substring(1)).join(' ');
 }

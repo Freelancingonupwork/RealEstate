@@ -21,7 +21,7 @@ namespace RealEstateDB
         public DateTime? UpdatedDate { get; set; }
 
         public virtual TblAccount Account { get; set; }
-        public virtual TblAgent Agent { get; set; }
+        public virtual TblAccount Agent { get; set; }
         public virtual TblAppointmentOutcome AppointmentOutcomes { get; set; }
         public virtual TblAppointmentType AppointmentType { get; set; }
         public virtual TblLead Lead { get; set; }

@@ -18,10 +18,14 @@ namespace RealEstateDB
             TblCustomFieldValues = new HashSet<TblCustomFieldValue>();
             TblCustomFields = new HashSet<TblCustomField>();
             TblEmailTemplates = new HashSet<TblEmailTemplate>();
-            TblLeadAppointments = new HashSet<TblLeadAppointment>();
+            TblLeadAccounts = new HashSet<TblLead>();
+            TblLeadAgents = new HashSet<TblLead>();
+            TblLeadAppointmentAccounts = new HashSet<TblLeadAppointment>();
+            TblLeadAppointmentAgents = new HashSet<TblLeadAppointment>();
+            TblLeadEmailMessages = new HashSet<TblLeadEmailMessage>();
+            TblLeadFiles = new HashSet<TblLeadFile>();
             TblLeadSources = new HashSet<TblLeadSource>();
             TblLeadTags = new HashSet<TblLeadTag>();
-            TblLeads = new HashSet<TblLead>();
             TblStages = new HashSet<TblStage>();
             TblTags = new HashSet<TblTag>();
         }
@@ -34,6 +38,7 @@ namespace RealEstateDB
         public bool? IsOwner { get; set; }
         public bool? Status { get; set; }
         public int? RoleId { get; set; }
+        public bool? IsEmailConfig { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
@@ -47,10 +52,14 @@ namespace RealEstateDB
         public virtual ICollection<TblCustomFieldValue> TblCustomFieldValues { get; set; }
         public virtual ICollection<TblCustomField> TblCustomFields { get; set; }
         public virtual ICollection<TblEmailTemplate> TblEmailTemplates { get; set; }
-        public virtual ICollection<TblLeadAppointment> TblLeadAppointments { get; set; }
+        public virtual ICollection<TblLead> TblLeadAccounts { get; set; }
+        public virtual ICollection<TblLead> TblLeadAgents { get; set; }
+        public virtual ICollection<TblLeadAppointment> TblLeadAppointmentAccounts { get; set; }
+        public virtual ICollection<TblLeadAppointment> TblLeadAppointmentAgents { get; set; }
+        public virtual ICollection<TblLeadEmailMessage> TblLeadEmailMessages { get; set; }
+        public virtual ICollection<TblLeadFile> TblLeadFiles { get; set; }
         public virtual ICollection<TblLeadSource> TblLeadSources { get; set; }
         public virtual ICollection<TblLeadTag> TblLeadTags { get; set; }
-        public virtual ICollection<TblLead> TblLeads { get; set; }
         public virtual ICollection<TblStage> TblStages { get; set; }
         public virtual ICollection<TblTag> TblTags { get; set; }
     }

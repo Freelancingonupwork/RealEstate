@@ -11,6 +11,8 @@ namespace RealEstateDB
         {
             TblCustomFieldAnswers = new HashSet<TblCustomFieldAnswer>();
             TblLeadAppointments = new HashSet<TblLeadAppointment>();
+            TblLeadEmailMessages = new HashSet<TblLeadEmailMessage>();
+            TblLeadFiles = new HashSet<TblLeadFile>();
             TblLeadTags = new HashSet<TblLeadTag>();
         }
 
@@ -50,11 +52,13 @@ namespace RealEstateDB
         public DateTime? CreatedDate { get; set; }
 
         public virtual TblAccount Account { get; set; }
-        public virtual TblAgent Agent { get; set; }
+        public virtual TblAccount Agent { get; set; }
         public virtual TblCustomField CustomField { get; set; }
         public virtual TblStage StageNavigation { get; set; }
         public virtual ICollection<TblCustomFieldAnswer> TblCustomFieldAnswers { get; set; }
         public virtual ICollection<TblLeadAppointment> TblLeadAppointments { get; set; }
+        public virtual ICollection<TblLeadEmailMessage> TblLeadEmailMessages { get; set; }
+        public virtual ICollection<TblLeadFile> TblLeadFiles { get; set; }
         public virtual ICollection<TblLeadTag> TblLeadTags { get; set; }
     }
 }

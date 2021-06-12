@@ -93,29 +93,29 @@
                                                     </td>
                                                     @if (item.IsActive == true)
                                                     {
-                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateAgent(@item.AgentId,0)">Active</a></b></font></td>
+                                                        <td><font color="Green"><b><a title="Click here to Deactivate User" style="color:#1e7e34" onclick="javascript:fnActivateDeactivateAgent(@item.AccountId,0)">Active</a></b></font></td>
                                                     }
                                                     else
                                                     {
-                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateAgent(@item.AgentId,1)">In-Active</a></b></font></td>
+                                                        <td><font color="Green"><b><a title="Click here to Activate User" style="color:#dc3545" onclick="javascript:fnActivateDeactivateAgent(@item.AccountId,1)">In-Active</a></b></font></td>
                                                     }
                                                     <td>@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</td>
                                                     <td>
                                                         @*<button onclick="return ConfirmationDialog(@item.AgentId)" class="btn btn-danger"><i class="fa fa-trash"></i> Delete</button>*@
                                                         <b>
-                                                            <a onclick="fnPopulateControls(@item.AgentId)" style="color:#007bff" title="Click to edit record.">
+                                                            <a onclick="fnPopulateControls(@item.AccountId)" style="color:#007bff" title="Click to edit record.">
                                                                 Edit
                                                             </a>
                                                         </b>|
-                                                        <b><a onclick="return ConfirmationDialog(@item.AgentId)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
+                                                        <b><a onclick="return ConfirmationDialog(@item.AccountId)" style="color:#dc3545" title="Click to delete record.">Delete </a></b>
                                                     </td>
                                                 </tr>
                                             }
                                         }
                                         else
                                         {
-                                            <tr>
-                                                <td colspan="5"><h5>No Agent Found.</h5></td>
+                                            <tr style="text-align:center;color:#777">
+                                                <td colspan="6">No Agent Found.</td>
                                             </tr>
                                         }
                                     </tbody>

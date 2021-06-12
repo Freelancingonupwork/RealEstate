@@ -28,6 +28,161 @@ namespace RealEstate.Controllers
             return View();
         }
 
+
+        public JsonResult LeadDataJson(int StartRecordNumber, int PageSize, string SortColumn, string SortDirection, string echo, string Search)
+        {
+            List<LeadViewModel> model = new List<LeadViewModel>();
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                using (RealEstateContext DB = new RealEstateContext())
+                {
+                    var Total = 0;
+                    var reviews = DB.TblLeads.Where(x => x.AccountId == AccountId).Include(x => x.Agent).ToList();
+                    if (Search != null)
+                    {
+                        Search = Search.ToLower();
+                        reviews = reviews.Where(x => (x.FirstName != null ? x.FirstName.ToLower().Contains(Search) : true) || (x.LastName != null ? x.LastName.ToLower().Contains(Search) : true) || (x.PhoneNumber != null ? x.PhoneNumber.ToLower().Contains(Search) : true) || (x.EmailAddress != null ? x.EmailAddress.Contains(Search) : true) || (x.Agent.FullName != null ? x.Agent.FullName.ToLower().Contains(Search) : true) || (x.LeadSource != null ? x.LeadSource.ToLower().Contains(Search) : true) || (x.LeadStatus != null ? x.LeadStatus.ToLower().Contains(Search) : true) || (x.Stage != null ? x.Stage.ToLower().Contains(Search) : true)).ToList();
+                    }
+
+                    Total = reviews.Count;
+                    if (SortDirection == "asc")
+                    {
+                        switch (SortColumn)
+                        {
+                            case "FirstName":
+                                reviews = reviews.OrderBy(x => x.FirstName).ToList();
+                                break;
+                            case "LastName":
+                                reviews = reviews.OrderBy(x => x.LastName).ToList();
+                                break;
+                            case "PhoneNumber":
+                                reviews = reviews.OrderBy(x => x.PhoneNumber).ToList();
+                                break;
+                            case "EmailAddress":
+                                reviews = reviews.OrderBy(x => x.EmailAddress).ToList();
+                                break;
+                            case "Stage":
+                                reviews = reviews.OrderBy(x => x.Stage).ToList();
+                                break;
+                            case "LeadStatus":
+                                reviews = reviews.OrderBy(x => x.LeadStatus).ToList();
+                                break;
+                            case "LeadSource":
+                                reviews = reviews.OrderBy(x => x.LeadSource).ToList();
+                                break;
+                            case "Industry":
+                                reviews = reviews.OrderBy(x => x.Industry).ToList();
+                                break;
+                            default:
+                                reviews = reviews.OrderBy(x => x.LeadId).ToList();
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (SortColumn)
+                        {
+                            case "FirstName":
+                                reviews = reviews.OrderByDescending(x => x.FirstName).ToList();
+                                break;
+                            case "LastName":
+                                reviews = reviews.OrderByDescending(x => x.LastName).ToList();
+                                break;
+                            case "PhoneNumber":
+                                reviews = reviews.OrderByDescending(x => x.PhoneNumber).ToList();
+                                break;
+                            case "EmailAddress":
+                                reviews = reviews.OrderByDescending(x => x.EmailAddress).ToList();
+                                break;
+                            case "Stage":
+                                reviews = reviews.OrderByDescending(x => x.Stage).ToList();
+                                break;
+                            case "LeadStatus":
+                                reviews = reviews.OrderByDescending(x => x.LeadStatus).ToList();
+                                break;
+                            case "LeadSource":
+                                reviews = reviews.OrderByDescending(x => x.LeadSource).ToList();
+                                break;
+                            case "Industry":
+                                reviews = reviews.OrderByDescending(x => x.Industry).ToList();
+                                break;
+                            default:
+                                reviews = reviews.OrderByDescending(x => x.LeadId).ToList();
+                                break;
+                        }
+                    }
+                    reviews = reviews.Skip(StartRecordNumber).Take(PageSize).ToList();
+
+                    foreach (var item in reviews)
+                    {
+                        LeadViewModel providerReview = new LeadViewModel();
+                        providerReview.LeadId = item.LeadId;
+                        providerReview.LeadSource = item.LeadSource;
+                        providerReview.LeadStatus = item.LeadStatus;
+                        providerReview.Industry = item.Industry;
+                        //providerReview.StageId = item.StageId;
+                        providerReview.Stage = item.StageNavigation;
+                        providerReview.TagsName = GetTagsName(item.LeadId);
+                        //providerReview.AgentId = item.AgentId;
+                        providerReview.Agent = item.Agent;
+                        //providerReview.OwnerImg = item.OwnerImg;
+                        //providerReview.LeadOwner = item.LeadOwner;
+                        //providerReview.Company = item.Company;
+                        providerReview.FirstName = item.FirstName;
+                        providerReview.LastName = item.LastName;
+                        //providerReview.Title = item.Title;
+                        providerReview.EmailAddress = item.EmailAddress;
+                        providerReview.PhoneNumber = item.PhoneNumber;
+                        //providerReview.Fax = item.Fax;
+                        //providerReview.MobileNumber = item.MobileNumber;
+                        //providerReview.Website = item.Website;
+                        //providerReview.NoOfEmp = item.NoOfEmp;
+                        //providerReview.AnnualRevenue = item.AnnualRevenue;
+                        //providerReview.Rating = item.Rating;
+                        //providerReview.EmailOptOut = item.EmailOptOut == true ? true : false;
+                        //providerReview.SkypeId = item.SkypeId;
+                        //providerReview.TwitterId = item.TwitterId;
+                        //providerReview.SecondaryEmail = item.SecondaryEmail;
+                        //providerReview.Street = item.Street;
+                        //providerReview.State = item.State;
+                        //providerReview.Country = item.Country;
+                        //providerReview.City = item.City;
+                        //providerReview.ZipCode = item.ZipCode;
+                        //providerReview.Description = item.Description;
+                        providerReview.CreatedDate = item.CreatedDate;
+                        model.Add(providerReview);
+                    }
+
+                    var result = from d in model
+                                 select new[] {
+                                d.LeadId.ToString(),
+                                d.FirstName.ToString() + " " + d.LastName.ToString() ,
+                                d.PhoneNumber == null ? "N/A" : d.PhoneNumber.ToString(),
+                                d.EmailAddress.ToString(),
+                                "50000",
+                                d.LeadSource == null ? "N/A" : d.LeadSource.ToString(),
+                                d.LeadStatus == null ? "N/A" : d.LeadStatus.ToString(),
+                                d.Industry == null ? "N/A" : d.Industry.ToString(),
+                                "02/01/2021",
+                                "02/01/2021",
+                                d.Stage == null ? "N/A" : d.Stage.StageName.ToString(),
+                                d.TagsName == "" || d.TagsName == null ? "N/A" : d.TagsName.ToString(),
+                                d.CreatedDate.Value.ToString(),
+                                d.Agent == null ? "N/A" : d.Agent.FullName.ToString(),
+                                "Action"
+                    };
+
+                    return Json(new { aaData = result, iTotalRecords = Total, iTotalDisplayRecords = Total, sEcho = echo }, new Newtonsoft.Json.JsonSerializerSettings());
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return Json(new { aaData = model }, new Newtonsoft.Json.JsonSerializerSettings());
+        }
+
+
         public IActionResult GetAllLead()
         {
             var draw = Request.Form["draw"].FirstOrDefault();

@@ -10,6 +10,9 @@ namespace RealEstate.Models
         public int Id { get; set; }
         public int? AccountId { get; set; }
         public string RefreshToken { get; set; }
+        public string EmailAddress { get; set; }
+        public int AuthAccountType { get; set; }
+        public int Expires_In { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime UpdatedDate { get; set; }
     }

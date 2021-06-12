@@ -11,6 +11,8 @@ namespace RealEstate.Models
         public int AgentId { get; set; }
         public int CompanyId { get; set; }
 
+        public int AccountId { get; set; }
+
         [Required(ErrorMessage = "Full Name is required.")]
         public string FullName { get; set; }
 

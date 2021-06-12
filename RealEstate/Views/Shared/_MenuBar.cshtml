@@ -44,12 +44,12 @@
                            role="tab" aria-controls="pills-clients" aria-selected="false">Text Templates</a>
                     </li>*@
                 <li class="nav-item dropdown profile-link-wrapper">
-                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate,TextTemplate,AddTextTemplate"))" href="#" id="navbarDropdown"
+                    <a class="nav-link dropdown-toggle profile-img-wrapper @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate,TextTemplate,AddTextTemplate,EmailTemplateList"))" href="#" id="navbarDropdown"
                        role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Marketing
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate"))" asp-action="EmailTemplate" asp-controller="Admin">Email Template</a>
+                        <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "EmailTemplate,AddEmailTemplate,EmailTemplateList"))" asp-action="EmailTemplate" asp-controller="Admin">Email Template</a>
                         <a class="dropdown-item @(Html.IsSelectedMultiple(controllers: "Admin", actions: "TextTemplate,AddTextTemplate"))" asp-action="TextTemplate" asp-controller="Admin">Text Template</a>
 
                     </div>

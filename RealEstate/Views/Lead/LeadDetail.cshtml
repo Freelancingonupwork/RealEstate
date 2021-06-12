@@ -1,4 +1,5 @@
-﻿@model LeadViewModel
+﻿@using System.IO;
+@model LeadViewModel
 @{
     ViewData["Title"] = "LeadDetail";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -9,6 +10,8 @@
     {
         userTypeAdmin = Convert.ToInt32(Context.Request.Cookies["UserLoginTypeId"]);
     }
+
+    int AccountId = Convert.ToInt32(Context.Request.Cookies["LoginAccountId"].ToString());
 
 }
 <link href="~/css/select2.css" rel="stylesheet" />
@@ -179,6 +182,40 @@
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" id="BtCreateAppointment" onclick="fnCreateLeadAppointMent(@Model.LeadId)" class="btn btn-primary">Create Appointment</button>
                 <button type="button" style="display:none" id="BtnSave" onclick="fnUpdateLeadAppointMent(@Model.LeadId)" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="divLeadFileModel" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Upload File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div role="alert" id="divErrorMsgLeadFile" style="display:none"></div>
+                <input type="file" id="fileInput" multiple />
+                <button type="submit" class="btn btn-primary" onclick="fnUploadLeadFile(@Model.LeadId)">Upload Files</button>
+                <div class="table-wrapper-scroll-y my-custom-scrollbar mb-0">
+                    <table class="table table-bordered table-striped mt-2" id="FilesList" style="display:none">
+                        <tr>
+                            <th>
+                                Attachment(s)
+                            </th>
+                            <th>
+                                Action
+                            </th>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                @*<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" onclick="fnUpdateAgent()" class="btn btn-primary">Save changes</button>*@
             </div>
         </div>
     </div>
@@ -378,7 +415,7 @@
                                         </li>
                                         <li>
                                             <b><i style="color:#BF0D1C" class="fa fa-envelope" aria-hidden="true"></i></b>
-                                            <span>@item.Agent.EmailAddress</span>
+                                            <span>@(item.Agent == null ? "N/A" : item.Agent.UserName)</span>
                                         </li>
                                     </ul>
                                     <hr />
@@ -405,14 +442,17 @@
                                     Files
                                 </div>
                                 <div class="content-header-right">
-                                    <button class="btn-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus">
-                                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                                        </svg>
-                                    </button>
+                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                    {
+                                        <button class="btn-icon" onclick="fnPopulateControlsLeadFile(@Model.LeadId)" data-toggle="modal" data-target="#divLeadFileModel">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                 stroke-linecap="round" stroke-linejoin="round" class="feather feather-plus">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg>
+                                        </button>
+                                    }
                                     <button class="btn-icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
                                              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -424,11 +464,56 @@
                                 </div>
                             </div>
                             <div class="custom-card-text">
-                                <p>No files yet , Drag some here</p>
+                                @if (Model.LeadFiles.Count > 0)
+                                {
+                                    foreach (var item in Model.LeadFiles.OrderByDescending(x => x.LeadFileId))
+                                    {
+                                        string extension = System.IO.Path.GetExtension(item.FileName);
+                                        string[] values = new[] { ".jpeg", ".jpg", ".png", ".gif", ".bmp", ".svg" };
+                                        bool containsAny = values.Any(extension.Contains);
+                                        <div class="file-lead">
+                                            <div class="fileImg">
+                                                @if (containsAny)
+                                                {
+                                                    <a target="_blank" asp-action="DownloadFile" asp-route-id="@item.LeadId" asp-route-fileName="@item.FileName">
+                                                        <img src="~/LeadFile/@AccountId/@Model.LeadId/@item.FileName" width="80" height="60" />
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <div target="_blank" asp-action="DownloadFile" asp-route-id="@item.LeadId" asp-route-fileName="@item.FileName">
+                                                        @extension.Replace(".", "")
+                                                    </div>
+                                                }
+                                            </div>
+                                            <div class="fileDetails">
+                                                <p class="mb-0" data-toggle="tooltip" data-placement="top" title="@item.FileName">
+                                                    @item.FileName
+                                                </p>
+                                                <p class="mb-0" style="color:rgb(154, 158, 161)">@item.CreatedDate.Value.ToString("MMMM dd,yyyy hh:mm tt")</p>
+                                                <div class="deleteFilebtn d-flex">
+                                                    <a asp-action="DownloadFile" asp-route-id="@item.LeadId" asp-route-fileName="@item.FileName" data-toggle="tooltip" data-placement="top" title="Download">
+                                                        <b><i style="color:#BF0D1C" class="fa fa-download" aria-hidden="true"></i></b>
+                                                    </a>
+                                                    @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                                    {
+                                                        <a onclick="return ConfirmationDialogLeadFile(@Model.LeadId,@item.LeadFileId)" data-toggle="tooltip" data-placement="top" title="Delete">
+                                                            <b><i style="color:#BF0D1C" class="fa fa-trash" aria-hidden="true"></i></b>
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No files yet</p>
+                                }
                             </div>
                         </div>
-                    </div>
-                    <div class="content-bg mt-3">
+                    </div>*@
+                @*<div class="content-bg mt-3">
                         <div class="row">
                             <div class="custom-card-header">
                                 <div class="content-header-left align-items-center">
@@ -945,9 +1030,7 @@
                                     </div>
                                 </div>
                                 <div class="custom-card-text">
-                                    @{
-                                        int AccountId = Convert.ToInt32(Context.Request.Cookies["LoginAccountId"].ToString());
-                                    }
+
                                     @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                                     {
                                         @foreach (var item in ViewBag.CustomFieldlist)
@@ -1020,13 +1103,13 @@
                         <div class="row justify-content-between">
                             <ul class="nav nav-pills" id="pills-tab" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="create-note-tab" data-toggle="pill"
-                                       href="#create-note" role="tab" aria-controls="create-note"
-                                       aria-selected="true">Create Note</a>
+                                    <a class="nav-link active" id="send-email-tab" data-toggle="pill" href="#send-email"
+                                       role="tab" aria-controls="send-email" aria-selected="false">Send Email</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="send-email-tab" data-toggle="pill" href="#send-email"
-                                       role="tab" aria-controls="send-email" aria-selected="false">Send Email</a>
+                                    <a class="nav-link" id="create-note-tab" data-toggle="pill"
+                                       href="#create-note" role="tab" aria-controls="create-note"
+                                       aria-selected="true">Create Note</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
@@ -1037,102 +1120,110 @@
                                        role="tab" aria-controls="log-call" aria-selected="true">Log Call</a>
                                 </li>
                             </ul>
-                            <div class="list-button-wrapper mr-4">
-                                <button class="btn btn-primary mr-2">How it work</button>
-                            </div>
+                            @*<div class="list-button-wrapper mr-4">
+                                    <button class="btn btn-primary mr-2">How it work</button>
+                                </div>*@
                         </div>
                     </div>
                 </div>
                 <div class="content-bg mt-3">
                     <div class="row">
                         <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                                 aria-labelledby="create-note-tab">
-                                <div class="custom-card-text create-note-wrapper">
+                            @*<div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                     aria-labelledby="create-note-tab">
+                                    <div class="custom-card-text create-note-wrapper">
 
-                                    <textarea>Add note and mentions here</textarea>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <button class="btn btn-primary mr-2">
-                                                Try Team
-                                                Mentions
-                                            </button>
-                                        </div>
-                                        <div class="col-6 text-right">
-                                            <button class="btn btn-primary mr-2">
-                                                Creat
-                                                Note
-                                            </button>
+                                        <textarea>Add note and mentions here</textarea>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <button class="btn btn-primary mr-2">
+                                                    Try Team
+                                                    Mentions
+                                                </button>
+                                            </div>
+                                            <div class="col-6 text-right">
+                                                <button class="btn btn-primary mr-2">
+                                                    Creat
+                                                    Note
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="tab-pane fade" id="send-email" role="tabpanel"
+                                </div>*@
+                            <input type="hidden" id="hdnLeadEmailMsgId" />
+                            <input type="hidden" id="hdnEmailMessageId" />
+                            <input type="hidden" id="hdnFromName" />
+                            <input type="hidden" id="hdnToName" />
+                            <input type="hidden" id="hdnIsReplay" />
+                            <div class="tab-pane fade show active" id="send-email" role="tabpanel"
                                  aria-labelledby="send-email-tab">
                                 <div class="custom-card-text create-note-wrapper">
-
-                                    <textarea>Add note and mentions here</textarea>
+                                    <label>To:</label>
+                                    <b>
+                                        @Model.EmailAddress
+                                        <input type="hidden" id="hdnToMailAddress" value="@Model.EmailAddress" />
+                                    </b>
+                                    <p>
+                                        Subject: <input type="text" id="txtMailSubject" class="form-control mb-3" />
+                                    </p>
+                                    <textarea id="txtMailBody" class="form-control mb-3" rows="200"></textarea>
+                                    <p style="display:none">
+                                        Attachments:<input type="file" id="fileInput" multiple class="form-control mb-3" />
+                                    </p>
                                     <div class="row">
                                         <div class="col-6">
-                                            <button class="btn btn-primary mr-2">
-                                                Try Team
-                                                Mentions
-                                            </button>
                                         </div>
-                                        <div class="col-6 text-right">
-                                            <button class="btn btn-primary mr-2">
-                                                Creat
-                                                Note
-                                            </button>
+                                        <div class="col-6 text-right mt-3">
+                                            <button type="submit" class="btn btn-primary mr-2" onclick="fnSendEmail(@Model.LeadId)">Send Email</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
-                                <div class="custom-card-text create-note-wrapper">
+                            @*<div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
+                                    <div class="custom-card-text create-note-wrapper">
 
-                                    <textarea>Add note and mentions here</textarea>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <button class="btn btn-primary mr-2">
-                                                Try Team
-                                                Mentions
-                                            </button>
-                                        </div>
-                                        <div class="col-6 text-right">
-                                            <button class="btn btn-primary mr-2">
-                                                Creat
-                                                Note
-                                            </button>
+                                        <textarea>Add note and mentions here</textarea>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <button class="btn btn-primary mr-2">
+                                                    Try Team
+                                                    Mentions
+                                                </button>
+                                            </div>
+                                            <div class="col-6 text-right">
+                                                <button class="btn btn-primary mr-2">
+                                                    Creat
+                                                    Note
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
-                                <div class="custom-card-text create-note-wrapper">
+                                <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
+                                    <div class="custom-card-text create-note-wrapper">
 
-                                    <textarea>Add note and mentions here</textarea>
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <button class="btn btn-primary mr-2">
-                                                Try Team
-                                                Mentions
-                                            </button>
-                                        </div>
-                                        <div class="col-6 text-right">
-                                            <button class="btn btn-primary mr-2">
-                                                Creat
-                                                Note
-                                            </button>
+                                        <textarea>Add note and mentions here</textarea>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <button class="btn btn-primary mr-2">
+                                                    Try Team
+                                                    Mentions
+                                                </button>
+                                            </div>
+                                            <div class="col-6 text-right">
+                                                <button class="btn btn-primary mr-2">
+                                                    Creat
+                                                    Note
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+                                </div>*@
                         </div>
                     </div>
                 </div>
 
-                <div class="main-tab-wrapper mt-3">
+                <div class="main-tab-wrapper mt-3" style="display:none">
                     <div class="content-bg">
                         <div class="row justify-content-between chat-listing-tab">
                             <ul class="nav nav-pills" id="pills-tab" role="tablist">
@@ -1243,77 +1334,45 @@
                         <div class="tab-content" id="pills-tabContent">
                             <div class="tab-pane fade show active" id="create-note" role="tabpanel"
                                  aria-labelledby="create-note-tab">
-                                <div class="custom-card-header">
-                                    <div class="chat-icon btn-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-mail">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                            </path>
-                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                        </svg>
-                                    </div>
-                                    <div class="chat-header-detail flex-grow-1 ml-3">
-                                        <h5>
-                                            Dan Corkill
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                            Ifiok Charles
-                                        </h5>
-                                        <span>8 days ago</span>
-                                        <h5>Automate your lead engagement</h5>
-                                    </div>
-                                    <div class="chat-action">
-                                        <button class="btn btn-secondary">Reply</button>
-                                        <button class="btn btn-secondary">Reply All</button>
-                                        <button class="btn btn-secondary">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                                        </button>
-                                    </div>
+                                <div id="divMailList">
+
                                 </div>
-                                <div class="custom-card-text ml-5">
-                                    <p> Hi Ifiok,</p>
-                                    <p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
-                                    <p>Need help? Just hit reply.</p>
-                                    <p>Regards, <br>The Estajo Team</p>
-                                    <p><br></p>
-                                </div>
-                                <div class="divider my-5"></div>
-                                <div class="custom-card-header">
-                                    <div class="chat-icon btn-icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-mail">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                            </path>
-                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                        </svg>
+
+                                @*<div class="custom-card-header">
+                                        <div class="chat-icon btn-icon">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                 stroke-linecap="round" stroke-linejoin="round"
+                                                 class="feather feather-mail">
+                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                                </path>
+                                                <polyline points="22,6 12,13 2,6"></polyline>
+                                            </svg>
+                                        </div>
+                                        <div class="chat-header-detail flex-grow-1 ml-3">
+                                            <h5>
+                                                Dan Corkill
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                                Ifiok Charles
+                                            </h5>
+                                            <span>8 days ago</span>
+                                            <h5>Automate your lead engagement</h5>
+                                        </div>
+                                        <div class="chat-action">
+                                            <button class="btn btn-secondary">Reply</button>
+                                            <button class="btn btn-secondary">Reply All</button>
+                                            <button class="btn btn-secondary">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="chat-header-detail flex-grow-1 ml-3">
-                                        <h5>
-                                            Dan Corkill
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                            Ifiok Charles
-                                        </h5>
-                                        <span>8 days ago</span>
-                                        <h5>Automate your lead engagement</h5>
-                                    </div>
-                                    <div class="chat-action">
-                                        <button class="btn btn-secondary">Reply</button>
-                                        <button class="btn btn-secondary">Reply All</button>
-                                        <button class="btn btn-secondary">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="custom-card-text ml-5">
-                                    <p> Hi Ifiok,</p>
-                                    <p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
-                                    <p>Need help? Just hit reply.</p>
-                                    <p>Regards, <br>The Estajo Team</p>
-                                    <p><br></p>
-                                </div>
+                                    <div class="custom-card-text ml-5">
+                                        <p> Hi Ifiok,</p>
+                                        <p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
+                                        <p>Need help? Just hit reply.</p>
+                                        <p>Regards, <br>The Estajo Team</p>
+                                        <p><br></p>
+                                    </div>*@
                             </div>
                             <div class="tab-pane fade" id="send-email" role="tabpanel"
                                  aria-labelledby="send-email-tab">
@@ -1336,7 +1395,11 @@
 <script src="~/js/select2.min.js"></script>
 <script src="~/SiteJavascripts/LeadDetail.js"></script>
 <script type="text/javascript">
+
     $(document).ready(function () {
+
+        $('[data-toggle="tooltip"]').tooltip();
+
         $("#cmbtag").select2({
             width: '100%',
         });
@@ -1403,6 +1466,66 @@
         $('#timepicker').timepicker('setTime', time);//,#timepickerto
 
         $("#divScroll").niceScroll({ cursorwidth: '10px', autohidemode: false, zindex: 999 });
-    });
 
+        $("#fileInput").on("change", function () {
+            var fileInput = document.getElementById('fileInput');
+            var filesize = $("#fileInput")[0].files[0].size;
+            if (filesize <= 104857600) {
+                $('.my-custom-scrollbar').css('height', '200px');
+                //Iterating through each files selected in fileInput
+                for (i = 0; i < fileInput.files.length; i++) {
+                    var sfilename = fileInput.files[i].name;
+                    let srandomid = Math.random().toString(36).substring(7);
+                    console.log(fileInput.files[i]);
+                    //formdata.append(sfilename, fileInput.files[i]);
+                    var markup = "<tr id='" + srandomid + "'><td>" + sfilename + "</td><td><a href='#' onclick='DeleteFile(\"" + srandomid + "\",\"" + sfilename +
+                        "\")'><i style=\"color:#BF0D1C\" class=\"fa fa-trash\" aria-hidden=\"true\"></i></a></td></tr>"; // Binding the file name
+                    $("#FilesList tbody").append(markup);
+                }
+                chkatchtbl();
+                //$('#fileInput').val('');
+            }
+            else {
+                $("#divErrorMsgLeadFile").html("Please upload file less than 100MB.");
+                $('#divErrorMsgLeadFile').show();
+                document.getElementById("divErrorMsgLeadFile").classList.add("alert", "alert-danger");
+                setTimeout(function () {
+                    $("#divErrorMsgLeadFile").fadeOut();
+                }, 5000);
+                document.getElementById("fileInput").focus();
+                $('#fileInput').val('');
+                return;
+            }
+
+        });
+
+        CKEDITOR.replace('txtMailBody', {
+            filebrowserImageBrowseUrl: '/Admin/uploadPartial',
+            filebrowserImageUploadUrl: '/Admin/UploadImage'
+        })
+    });
+    function chkatchtbl() {
+        if ($('#FilesList tr').length > 1) {
+            $("#FilesList").css("display", "inline-table");
+        } else {
+            $("#FilesList").css("display", "none");
+        }
+    }
+    function DeleteFile(Fileid, FileName) {
+        formdata.delete(FileName)
+        $("#" + Fileid).remove();
+        chkatchtbl();
+    }
+
+    $('#divLeadFileModel').on('hidden.bs.modal', function (e) {
+        $(this)
+            .find("input,textarea,file")
+            .val('')
+            .end()
+            .find("input[type=checkbox], input[type=radio]")
+            .prop("checked", "")
+            .end();
+        $('#FilesList').html('');
+        $('.my-custom-scrollbar').removeAttr('style');
+    });
 </script>

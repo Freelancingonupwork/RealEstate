@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
+using Microsoft.AspNetCore.Hosting;
 
 namespace RealEstate.Controllers
 {
@@ -22,11 +23,12 @@ namespace RealEstate.Controllers
         private RealEstateContext _dbContext;
         //private readonly ApplicationDbContext _context;
         private IConfiguration Configuration;
-
-        public CompanyController(RealEstateContext context, IConfiguration _configuration)
+        private IWebHostEnvironment Environment;
+        public CompanyController(RealEstateContext context, IConfiguration _configuration, IWebHostEnvironment _environment)
         {
             _dbContext = context;
             Configuration = _configuration;
+            Environment = _environment;
         }
         public IActionResult Index()
         {
@@ -74,7 +76,7 @@ namespace RealEstate.Controllers
 
                             SetCookie("EmailAddress", oData.UserName);
                             SetCookie("FullName", oData.FullName);
-                            SetCookie("UserId", oData.AccountId.ToString());
+                            SetCookie("LoginAccountId", oData.AccountId.ToString());
                             SetCookie("UserLoginTypeId", RoleType.Admin.GetHashCode().ToString());
                             //SetCookie("UserLoginTypeId", UserLoginType.Company.GetHashCode().ToString());
                             return RedirectToAction("Index", "Lead", new { area = "" });
@@ -95,7 +97,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -113,7 +115,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View("Login");
             }
 
@@ -187,7 +189,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -206,7 +208,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -279,7 +281,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -297,7 +299,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -338,7 +340,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -392,7 +394,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -462,7 +464,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }

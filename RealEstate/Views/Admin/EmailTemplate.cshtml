@@ -21,15 +21,13 @@
                 <input type="hidden" id="hdnAccountID" />
                 <input type="hidden" id="hdnEmailTemplateID" />
                 <div class="row mt-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label>Template Type</label>
                         <select id="cmdTemplateType" class="form-control" asp-items="@(new SelectList(ViewBag.TemplateTypeList,"Key","Value"))">
                             <option value="">Select Template</option>
                         </select>
                     </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label>Email Name</label><input type="text" id="txtEmailName" class="form-control" placeholder="Email Name" />
                     </div>
                 </div>
@@ -39,21 +37,19 @@
                     </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label>FromEmail</label><input type="text" id="txtFromEmail" class="form-control" placeholder="From Email" />
                     </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <label>Email Subject</label><input type="text" id="txtEmailSubject" class="form-control" placeholder="Email Subject" />
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-md-12">
                         <label>Email Body</label><textarea id="txtMailBody" class="form-control" rows="200"></textarea>
-                        <script>
+                        @*<script>
                             CKEDITOR.replace("txtMailBody");
-                        </script>
+                        </script>*@
                     </div>
                 </div>
             </div>
@@ -72,7 +68,8 @@
                     <div class="col-lg-12">
                         <div class="d-flex justify-content-between align-items-center">
                             <h4 class="m-b-0 text-white">Email Template</h4>
-                            <a asp-action="AddEmailTemplate" class="btn btn-primary mr-2">+ Add Email Template</a>
+                            @*<a asp-action="AddEmailTemplate" class="btn btn-primary mr-2">+ Add Email Template</a>*@
+                            <a asp-action="EmailTemplateList" class="btn btn-primary mr-2"> Email Template </a>
                         </div>
                     </div>
                 </div>
@@ -123,8 +120,8 @@
                                         }
                                         else
                                         {
-                                            <tr>
-                                                <td colspan="4"><h5>No Email Template Found.</h5></td>
+                                            <tr style="text-align:center;color:#777">
+                                                <td colspan="5">No Email Template Found.</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -137,4 +134,30 @@
         </div>
     </div>
 </div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        CKEDITOR.replace('txtMailBody', {
+            filebrowserImageBrowseUrl: '/Admin/uploadPartial',
+            filebrowserImageUploadUrl: '/Admin/UploadImage'
+        });
+    });
+
+    function updateValue(id, value) {
+        // this gets called from the popup window and updates the field with a new value
+        //document.getElementById(id).value = value1;
+
+        var jqueryObjectByClass = $(".cke_dialog_ui_input_text")[1];
+        jqueryObjectByClass.value = value;
+    }
+    $('#divEmailTemplateModel').on('hidden.bs.modal', function (e) {
+        $(this)
+            .find("input,textarea")
+            .val('')
+            .end()
+            .find("input[type=checkbox], input[type=radio]")
+            .prop("checked", "")
+            .end();
+        $('#cmdTemplateType').prop('selectedIndex', 0);
+    });
+</script>
 <script src="~/SiteJavascripts/EmailTemplateList.js"></script>

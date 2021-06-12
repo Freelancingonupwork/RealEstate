@@ -22,6 +22,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Net.Http.Headers;
+using EASendMail;
 
 namespace RealEstate.Controllers
 {
@@ -49,10 +51,12 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
-                        var agentDetails = DB.TblAgents.Where(x => x.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault();
+                        //var agentDetails = DB.TblAgents.Where(x => x.EmailAddress.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault();
+                        var agentDetails = DB.TblAccounts.Where(x => x.UserName.Equals(Request.Cookies["EmailAddress"].ToString())).FirstOrDefault();
                         if (agentDetails != null)
                         {
-                            var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentDetails.Id).Include(x => x.Agent).Include(x => x.StageNavigation).ToList().Select(s => new LeadViewModel
+                            //var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentDetails.Id).Include(x => x.Agent).Include(x => x.StageNavigation).ToList().Select(s => new LeadViewModel
+                            var oLeadList = DB.TblLeads.Where(x => x.AgentId == agentDetails.AccountId).Include(x => x.Agent).Include(x => x.StageNavigation).ToList().Select(s => new LeadViewModel
                             {
                                 LeadId = s.LeadId,
                                 LeadSource = s.LeadSource,
@@ -147,7 +151,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -205,7 +209,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return View("Index");
             }
         }
@@ -281,7 +285,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log(ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return View();
             }
         }
@@ -304,7 +310,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -382,7 +388,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -404,7 +410,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -436,10 +442,23 @@ namespace RealEstate.Controllers
 
 
                 Dictionary<int, string> oAgentlist = new Dictionary<int, string>();
-                var agents = _dbContext.TblAgents.Where(u => u.IsActive == true && u.AccountId == AccountId).ToList();
+                //var agents = _dbContext.TblAgents.Where(u => u.IsActive == true && u.AccountId == AccountId).ToList();
+                //foreach (var item in agents)
+                //{
+                //    oAgentlist.Add(item.Id, item.FullName);
+                //}
+                //ViewBag.AgentList = oAgentlist;
+
+
+
+                var agents = (from A in _dbContext.TblAccounts // outer sequence
+                              join AC in _dbContext.TblAccountCompanies //inner sequence 
+                              on A.AccountId equals AC.AccountId // key selector 
+                              where AC.AddedBy == AccountId && A.RoleId == RoleType.Agent.GetHashCode()
+                              select A).ToList();
                 foreach (var item in agents)
                 {
-                    oAgentlist.Add(item.Id, item.FullName);
+                    oAgentlist.Add(item.AccountId, item.FullName);
                 }
                 ViewBag.AgentList = oAgentlist;
 
@@ -494,7 +513,8 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+
             }
         }
 
@@ -516,7 +536,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while getting record!" + ex.Message });
             }
 
@@ -541,7 +561,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -574,7 +594,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while inserting record!" + ex.Message });
             }
 
@@ -610,7 +630,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while inserting record!" + ex.Message });
             }
 
@@ -849,7 +869,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("NewLead");
             }
             return RedirectToAction("Index", "Lead");
@@ -871,109 +891,217 @@ namespace RealEstate.Controllers
                 if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
                 {
                     int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-                    var oAccountIntegrationData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                    var oAccountIntegrationData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && x.AuthAccountType == AuthAccountType.HubSportAuth.GetHashCode()).FirstOrDefault();
                     if (oAccountIntegrationData != null)
                     {
-                        var postParams = new Dictionary<string, string>();
-
-                        postParams.Add("grant_type", "refresh_token");
-                        postParams.Add("client_id", this._config.GetSection("APIs")["client_id"]);
-                        postParams.Add("client_secret", this._config.GetSection("APIs")["client_secret"]);
-                        postParams.Add("refresh_token", oAccountIntegrationData.RefreshToken);
-
-                        var formUrlEncodedContent = new FormUrlEncodedContent(postParams);
-
-                        //The url to post to.
-                        var url = "https://api.hubapi.com/oauth/v1/token";
-                        var client = new HttpClient();
-
-                        //Pass in the full URL and the json string content
-                        var response = await client.PostAsync(url, formUrlEncodedContent);
-                        if (response.StatusCode == HttpStatusCode.OK)
+                        if (DateTime.Now.Subtract(oAccountIntegrationData.CreatedDate.Value).Hours >= 1)
                         {
-                            //It would be better to make sure this request actually made it through
-                            string result = await response.Content.ReadAsStringAsync();
+                            var postParams = new Dictionary<string, string>();
 
-                            var Token = JsonConvert.DeserializeObject<Token>(result);
+                            postParams.Add("grant_type", "refresh_token");
+                            postParams.Add("client_id", this._config.GetSection("APIs")["client_id"]);
+                            postParams.Add("client_secret", this._config.GetSection("APIs")["client_secret"]);
+                            postParams.Add("refresh_token", oAccountIntegrationData.RefreshToken);
 
-                            if (status.EXPIRED_AUTH_CODE == Token.Status)
+                            var formUrlEncodedContent = new FormUrlEncodedContent(postParams);
+
+                            //The url to post to.
+                            var url = "https://api.hubapi.com/oauth/v1/token";
+                            var client = new HttpClient();
+
+                            //Pass in the full URL and the json string content
+                            var response = await client.PostAsync(url, formUrlEncodedContent);
+                            if (response.StatusCode == HttpStatusCode.OK)
                             {
-                                ErrorLog.log(Token.message.ToString());
-                                return RedirectToAction("HubSportRequest");
-                            }
-                            else if (status.MISMATCH_REDIRECT_URI_AUTH_CODE == Token.Status)
-                            {
-                                ErrorLog.log(Token.message.ToString());
-                                ShowErrorMessage(Token.message.ToString(), true);
-                                return RedirectToAction("Index", "Lead");
-                            }
-                            else if (status.BAD_REDIRECT_URI == Token.Status)
-                            {
-                                ErrorLog.log(Token.message.ToString());
-                                ShowErrorMessage(Token.message.ToString(), true);
-                                return RedirectToAction("Index", "Lead");
-                            }
-                            else
-                            {
-                                var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
-                                if (oAccountIntegration != null)
+                                //It would be better to make sure this request actually made it through
+                                string result = await response.Content.ReadAsStringAsync();
+
+                                var Token = JsonConvert.DeserializeObject<Token>(result);
+
+                                if (status.EXPIRED_AUTH_CODE == Token.Status)
                                 {
-                                    oAccountIntegration.AccountId = AccountId;
-                                    oAccountIntegration.RefreshToken = Token.refresh_token;
-                                    oAccountIntegration.UpdatedDate = DateTime.Now;
-                                    _dbContext.SaveChanges();
+                                    ErrorLog.log(Token.message.ToString());
+                                    return RedirectToAction("HubSportRequest");
                                 }
-                                var httpRequestMessage = new HttpRequestMessage
+                                else if (status.MISMATCH_REDIRECT_URI_AUTH_CODE == Token.Status)
                                 {
-                                    Method = HttpMethod.Get,
-                                    RequestUri = new Uri("https://api.hubapi.com/contacts/v1/lists/all/contacts/all"),
-                                    Headers = {
-                                { HttpRequestHeader.Authorization.ToString(), "Bearer "+Token.access_token},
-                                { HttpRequestHeader.Accept.ToString(), "application/json" },
-                                },
-                                };
-
-                                var responseContact = client.SendAsync(httpRequestMessage).Result;
-                                var data = await responseContact.Content.ReadAsStringAsync();
-                                var model = JsonConvert.DeserializeObject<HubSpotEntity.Root>(data);
-                                List<TblLead> leadList = new List<TblLead>();
-                                if (model.contacts != null)
+                                    ErrorLog.log(Token.message.ToString());
+                                    ShowErrorMessage(Token.message.ToString(), true);
+                                    return RedirectToAction("Index", "Lead");
+                                }
+                                else if (status.BAD_REDIRECT_URI == Token.Status)
                                 {
-                                    foreach (var item in model.contacts)
-                                    {
-                                        TblLead lead = new TblLead();
-                                        lead.FirstName = item.properties.firstname == null ? string.Empty : item.properties.firstname.value.ToString();
-                                        lead.LastName = item.properties.lastname == null ? string.Empty : item.properties.lastname.value.ToString();
-                                        //lead.CreatedDate = Convert.ToDateTime(item.addedAt.ToString());
-                                        var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToInt64(item.addedAt) / 1000d)).ToLocalTime();
-                                        lead.CreatedDate = Convert.ToDateTime(dt);
-                                        lead.Company = item.properties.company == null ? string.Empty : item.properties.company.value.ToString();
-                                        lead.EmailAddress = string.IsNullOrEmpty(item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString()) ? string.Empty : item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString();
-                                        lead.AccountId = AccountId;
-                                        var resultLead = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(lead.EmailAddress.ToLower()) && u.AccountId == AccountId).ToList();
-                                        if (resultLead.Count() > 0)
-                                            continue;
-                                        leadList.Add(lead);
-                                    }
-                                    _dbContext.TblLeads.AddRange(leadList);
-                                    _dbContext.SaveChanges();
-                                    //close out the client
-                                    client.Dispose();
-
-                                    ShowSuccessMessage(model.contacts.Count + " Leads are successfully imported from HubSpot!", true);
-
+                                    ErrorLog.log(Token.message.ToString());
+                                    ShowErrorMessage(Token.message.ToString(), true);
+                                    return RedirectToAction("Index", "Lead");
                                 }
                                 else
                                 {
-                                    ShowSuccessMessage("0 Leads are founds from HubSpot!", true);
+                                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                                    if (oAccountIntegration != null)
+                                    {
+                                        oAccountIntegration.AccountId = AccountId;
+                                        oAccountIntegration.RefreshToken = Token.refresh_token;
+                                        oAccountIntegration.UpdatedDate = DateTime.Now;
+                                        _dbContext.SaveChanges();
+                                    }
+                                    var httpRequestMessage = new HttpRequestMessage
+                                    {
+                                        Method = HttpMethod.Get,
+                                        RequestUri = new Uri("https://api.hubapi.com/contacts/v1/lists/all/contacts/all"),
+                                        Headers = {
+                                                    { HttpRequestHeader.Authorization.ToString(), "Bearer "+Token.access_token},
+                                                    { HttpRequestHeader.Accept.ToString(), "application/json" },
+                                        },
+                                    };
+
+                                    var responseContact = client.SendAsync(httpRequestMessage).Result;
+                                    var data = await responseContact.Content.ReadAsStringAsync();
+                                    var model = JsonConvert.DeserializeObject<HubSpotEntity.Root>(data);
+                                    List<TblLead> leadList = new List<TblLead>();
+                                    if (model.contacts != null)
+                                    {
+                                        foreach (var item in model.contacts)
+                                        {
+                                            TblLead lead = new TblLead();
+                                            lead.FirstName = item.properties.firstname == null ? string.Empty : item.properties.firstname.value.ToString();
+                                            lead.LastName = item.properties.lastname == null ? string.Empty : item.properties.lastname.value.ToString();
+                                            //lead.CreatedDate = Convert.ToDateTime(item.addedAt.ToString());
+                                            var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToInt64(item.addedAt) / 1000d)).ToLocalTime();
+                                            lead.CreatedDate = Convert.ToDateTime(dt);
+                                            lead.Company = item.properties.company == null ? string.Empty : item.properties.company.value.ToString();
+                                            lead.EmailAddress = string.IsNullOrEmpty(item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString()) ? string.Empty : item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString();
+                                            lead.AccountId = AccountId;
+                                            var resultLead = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(lead.EmailAddress.ToLower()) && u.AccountId == AccountId).ToList();
+                                            if (resultLead.Count() > 0)
+                                                continue;
+                                            leadList.Add(lead);
+                                        }
+                                        _dbContext.TblLeads.AddRange(leadList);
+                                        _dbContext.SaveChanges();
+                                        //close out the client
+                                        client.Dispose();
+
+                                        ShowSuccessMessage(model.contacts.Count + " Leads are successfully imported from HubSpot!", true);
+
+                                    }
+                                    else
+                                    {
+                                        ShowSuccessMessage("0 Leads are founds from HubSpot!", true);
+                                    }
+                                    return RedirectToAction("Index", "Lead");
                                 }
+                            }
+                            else
+                            {
+                                ShowErrorMessage("Something went wrong!!", true);
                                 return RedirectToAction("Index", "Lead");
                             }
                         }
                         else
                         {
-                            ShowErrorMessage("Something went wrong!!", true);
-                            return RedirectToAction("Index", "Lead");
+                            var postParams = new Dictionary<string, string>();
+
+                            postParams.Add("grant_type", "refresh_token");
+                            postParams.Add("client_id", this._config.GetSection("APIs")["client_id"]);
+                            postParams.Add("client_secret", this._config.GetSection("APIs")["client_secret"]);
+                            postParams.Add("refresh_token", oAccountIntegrationData.RefreshToken);
+
+                            var formUrlEncodedContent = new FormUrlEncodedContent(postParams);
+
+                            //The url to post to.
+                            var url = "https://api.hubapi.com/oauth/v1/token";
+                            var client = new HttpClient();
+
+                            //Pass in the full URL and the json string content
+                            var response = await client.PostAsync(url, formUrlEncodedContent);
+                            if (response.StatusCode == HttpStatusCode.OK)
+                            {
+                                //It would be better to make sure this request actually made it through
+                                string result = await response.Content.ReadAsStringAsync();
+
+                                var Token = JsonConvert.DeserializeObject<Token>(result);
+
+                                if (status.EXPIRED_AUTH_CODE == Token.Status)
+                                {
+                                    ErrorLog.log(Token.message.ToString());
+                                    return RedirectToAction("HubSportRequest");
+                                }
+                                else if (status.MISMATCH_REDIRECT_URI_AUTH_CODE == Token.Status)
+                                {
+                                    ErrorLog.log(Token.message.ToString());
+                                    ShowErrorMessage(Token.message.ToString(), true);
+                                    return RedirectToAction("Index", "Lead");
+                                }
+                                else if (status.BAD_REDIRECT_URI == Token.Status)
+                                {
+                                    ErrorLog.log(Token.message.ToString());
+                                    ShowErrorMessage(Token.message.ToString(), true);
+                                    return RedirectToAction("Index", "Lead");
+                                }
+                                else
+                                {
+                                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                                    if (oAccountIntegration != null)
+                                    {
+                                        oAccountIntegration.AccountId = AccountId;
+                                        oAccountIntegration.RefreshToken = Token.refresh_token;
+                                        oAccountIntegration.UpdatedDate = DateTime.Now;
+                                        _dbContext.SaveChanges();
+                                    }
+                                    var httpRequestMessage = new HttpRequestMessage
+                                    {
+                                        Method = HttpMethod.Get,
+                                        RequestUri = new Uri("https://api.hubapi.com/contacts/v1/lists/all/contacts/all"),
+                                        Headers = {
+                                                    { HttpRequestHeader.Authorization.ToString(), "Bearer "+Token.access_token},
+                                                    { HttpRequestHeader.Accept.ToString(), "application/json" },
+                                        },
+                                    };
+
+                                    var responseContact = client.SendAsync(httpRequestMessage).Result;
+                                    var data = await responseContact.Content.ReadAsStringAsync();
+                                    var model = JsonConvert.DeserializeObject<HubSpotEntity.Root>(data);
+                                    List<TblLead> leadList = new List<TblLead>();
+                                    if (model.contacts != null)
+                                    {
+                                        foreach (var item in model.contacts)
+                                        {
+                                            TblLead lead = new TblLead();
+                                            lead.FirstName = item.properties.firstname == null ? string.Empty : item.properties.firstname.value.ToString();
+                                            lead.LastName = item.properties.lastname == null ? string.Empty : item.properties.lastname.value.ToString();
+                                            //lead.CreatedDate = Convert.ToDateTime(item.addedAt.ToString());
+                                            var dt = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(Math.Round(Convert.ToInt64(item.addedAt) / 1000d)).ToLocalTime();
+                                            lead.CreatedDate = Convert.ToDateTime(dt);
+                                            lead.Company = item.properties.company == null ? string.Empty : item.properties.company.value.ToString();
+                                            lead.EmailAddress = string.IsNullOrEmpty(item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString()) ? string.Empty : item.IdentityProfiles.FirstOrDefault().identities.FirstOrDefault().value.ToString();
+                                            lead.AccountId = AccountId;
+                                            var resultLead = _dbContext.TblLeads.Where(u => u.EmailAddress.ToLower().Equals(lead.EmailAddress.ToLower()) && u.AccountId == AccountId).ToList();
+                                            if (resultLead.Count() > 0)
+                                                continue;
+                                            leadList.Add(lead);
+                                        }
+                                        _dbContext.TblLeads.AddRange(leadList);
+                                        _dbContext.SaveChanges();
+                                        //close out the client
+                                        client.Dispose();
+
+                                        ShowSuccessMessage(model.contacts.Count + " Leads are successfully imported from HubSpot!", true);
+
+                                    }
+                                    else
+                                    {
+                                        ShowSuccessMessage("0 Leads are founds from HubSpot!", true);
+                                    }
+                                    return RedirectToAction("Index", "Lead");
+                                }
+                            }
+                            else
+                            {
+                                ShowErrorMessage("Something went wrong!!", true);
+                                return RedirectToAction("Index", "Lead");
+                            }
+                            //return RedirectToAction("Index", "Lead");
                         }
                     }
                     else
@@ -991,7 +1119,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return View("NewLead");
             }
 
@@ -1049,6 +1177,8 @@ namespace RealEstate.Controllers
                     {
                         TblAccountIntegration oData = new TblAccountIntegration();
                         oData.AccountId = AccountId;
+                        oData.AuthAccountType = AuthAccountType.HubSportAuth.GetHashCode();
+                        oData.ExpiresIn = Token.expires_in;
                         oData.RefreshToken = Token.refresh_token;
                         oData.CreatedDate = DateTime.Now;
                         _dbContext.TblAccountIntegrations.Add(oData);
@@ -1112,7 +1242,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return View("NewLead");
             }
 
@@ -1165,7 +1295,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return View("NewLead");
             }
 
@@ -1194,7 +1324,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false });
             }
         }
@@ -1223,7 +1353,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return false;
             }
         }
@@ -1235,7 +1365,7 @@ namespace RealEstate.Controllers
                 LoadComboBoxes();
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
-                var lead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).Include(x => x.StageNavigation).Include(x => x.TblCustomFieldAnswers).Include(x => x.TblLeadAppointments).FirstOrDefault(); //.Include(x => x.CustomField)
+                var lead = _dbContext.TblLeads.Where(x => x.LeadId == id).Include(x => x.Agent).Include(x => x.StageNavigation).Include(x => x.TblCustomFieldAnswers).Include(x => x.TblLeadAppointments).Include(x => x.TblLeadFiles).FirstOrDefault(); //.Include(x => x.CustomField)
                 LeadViewModel oModel = new LeadViewModel();
                 oModel.LeadId = lead.LeadId;
                 oModel.LeadSource = lead.LeadSource;
@@ -1247,6 +1377,7 @@ namespace RealEstate.Controllers
                 //oModel.CustomField = lead.CustomField;
                 oModel.CustomFieldAnswer = lead.TblCustomFieldAnswers;
                 oModel.LeadAppointments = lead.TblLeadAppointments;
+                oModel.LeadFiles = lead.TblLeadFiles;
                 oModel.TagsName = GetTagsName(lead.LeadId);
                 oModel.AgentId = lead.AgentId;
                 oModel.Agent = lead.Agent;
@@ -1281,7 +1412,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1324,9 +1455,10 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps Something wrong!" });
             }
-            return View();
+            //return View();
         }
 
 
@@ -1393,7 +1525,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return null;
             }
         }
@@ -1448,10 +1580,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1497,10 +1628,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1529,10 +1659,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1609,7 +1738,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1699,10 +1828,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1731,10 +1859,428 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
         #endregion
+
+
+        #region LeadFile
+        [HttpPost]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
+        public async Task<ActionResult> LeadUploadFilesByLeadID(IList<IFormFile> files)
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int leadID = Convert.ToInt32(Request.Form["leadID"]);
+                    string fileName = null;
+                    if (files.Count > 0)
+                    {
+                        foreach (IFormFile source in files)
+                        {
+                            // Get original file name to get the extension from it.
+                            string orgFileName = source.FileName;// ContentDispositionHeaderValue.Parse(source.ContentDisposition).FileName;
+
+                            // Create a new file name to avoid existing files on the server with the same names.
+                            string fullPath = GetFullPathOfFile(AccountId, leadID);
+
+                            // Create the directory.
+                            if (!Directory.Exists(fullPath))
+                            {
+                                Directory.CreateDirectory(fullPath);
+                            }
+
+                            // Save the file to the server.
+                            fileName = Guid.NewGuid().ToString("N").Substring(0, 8) + Path.GetExtension(orgFileName);
+                            using (FileStream stream = new FileStream(Path.Combine(fullPath, fileName), FileMode.Create))
+                            {
+                                await source.CopyToAsync(stream);
+                            }
+
+                            TblLeadFile oData = new TblLeadFile();
+                            oData.LeadId = leadID;
+                            oData.AccountId = AccountId;
+                            oData.FileName = string.IsNullOrEmpty(fileName) ? string.Empty : fileName;
+                            oData.CreatedDate = DateTime.Now;
+                            _dbContext.TblLeadFiles.Add(oData);
+                            _dbContext.SaveChanges();
+                        }
+                        return Json(new { success = true, message = "Files sucessfully uploaded." });
+                    }
+                    else
+                    {
+                        return Json(new { success = true, message = "No file found for upload." });
+                    }
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
+        private string GetFullPathOfFile(int AccountId, int LeadId)
+        {
+            return $"{_webHostEnvironment.WebRootPath}\\LeadFile\\{AccountId}\\{LeadId}";
+        }
+
+        public FileResult DownloadFile(int id, string fileName)
+        {
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int leadID = id;
+                //Build the File Path.
+                string path = Path.Combine(this._webHostEnvironment.WebRootPath, @"LeadFile\" + AccountId + @"\" + leadID + @"\") + fileName;
+
+                //Read the File data into Byte Array.
+                byte[] bytes = System.IO.File.ReadAllBytes(path);
+
+                //Send the File to Download.
+                return File(bytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return null;
+            }
+
+        }
+
+        public IActionResult DeleteLeadFile()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int leadID = Convert.ToInt32(Request.Form["leadID"]);
+                    int LeadFileId = Convert.ToInt32(Request.Form["LeadFileId"]);
+                    if (LeadFileId <= 0) { throw new Exception("Identity can not be blank!"); }
+                    TblLeadFile oData = _dbContext.TblLeadFiles.Where(x => x.LeadId == leadID && x.AccountId == AccountId && x.LeadFileId == LeadFileId).FirstOrDefault();
+                    _dbContext.TblLeadFiles.Remove(oData);
+                    _dbContext.SaveChanges();
+                    return Json(new { success = true, message = "Lead file deleted Sucessfully." });
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+        #endregion
+
+
+
+        #region LeadEmail
+        public IActionResult LeadSendMailByLeadID()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int LeadId = Convert.ToInt32(Request.Form["leadID"]);
+                    string EmailSubject = Request.Form["EmailSubject"].ToString();
+                    string MailBody = Request.Form["MailBody"].ToString();
+                    string ToMailAddress = Request.Form["ToMailAddress"].ToString();
+
+                    string LeadEmailMsgId = Request.Form["LeadEmailMsgId"].ToString();
+                    string EmailMessageId = Request.Form["EmailMsgId"].ToString();
+                    string FROMNAME = Request.Form["FromName"].ToString();
+                    string TONAME = Request.Form["ToName"].ToString();
+                    string IsReplay = Request.Form["IsReplay"].ToString();
+
+
+                    var TOName = _dbContext.TblLeads.Where(x => x.LeadId == LeadId).FirstOrDefault();
+                    var FromName = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
+                    
+
+                    if (IsReplay != "")
+                    {
+                        if (Convert.ToBoolean(IsReplay) == true)
+                        {
+
+                            TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
+                            oLeadEmailMessage.LeadId = LeadId;
+                            oLeadEmailMessage.AccountId = AccountId;
+                            oLeadEmailMessage.FromName = FROMNAME;
+                            oLeadEmailMessage.ToName = TONAME;
+                            oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
+                            oLeadEmailMessage.Body = MailBody;
+                            oLeadEmailMessage.EmailMessageId = EmailMessageId != "" ? Convert.ToInt32(EmailMessageId) == 0 ? Convert.ToInt32(LeadEmailMsgId) : Convert.ToInt32(EmailMessageId) : 0;
+                            oLeadEmailMessage.IsReplay = true;
+                            oLeadEmailMessage.CreatedDate = DateTime.Now;
+                            _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
+                            _dbContext.SaveChanges();
+
+                            TblLeadEmailMessage oUpdateDate = _dbContext.TblLeadEmailMessages.Where(x => x.LeadEmailMessageId == oLeadEmailMessage.EmailMessageId).FirstOrDefault();
+                            if (oUpdateDate != null)
+                            {
+                                oUpdateDate.CreatedDate = DateTime.Now;
+                                _dbContext.SaveChanges();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        var fName = Request.Cookies["FullName"].ToString();
+                        TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
+                        oLeadEmailMessage.LeadId = LeadId;
+                        oLeadEmailMessage.AccountId = AccountId;
+                        oLeadEmailMessage.FromName = FromName == null ? fName : FromName.Name;
+                        oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
+                        oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
+                        oLeadEmailMessage.Body = MailBody;
+                        oLeadEmailMessage.CreatedDate = DateTime.Now;
+                        _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
+                        _dbContext.SaveChanges();
+
+                    }
+
+                    //var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId).Include(x => x.Account).ToList();
+
+                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                    if (oAccountIntegration != null)
+                    {
+                        if (DateTime.Now.Subtract(oAccountIntegration.CreatedDate.Value).Hours >= 1)
+                        {
+                            if (oAccountIntegration.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode())
+                            {
+                                AuthResponse response = AuthResponse.refresh(this._config.GetSection("Google")["GoogleClientId"], this._config.GetSection("Google")["GoogleClientSecret"], oAccountIntegration.RefreshToken);
+
+                                if (response.Access_token != null)
+                                {
+                                    oAccountIntegration.AccessToken = response.Access_token;
+                                    oAccountIntegration.CreatedDate = response.created;
+                                    _dbContext.SaveChanges();
+
+                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+
+                                }
+                            }
+
+                            if (oAccountIntegration.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode())
+                            {
+                                AuthResponseMicrosoft response = AuthResponseMicrosoft.refreshTokenMicrosoft(this._config.GetSection("MicrosoftEmailPermission")["MicrosoftClientId"], this._config.GetSection("MicrosoftEmailPermission")["MicrosoftClientSecret"], oAccountIntegration.RefreshToken);
+                                if (response.access_token != null)
+                                {
+                                    oAccountIntegration.AccessToken = response.access_token;
+                                    oAccountIntegration.CreatedDate = DateTime.Now;
+                                    _dbContext.SaveChanges();
+
+                                    Utility.SendMailUsingoffice365(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                }
+                            }
+                            return Json(new { success = true });
+                            //if (oLeadEmailMessageList.Count > 0)
+                            //{
+                            //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = oAccountIntegration.Name });
+                            //}
+                            //else
+                            //{
+                            //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = oAccountIntegration.Name });
+                            //}
+                        }
+                        else
+                        {
+                            //AuthResponse response = AuthResponse.refresh(this._config.GetSection("Google")["GoogleClientId"], this._config.GetSection("Google")["GoogleClientSecret"], oAccountIntegration.RefreshToken);
+
+                            if (oAccountIntegration.AccessToken != null)
+                            {
+                                //oAccountIntegration.CreatedDate = DateTime.Now; //response.created;
+                                //_dbContext.SaveChanges();
+
+                                //Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                if (oAccountIntegration.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode())
+                                {
+                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                }
+
+                                if (oAccountIntegration.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode())
+                                {
+                                    Utility.SendMailUsingoffice365(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                }
+                            }
+
+                            return Json(new { success = true });
+
+                            //if (oLeadEmailMessageList.Count > 0)
+                            //{
+                            //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = oAccountIntegration.Name });
+                            //}
+                            //else
+                            //{
+                            //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = oAccountIntegration.Name });
+                            //}
+                        }
+                    }
+                    else
+                    {
+
+                        return Json(new { success = true });
+
+                        //if (oLeadEmailMessageList.Count > 0)
+                        //{
+                        //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = "N/A" });
+                        //}
+                        //else
+                        //{
+                        //    return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = "N/A" });
+                        //}
+                        //return Json(new { success = false, message = "Mail Account is not linked." });
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+        public IActionResult GetLeadDetailsMailByLeadID()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int LeadId = Convert.ToInt32(Request.Form["leadID"]);
+
+                    string accountName;
+                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                    if (oAccountIntegration != null)
+                    {
+                        accountName = oAccountIntegration.Name;
+                    }
+                    else
+                    {
+                        accountName = "N/A";
+                    }
+
+                    var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId).Include(x => x.Lead).ToList();
+                    if (oLeadEmailMessageList.Count > 0)
+                    {
+                        var oMainMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == false).ToList();
+                        var oReplayMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == true).ToList();
+
+                        //LeadEmailMessage model = new LeadEmailMessage();
+                        List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
+                        foreach (var item in oMainMsgList.OrderByDescending(x => x.CreatedDate))
+                        {
+                            var MainMessageList = new LeadEmailMessageViewModel();
+                            MainMessageList.AccountId = (int)item.AccountId;
+                            MainMessageList.Body = item.Body;
+                            MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
+                            MainMessageList.EmailMessageId = item.EmailMessageId;
+                            MainMessageList.IsReplay = item.IsReplay;
+                            MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
+                            MainMessageList.LeadId = item.LeadId;
+                            MainMessageList.Subject = item.Subject;
+                            MainMessageList.ToName = item.ToName;
+                            MainMessageList.FromName = item.FromName;
+                            MainMessageList.LeadEmailMessageReplayList = new List<LeadEmailMessageViewModel>();
+                            foreach (var itemReplay in oReplayMsgList.Where(x => x.EmailMessageId == item.LeadEmailMessageId).OrderByDescending(x => x.CreatedDate))
+                            {
+                                var ReplayMessageList = new LeadEmailMessageViewModel();
+                                ReplayMessageList.AccountId = (int)itemReplay.AccountId;
+                                ReplayMessageList.Body = itemReplay.Body;
+                                ReplayMessageList.CreatedDate = (DateTime)itemReplay.CreatedDate;
+                                ReplayMessageList.EmailMessageId = itemReplay.EmailMessageId;
+                                ReplayMessageList.IsReplay = itemReplay.IsReplay;
+                                ReplayMessageList.LeadEmailMessageId = itemReplay.LeadEmailMessageId;
+                                ReplayMessageList.LeadId = itemReplay.LeadId;
+                                ReplayMessageList.Subject = itemReplay.Subject;
+                                ReplayMessageList.ToName = itemReplay.ToName;
+                                ReplayMessageList.FromName = itemReplay.FromName;
+                                MainMessageList.LeadEmailMessageReplayList.Add(ReplayMessageList);
+                            }
+                            model.Add(MainMessageList);
+                        }
+                        return Json(new { success = true, data = model, accountname = accountName });
+                    }
+                    else
+                    {
+                        return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = accountName });
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        public IActionResult GetMessageSubjecyByLeadMessageId()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int LeadId = Convert.ToInt32(Request.Form["LeadId"]);
+                    int LeadEmailMessageId = Convert.ToInt32(Request.Form["LeadEmailMessageId"]);
+                    return Json(_dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadEmailMessageId == LeadEmailMessageId && x.LeadId == LeadId).Select(x => new
+                    {
+                        success = true,
+                        LeadEmailMessageId = x.LeadEmailMessageId,
+                        EmailMessageId = x.EmailMessageId,
+                        FromName = x.FromName,
+                        ToName = x.ToName,
+                        LeadId = x.LeadId,
+                        Subject = x.Subject
+                    }).FirstOrDefault());
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        #endregion
     }
+
+
+
 }

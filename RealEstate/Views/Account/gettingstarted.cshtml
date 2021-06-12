@@ -1,0 +1,95 @@
+﻿@model AccountIntegrationViewModel
+@{
+    ViewData["Title"] = "gettingstarted";
+}
+
+<section class="accordion-01">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <h2 class="text-center py-5">Welcome @ViewBag.AgentName, Let's Get Started!</h2>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <h4 style="text-align:center">Setting Up Your Account for Success</h4>
+                <div class="accordion-option">
+                    <a href="javascript:void(0)" class="toggle-accordion active" accordion-id="#accordion"></a>
+                </div>
+                <div class="clearfix"></div>
+                <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" role="tab" id="headingOne">
+                            <h4 class="panel-title">
+                                <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    Connect Your Google Account
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse in show" role="tabpanel" aria-labelledby="headingOne">
+                            <p class="panel-body">Keep track of every email conversation</p>  @*and sync your calendar*@
+                            @if (Model.AuthAccountType != 0)
+                            {
+                        <a style="@(Model.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode() ? "display:block" : "display:none")"><img class="mb-2" src="~/image/connected-account.png"> <b> @("(" + Model.EmailAddress + ")")</b></a> 
+                                <a style="@(Model.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode() ? "display:block" : "display:none")" asp-action="DisconnectAccount" asp-controller="Account" asp-route-AuthAccountType="@Model.AuthAccountType">Disconnect</a> // asp-route-AuthAccountType="@Model.AuthAccountType"
+                                @*<br><span>OR</span><br />*@
+                                <a style="@(Model.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode() ? "display:block" : "display:none")"><img class="mb-2" src="~/image/connected-microsoft.png"></a>
+                                <a style="@(Model.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode() ? "display:block" : "display:none")" asp-action="DisconnectAccount" asp-controller="Account" asp-route-AuthAccountType="@Model.AuthAccountType">Disconnect</a>
+                            }
+                            else
+                            {
+                                <a asp-action="ConnectWithGoogle" asp-controller="Account"><img class="mb-2" src="~/image/connect-account.png"> </a>
+                                <br><span>OR</span><br />
+                                <a asp-action="ConnectWithMicrosoft" asp-controller="Account"><img class="mb-2" src="~/image/connect-microsoft.png"></a>
+                            }
+                        </div>
+                    </div>
+                    <div class="panel panel-default" style="display:none">
+                        <div class="panel-heading" role="tab" id="headingTwo">
+                            <h4 class="panel-title">
+                                <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    Set Up Your Mobile Phone
+                                </a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+                            <p class="panel-body">Get instant text alerts when you receive a lead</p>
+                            <input type="number" class="form-control" id="Mobile" placeholder="Cell phone" required>
+                            <div class="input-group-prepend">
+                                <div class="input-group-text">save</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $(".toggle-accordion").on("click", function () {
+            var accordionId = $(this).attr("accordion-id"),
+                numPanelOpen = $(accordionId + ' .collapse.in').length;
+
+            $(this).toggleClass("active");
+
+            if (numPanelOpen == 0) {
+                openAllPanels(accordionId);
+            } else {
+                closeAllPanels(accordionId);
+            }
+        })
+
+        openAllPanels = function (aId) {
+            console.log("setAllPanelOpen");
+            $(aId + ' .panel-collapse:not(".in")').collapse('show');
+        }
+        closeAllPanels = function (aId) {
+            console.log("setAllPanelclose");
+            $(aId + ' .panel-collapse.in').collapse('hide');
+        }
+
+    });
+</script>

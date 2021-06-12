@@ -45,4 +45,12 @@ namespace RealEstate.Models
         EmailTemplate = 1,
         TextTemplate = 2
     }
+
+
+    public enum AuthAccountType
+    {
+        HubSportAuth = 1,
+        GoogleAuth = 2,
+        MicrosoftAuth = 3
+    }
 }

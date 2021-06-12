@@ -1,0 +1,77 @@
+﻿@model IEnumerable<LeadEmailMessageViewModel>
+<div class="content-bg mt-3">
+    @if (Model.Count() >= 1)
+    {
+        @foreach (var item in Model)
+        {
+            <div class="row">
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                         aria-labelledby="create-note-tab">
+                        <div class="custom-card-text">
+                            <div class="custom-card-mail-reply">
+                                <div class="mb-2 d-block">
+                                    <h4 class="d-inline-block"> @item.Subject </h4>
+                                </div>
+                                <div class="custom-card-header">
+                                    <div class="user">
+                                        <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                    </div>
+                                    <div class="chat-header-detail flex-grow-1 ml-2">
+                                        <h6 class="mt-0 d-inline-block">@item.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</a>
+                                        <p class="text-dark"> To <b>@item.ToName</b> </p>
+                                    </div>
+                                </div>
+                                <div class="custom-card-text">
+                                    @Html.Raw(item.Body)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            if (item.LeadEmailMessageReplayList.Count >= 1)
+            {
+                foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+                {
+                    <div class="row">
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                 aria-labelledby="create-note-tab">
+                                <div class="custom-card-text">
+                                    <div class="custom-card-mail-reply">
+                                        <div class="mb-2 d-block">
+                                            <h4 class="d-inline-block"> @itemReplayBody.Subject </h4>
+                                        </div>
+                                        <div class="custom-card-header">
+                                            <div class="user">
+                                                <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                            </div>
+                                            <div class="chat-header-detail flex-grow-1 ml-2">
+                                                <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", itemReplayBody.CreatedDate))</a>
+                                                <p class="text-dark"> To <b>@itemReplayBody.ToName</b> </p>
+                                            </div>
+                                        </div>
+                                        <div class="custom-card-text">
+                                            @Html.Raw(itemReplayBody.Body)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            @*else
+            {
+                <span style="text-align:center;color:#777">No Email Replay Found.</span>
+            }*@
+        }
+
+    }
+    else
+    {
+        <span style="text-align:center;color:#777">No Email Replay Found.</span>
+    }
+</div>

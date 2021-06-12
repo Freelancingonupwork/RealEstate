@@ -1,12 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Newtonsoft.Json;
 using RealEstate.Models;
 using RealEstate.Utills;
 using RealEstateDB;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -18,10 +24,12 @@ namespace RealEstate.Controllers
     {
         private RealEstateContext _dbContext;
         private IConfiguration Configuration;
-        public AdminController(RealEstateContext dbContext, IConfiguration _configuration)
+        private IWebHostEnvironment Environment;
+        public AdminController(RealEstateContext dbContext, IConfiguration _configuration, IWebHostEnvironment _environment)
         {
             _dbContext = dbContext;
             Configuration = _configuration;
+            Environment = _environment;
         }
 
         #region Agent/Team
@@ -42,7 +50,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -58,17 +66,34 @@ namespace RealEstate.Controllers
                 {
                     using (var DB = _dbContext)
                     {
+                        //int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                        //var oAgentList = DB.TblAgents.Where(x => x.AccountId == AccountId).ToList().Select(s => new AgentViewModel
+                        //{
+                        //    AgentId = s.Id,
+                        //    FullName = s.FullName,
+                        //    EmailAddress = s.EmailAddress,
+                        //    CellPhone = s.CellPhone,
+                        //    IsActive = (bool)s.IsActive,
+                        //    CreatedDate = (DateTime)s.CreatedDate
+                        //});
+                        //return View(oAgentList);
+
                         int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-                        var oAgentList = DB.TblAgents.Where(x => x.AccountId == AccountId).ToList().Select(s => new AgentViewModel
-                        {
-                            AgentId = s.Id,
-                            FullName = s.FullName,
-                            EmailAddress = s.EmailAddress,
-                            CellPhone = s.CellPhone,
-                            IsActive = (bool)s.IsActive,
-                            CreatedDate = (DateTime)s.CreatedDate
-                        });
-                        return View(oAgentList);
+                        var oAgentList = from A in DB.TblAccounts // outer sequence
+                                         join AC in DB.TblAccountCompanies //inner sequence 
+                                         on A.AccountId equals AC.AccountId // key selector 
+                                         where AC.AddedBy == AccountId && A.RoleId == RoleType.Agent.GetHashCode()
+                                         select new AgentViewModel
+                                         {
+                                             AccountId = (int)A.AccountId,
+                                             FullName = A.FullName,
+                                             EmailAddress = A.UserName,
+                                             CellPhone = A.PhoneNumber,
+                                             IsActive = (bool)A.Status,
+                                             CreatedDate = (DateTime)A.CreatedDate,
+                                             //IsOwner = (bool)A.IsOwner
+                                         };
+                        return View(oAgentList.ToList());
                     }
                 }
                 else
@@ -78,7 +103,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -101,7 +126,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -127,19 +152,42 @@ namespace RealEstate.Controllers
                         ShowErrorMessage("Email is already used!", true);
                         return View(model);
                     }
-                    TblAgent oData = new TblAgent();
-                    oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
-                    oData.EmailAddress = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
-                    oData.CellPhone = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
-                    //oData.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
-                    oData.IsActive = model.IsActive;
-                    oData.AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-                    oData.CreatedDate = DateTime.Now;
+                    //TblAgent oData = new TblAgent();
+                    //oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
+                    //oData.EmailAddress = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
+                    //oData.CellPhone = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
+                    ////oData.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
+                    //oData.IsActive = model.IsActive;
+                    //oData.AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    //oData.CreatedDate = DateTime.Now;
 
-                    _dbContext.TblAgents.Add(oData);
+                    //_dbContext.TblAgents.Add(oData);
+                    //_dbContext.SaveChanges();
+
+
+                    TblAccount oData = new TblAccount();
+                    oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
+                    oData.PhoneNumber = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
+                    oData.UserName = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
+                    //oData.Password = Encryption.EncryptText("Estajo@123");
+                    oData.IsOwner = false;
+                    oData.CreatedDate = DateTime.Now;
+                    oData.RoleId = RoleType.Agent.GetHashCode();
+                    oData.Status = true;
+                    _dbContext.TblAccounts.Add(oData);
                     _dbContext.SaveChanges();
 
+
+                    TblAccountCompany oDataCompany = new TblAccountCompany();
+                    oDataCompany.AccountId = oData.AccountId;
+                    oDataCompany.AddedBy = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    oDataCompany.CreatedDate = DateTime.Now;
+                    _dbContext.TblAccountCompanies.Add(oDataCompany);
+                    _dbContext.SaveChanges();
+
+
                     #region SendMail
+                    string LoginURL = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}";
                     string SmtpUserName = this.Configuration.GetSection("MailSettings")["SmtpUserName"];
                     string SmtpPassword = this.Configuration.GetSection("MailSettings")["SmtpPassword"];
                     int SmtpPort = Convert.ToInt32(this.Configuration.GetSection("MailSettings")["SmtpPort"]);
@@ -148,12 +196,13 @@ namespace RealEstate.Controllers
                     bool isSSL = Convert.ToBoolean(this.Configuration.GetSection("MailSettings")["isSSL"]);
                     //var password = Encryption.DecryptText(oData.Password);
                     var body = "<p>Hi,</p>" +
-                                "<p>Your Agent Email Address is:- " + oData.EmailAddress + "</p><br/>" +
-                                //"<p>Your password is:- " + password + "</p><br/>" +
+                                "<p>Your Agent Email Address is:- " + oData.UserName + "</p>" +
+                                "<p>Your Temporary Agent Password is:- Estajo@123</p>" +
+                                "<p><a href=" + LoginURL + ">Please login with the above details and set your own password.</a></p><br/>" +
                                 "Thank You.";
 
                     var subject = "Estajo - Agent Details";
-                    Utility.sendMail(oData.EmailAddress, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
 
                     #endregion
 
@@ -167,10 +216,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("AdminController AddAgents" + ex);
-                ViewBag.MessageType = "danger";
-                ViewBag.Message = "Opps! Something went wrong while inserting user! Please Try again later.";
-                ShowErrorMessage("Opps! Something went wrong while inserting user! Please Try again later.", true);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -186,12 +234,12 @@ namespace RealEstate.Controllers
                 int id = Convert.ToInt32(Request.Form["id"]);
                 int Flag = Convert.ToInt32(Request.Form["flag"]);
                 int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-                TblAgent agent = _dbContext.TblAgents.SingleOrDefault(c => c.Id == id && c.AccountId == AccountId);
+                TblAccount agent = _dbContext.TblAccounts.SingleOrDefault(c => c.AccountId == id);// && c.AccountId == AccountId
 
                 if (Flag >= 1)
-                    agent.IsActive = true;
+                    agent.Status = true;
                 else
-                    agent.IsActive = false;
+                    agent.Status = false;
                 _dbContext.Entry(agent).State = EntityState.Modified;
                 _dbContext.SaveChanges();
                 if (Flag >= 1)
@@ -203,7 +251,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { Error = false });
             }
         }
@@ -217,11 +265,12 @@ namespace RealEstate.Controllers
                 return RedirectToAction("Login", "Account");
             try
             {
-                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                //int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 int id = 0;
                 if (Request.Form.ContainsKey("id")) { id = Convert.ToInt32(Request.Form["id"]); }
                 if (id <= 0) { throw new Exception("Identity can not be blank!"); }
-                _dbContext.TblAgents.Remove(_dbContext.TblAgents.Where(x => x.Id == id && x.AccountId == AccountId).FirstOrDefault());
+                _dbContext.TblAccountCompanies.Remove(_dbContext.TblAccountCompanies.Where(x => x.AccountId == id).FirstOrDefault());
+                _dbContext.TblAccounts.Remove(_dbContext.TblAccounts.Where(x => x.AccountId == id).FirstOrDefault());
                 _dbContext.SaveChanges();
                 return Json(new { success = true });
             }
@@ -229,7 +278,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -252,10 +301,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                //ErrorLog.log("AdminController UpdateAgent" + ex);
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -267,23 +315,32 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int id = Convert.ToInt32(Request.Form["agentID"]);
-                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-                return Json(_dbContext.TblAgents.Where(x => x.Id == id && x.AccountId == AccountId).Select(x => new
+                int AccountId = Convert.ToInt32(Request.Form["AccountId"]);
+                //int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                return Json(_dbContext.TblAccounts.Where(x => x.AccountId == AccountId).Select(x => new
                 {
                     success = true,
-                    agentID = x.Id,
+                    AccountId = x.AccountId,
                     fullName = x.FullName,
-                    emailAddress = x.EmailAddress,
-                    cellPhone = x.CellPhone,
-                    status = x.IsActive == true ? 1 : 0
+                    emailAddress = x.UserName,
+                    cellPhone = x.PhoneNumber,
+                    status = x.Status == true ? 1 : 0
                 }).FirstOrDefault());
+                //return Json(_dbContext.TblAgents.Where(x => x.Id == id && x.AccountId == AccountId).Select(x => new
+                //{
+                //    success = true,
+                //    agentID = x.Id,
+                //    fullName = x.FullName,
+                //    emailAddress = x.EmailAddress,
+                //    cellPhone = x.CellPhone,
+                //    status = x.IsActive == true ? 1 : 0
+                //}).FirstOrDefault());
             }
             catch (Exception ex)
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -296,25 +353,25 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
-                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                //int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
-                int intAgentID = Convert.ToInt32(Request.Form["agentID"]);
+                int AccountId = Convert.ToInt32(Request.Form["AccountId"]);
                 string strfullName = Request.Form["fullName"];
 
                 string stremailAddress = Request.Form["emailAddress"];
                 string strcellPhone = Request.Form["cellPhone"];
 
-                if (_dbContext.TblAgents.Where(x => x.EmailAddress.Equals(stremailAddress) && x.Id != intAgentID).FirstOrDefault() != null)
+                if (_dbContext.TblAccounts.Where(x => x.UserName.Equals(stremailAddress) ).FirstOrDefault() != null) //&& x.AccountId != AccountId
                     return Json(new { success = false, message = "Email address is already in use! Try another email address!" });
 
-                TblAgent oAgent = _dbContext.TblAgents.Where(x => x.Id == intAgentID && x.AccountId == AccountId).FirstOrDefault();
+                TblAccount oAgent = _dbContext.TblAccounts.Where(x => x.AccountId == AccountId && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
                 if (oAgent != null)
                 {
                     oAgent.FullName = strfullName;
-                    oAgent.EmailAddress = stremailAddress;
-                    oAgent.CellPhone = strcellPhone;
+                    oAgent.UserName = stremailAddress;
+                    oAgent.PhoneNumber = strcellPhone;
                     //oAgent.UserLoginTypeId = UserLoginType.Manual.GetHashCode();
-                    oAgent.CreatedDate = DateTime.Now;
+                    oAgent.UpdatedDate = DateTime.Now;
                     _dbContext.Entry(oAgent).State = EntityState.Modified;
                     _dbContext.SaveChanges();
                     return Json(new { success = true });
@@ -328,7 +385,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -340,7 +397,7 @@ namespace RealEstate.Controllers
         {
             try
             {
-                var result = _dbContext.TblAgents.Where(u => u.EmailAddress.ToLower().Equals(email.ToLower())).ToList();
+                var result = _dbContext.TblAccounts.Where(u => u.UserName.ToLower().Equals(email.ToLower())).ToList();
                 if (result.Count() > 0)
                     return true;
                 else
@@ -416,7 +473,7 @@ namespace RealEstate.Controllers
                         var oAdminUserList = from A in DB.TblAccounts // outer sequence
                                              join AC in DB.TblAccountCompanies //inner sequence 
                                              on A.AccountId equals AC.AccountId // key selector 
-                                             where AC.AddedBy == AccountId
+                                             where AC.AddedBy == AccountId && A.RoleId == RoleType.Admin.GetHashCode()
                                              select new UserViewModel
                                              {
                                                  AccountId = (int)A.AccountId,
@@ -466,7 +523,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Admin Controller AdminUser :- " + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return null;
             }
         }
@@ -486,7 +545,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Admin AddAdminUser LeadFlow :-" + ex.Message);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -562,7 +623,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -599,7 +660,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -625,7 +686,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -662,7 +723,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { Error = false });
             }
         }
@@ -691,7 +752,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -910,7 +971,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -944,7 +1005,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -968,7 +1029,7 @@ namespace RealEstate.Controllers
 
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1006,11 +1067,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
-                ShowErrorMessage(ex.Message, true);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -1036,10 +1095,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1075,10 +1133,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1103,10 +1160,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -1145,7 +1201,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1173,12 +1229,10 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
-
-
 
         #endregion
 
@@ -1210,7 +1264,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -1231,10 +1285,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1272,11 +1325,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
-                ShowErrorMessage(ex.Message, true);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -1302,10 +1353,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1341,10 +1391,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1368,10 +1417,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -1427,7 +1475,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1457,10 +1505,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1495,7 +1542,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -1516,10 +1563,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1557,10 +1603,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 ShowErrorMessage(ex.Message, true);
                 return View(model);
             }
@@ -1588,10 +1633,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1627,10 +1671,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1655,10 +1698,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -1692,7 +1734,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -1713,10 +1755,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1754,10 +1795,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 ShowErrorMessage(ex.Message, true);
                 return View(model);
             }
@@ -1785,10 +1825,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -1824,10 +1863,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -1852,10 +1890,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -1892,7 +1929,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -1914,10 +1951,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -1972,11 +2008,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
-                ShowErrorMessage(ex.Message, true);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -2004,10 +2038,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -2015,13 +2048,24 @@ namespace RealEstate.Controllers
 
         public IActionResult getCustomFieldType()
         {
-            int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
-            //DatabaseEntities db = new DatabaseEntities();
-            return Json(_dbContext.TblCustomFieldTypes.Select(x => new
+            try
             {
-                FieldTypeId = x.Id,
-                FieldType = x.FieldType
-            }).ToList());
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                //DatabaseEntities db = new DatabaseEntities();
+                return Json(_dbContext.TblCustomFieldTypes.Select(x => new
+                {
+                    FieldTypeId = x.Id,
+                    FieldType = x.FieldType
+                }).ToList());
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
         }
 
         public IActionResult UpdateCustomFieldDetails()
@@ -2084,10 +2128,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -2124,10 +2167,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -2167,7 +2209,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -2189,10 +2231,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -2239,15 +2280,104 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 ShowErrorMessage(ex.Message, true);
                 return View(model);
             }
         }
 
+        public IActionResult EmailTemplateList()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                LoadDropDown();
+                if (IsUserAuthorize())
+                {
+                    TemplateCategoryHTMLEmailList model = new TemplateCategoryHTMLEmailList();
+
+                    var oCateGoryList = _dbContext.TblTemplateCategories.ToList();
+                    List<TemplateCategoryHTMLDetails> Listmodel = new List<TemplateCategoryHTMLDetails>();
+                    foreach (var item in oCateGoryList)
+                    {
+                        var TemplateCategoryHTMLDetailsModel = new TemplateCategoryHTMLDetails();
+                        TemplateCategoryHTMLDetailsModel.CategotyName = item.TemplateCategoryName;
+
+                        List<TemplateCategoryHTMLEmailViewModel> oList = new List<TemplateCategoryHTMLEmailViewModel>();
+                        var oEmailTemplate = _dbContext.TblTemplateCategoryHtmlemails.Where(x => x.TemplateCategoryId == item.TemplateCategoryId).ToList();//.OrderByDescending(x=>x.Id)
+                        if (oEmailTemplate.Count > 0)
+                        {
+                            foreach (var itemEmailTemplate in oEmailTemplate)
+                            {
+                                var oTemplateCategoryHTMLEmailList = new TemplateCategoryHTMLEmailViewModel();
+                                oTemplateCategoryHTMLEmailList.TemplateCategoryHTMLEmailID = itemEmailTemplate.TemplateCategoryHtmlemailId;
+                                oTemplateCategoryHTMLEmailList.TemplateCategoryId = itemEmailTemplate.TemplateCategoryId;
+                                oTemplateCategoryHTMLEmailList.TemplateHTMLEmail = itemEmailTemplate.TemplateHtmlemail;
+                                oTemplateCategoryHTMLEmailList.TemplateHTMLEmailDescription = itemEmailTemplate.TemplateHtmlemailDescription;
+                                //var provider = new PhysicalFileProvider(Environment.WebRootPath);
+                                //var contents = provider.GetDirectoryContents(Path.Combine("image", "email-img"));
+                                oTemplateCategoryHTMLEmailList.TemplateHTMLImage = itemEmailTemplate.TemplateHtmlimage;
+                                oList.Add(oTemplateCategoryHTMLEmailList);
+                            }
+                        }
+                        TemplateCategoryHTMLDetailsModel.TemplateCategoryHTMLEmailList = oList;
+                        Listmodel.Add(TemplateCategoryHTMLDetailsModel);
+                    }
+                    model.TemplateCategoryHTMLDetails = Listmodel;
+                    return View(model);
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return View();
+            }
+
+        }
+
+        public IActionResult GetTemplateCategoryHTMLEmailById()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int TemplateCategoryHTMLEmailID = Convert.ToInt32(Request.Form["TemplateCategoryHTMLEmailID"]);
+                return Json(_dbContext.TblTemplateCategoryHtmlemails.Where(x => x.TemplateCategoryHtmlemailId == TemplateCategoryHTMLEmailID).Select(x => new
+                {
+                    success = true,
+                    TemplateCategoryHtmlemailId = x.TemplateCategoryHtmlemailId,
+                    TemplateCategoryId = x.TemplateCategoryId,
+                    TemplateHtmlemailDescription = x.TemplateHtmlemailDescription,
+                    TemplateHtmlemail = x.TemplateHtmlemail,
+                }).FirstOrDefault());
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+
+        }
         public IActionResult GetEmailTemplateById()
         {
             try
@@ -2274,10 +2404,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -2301,7 +2430,7 @@ namespace RealEstate.Controllers
                 string FromEmail = Request.Form["FromEmail"];
                 string EmailSubject = Request.Form["EmailSubject"];
                 string MailBody = Request.Form["MailBody"];
-               
+
                 TblEmailTemplate oEmailTemplate = _dbContext.TblEmailTemplates.Where(x => x.EmailTemplateId == EmailTemplateID && x.AccountId == AccountId && x.IsType == EmailType.EmailTemplate.GetHashCode()).FirstOrDefault();
                 if (oEmailTemplate != null)
                 {
@@ -2325,10 +2454,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -2362,7 +2490,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { Error = false });
             }
         }
@@ -2386,11 +2514,56 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
+            }
+        }
+
+
+        public IActionResult UpdateTemplateCategoryHTMLEmail()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                if (!IsUserAuthorize())
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                //int EmailTemplateID = Convert.ToInt32(Request.Form["EmailTemplateID"]);
+                int TemplateTypeID = Convert.ToInt32(Request.Form["TemplateTypeID"]);
+                string EmailName = Request.Form["EmailName"];
+                string Description = Request.Form["Description"];
+                string FromEmail = Request.Form["FromEmail"];
+                string EmailSubject = Request.Form["EmailSubject"];
+                string MailBody = Request.Form["MailBody"];
+                bool Status = Convert.ToBoolean(Request.Form["Status"]);
+                TblEmailTemplate oData = new TblEmailTemplate();
+                oData.AccountId = AccountId;
+                oData.TemplateTypeId = TemplateTypeID;
+                oData.EmailName = string.IsNullOrEmpty(EmailName) ? string.Empty : EmailName;
+                oData.EmailTemplateDescription = string.IsNullOrEmpty(Description) ? string.Empty : Description;
+                oData.FromEmail = string.IsNullOrEmpty(FromEmail) ? string.Empty : FromEmail;
+                oData.EmailSubject = string.IsNullOrEmpty(EmailSubject) ? string.Empty : EmailSubject;
+                oData.Body = string.IsNullOrEmpty(MailBody) ? string.Empty : MailBody;
+                oData.IsType = EmailType.EmailTemplate.GetHashCode();
+                oData.IsActive = Status;
+                oData.CreatedDate = DateTime.Now;
+                //oData.UpdatedDate = DateTime.Now;
+                _dbContext.TblEmailTemplates.Add(oData);
+                _dbContext.SaveChanges();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
         #endregion
@@ -2429,7 +2602,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
 
@@ -2451,10 +2624,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -2501,11 +2673,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
-                ShowErrorMessage(ex.Message, true);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View(model);
             }
         }
@@ -2536,10 +2706,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
 
@@ -2587,10 +2756,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
         }
@@ -2624,7 +2792,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { Error = false });
             }
         }
@@ -2648,10 +2816,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return Json(new { success = false, message = "Error occur while deleting record!" + ex.Message });
             }
         }
@@ -2678,13 +2845,88 @@ namespace RealEstate.Controllers
                     sTemplateTypeList.Add(item.TemplateTypeId, item.TypeName);
                 }
                 ViewBag.TemplateTypeList = sTemplateTypeList;
+
+                Dictionary<int, string> sTemplateCategoryList = new Dictionary<int, string>();
+                var TemplateCategoryList = _dbContext.TblTemplateCategories.ToList();
+                foreach (var item in TemplateCategoryList)
+                {
+                    sTemplateCategoryList.Add(item.TemplateCategoryId, item.TemplateCategoryName);
+                }
+                ViewBag.TemplateCategoryList = sTemplateCategoryList;
             }
             catch (Exception ex)
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
             }
+        }
+
+        public IActionResult uploadnow(IFormFile upload)
+        {
+            string path = "";
+            string wwwPath = this.Environment.WebRootPath;
+            string contentPath = this.Environment.ContentRootPath;
+            var fileName = DateTime.Now.ToString("yyyyMMddHHmmss") + upload.FileName;
+            //Path.Combine(Directory.GetCurrentDirectory(), this.Environment.WebRootPath, "image/uploads/", fileName);
+            path = Path.Combine(this.Environment.WebRootPath, "image/uploads/", fileName); //Path.Combine(this.Environment.WebRootPath, "image/uploads/", fileName);
+            var stream = new FileStream(path, FileMode.Create);
+            upload.CopyToAsync(stream);
+            //return Json(new { path = @"image\uploads\" + fileName });
+            return new JsonResult(new { path1 = "image/uploads/" + fileName });
+            //string path = "";
+            //string pathWeb = "";
+            //if (upload != null)
+            //{
+            //    string wwwPath = this.Environment.WebRootPath;
+            //    string contentPath = this.Environment.ContentRootPath;
+
+            //    path = Path.Combine(this.Environment.WebRootPath, @"image\uploads\");
+            //    if (!Directory.Exists(path))
+            //    {
+            //        Directory.CreateDirectory(path);
+            //    }
+
+            //    string fileName = Path.GetFileName(upload.FileName);
+            //    using (FileStream stream = new FileStream(Path.Combine(path, fileName), FileMode.Create))
+            //    {
+            //        upload.CopyTo(stream);
+            //    }
+            //    return fileName;
+            //}
+            //return null;
+        }
+
+        public IActionResult UploadImage(IFormFile upload, string CKEditorFuncNum, string CKEditor, string langCode)
+        {
+            if (upload.Length <= 0) return null;
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(upload.FileName).ToLower();
+
+            var path = Path.Combine(
+                Environment.WebRootPath, "image/uploads/",
+                fileName);
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                upload.CopyTo(stream);
+
+            }
+            var url = $"{"/image/uploads/"}{fileName}";
+            return Json(new { uploaded = true, url });
+        }
+
+        public ActionResult uploadPartial()
+        {
+            string webRootPath = Environment.WebRootPath;
+            string path = "";
+            path = Path.Combine(webRootPath, "image/uploads/");
+            var images = Directory.GetFiles(path).Select(x => new CkEditorImagesViewModel
+            {
+                Url = Url.Content("/image/uploads/" + Path.GetFileName(x))
+            });
+            return View(images);
+
         }
     }
 }

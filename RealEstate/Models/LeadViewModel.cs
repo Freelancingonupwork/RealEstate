@@ -75,11 +75,12 @@ namespace RealEstate.Models
         public DateTime? CreatedDate { get; set; }
 
         public string TagsName { get; set; }
-        public virtual TblAgent Agent { get; set; }
+        public virtual TblAccount Agent { get; set; }
         public virtual TblStage Stage { get; set; }
         public virtual TblCustomField CustomField { get; set; }
         public virtual ICollection<TblCustomFieldAnswer> CustomFieldAnswer { get; set; }
         public virtual ICollection<TblLeadAppointment> LeadAppointments { get; set; }
+        public virtual ICollection<TblLeadFile> LeadFiles { get; set; }
         public string FullName { get; set; }
     }
 

@@ -7,12 +7,6 @@ namespace RealEstateDB
 {
     public partial class TblAgent
     {
-        public TblAgent()
-        {
-            TblLeadAppointments = new HashSet<TblLeadAppointment>();
-            TblLeads = new HashSet<TblLead>();
-        }
-
         public int Id { get; set; }
         public int? AccountId { get; set; }
         public string FullName { get; set; }
@@ -23,7 +17,5 @@ namespace RealEstateDB
         public DateTime? CreatedDate { get; set; }
 
         public virtual TblAccount Account { get; set; }
-        public virtual ICollection<TblLeadAppointment> TblLeadAppointments { get; set; }
-        public virtual ICollection<TblLead> TblLeads { get; set; }
     }
 }

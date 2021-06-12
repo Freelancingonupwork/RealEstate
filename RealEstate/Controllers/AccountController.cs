@@ -1,18 +1,23 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿//using EAGetMail;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.MicrosoftAccount;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using RealEstate.Models;
 using RealEstate.Utills;
 using RealEstateDB;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -24,11 +29,13 @@ namespace RealEstate.Controllers
 
         //private readonly ApplicationDbContext _context;
         private IConfiguration Configuration;
+        private IWebHostEnvironment Environment;
 
-        public AccountController(RealEstateContext context, IConfiguration _configuration)
+        public AccountController(RealEstateContext context, IConfiguration _configuration, IWebHostEnvironment _environment)
         {
             _dbContext = context;
             Configuration = _configuration;
+            Environment = _environment;
         }
         public ActionResult AccessDenied()
         {
@@ -45,22 +52,31 @@ namespace RealEstate.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    TblAgent agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(model.EmailAddress)).SingleOrDefault();
+                    //TblAgent agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(model.EmailAddress)).SingleOrDefault();
+                    TblAccount agent = _dbContext.TblAccounts.Where(x => x.UserName.Equals(model.EmailAddress) && x.RoleId == RoleType.Agent.GetHashCode()).SingleOrDefault();
                     agent.Password = Encryption.EncryptText(model.ConfirmPassword);
                     _dbContext.Entry(agent).State = EntityState.Modified;
                     _dbContext.SaveChanges();
 
                     ClaimsIdentity identity = null;
-                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, agent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                    identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, agent.UserName), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
                     var prinicpal = new ClaimsPrincipal(identity);
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                    SetCookie("EmailAddress", agent.EmailAddress);
+                    SetCookie("EmailAddress", agent.UserName);
                     SetCookie("FullName", agent.FullName);
+                    //SetCookie("LoginAccountId", agent.AccountId.ToString());
                     SetCookie("UserLoginTypeId", RoleType.Agent.GetHashCode().ToString());
                     if (model.KeepMeSigninIn)
-                        return RedirectToAction("Index", "Lead", new { area = "" });
+                    {
+                        if (agent.IsEmailConfig == false)
+                            return RedirectToAction("gettingstarted", "Account", new { area = "" });
+                        else
+                            return RedirectToAction("Index", "Lead", new { area = "" });
+                    }
                     else
+                    {
                         return RedirectToAction("Login", "Account", new { area = "" });
+                    }
                 }
                 else
                     return View(model);
@@ -100,7 +116,7 @@ namespace RealEstate.Controllers
 
 
                         var oUserDetails = DB.TblAccounts.Where(u => u.UserName.Equals(model.EmailAddress.Trim()) &&
-                                                       u.Password.Equals(Encryption.EncryptText(model.Password)) && u.RoleId == RoleType.Admin.GetHashCode()).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
+                                                       u.Password.Equals(Encryption.EncryptText(model.Password)) && u.Status == true && u.RoleId == RoleType.Admin.GetHashCode()).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
 
                         ClaimsIdentity identity = null;
                         //if (resultForAdmin != null)
@@ -116,7 +132,7 @@ namespace RealEstate.Controllers
                                 SetCookie("EmailAddress", oUserDetails.UserName);
                                 SetCookie("FullName", oUserDetails.FullName);
                                 SetCookie("LoginAccountId", oUserDetails.AccountId.ToString());
-                                SetCookie("UserLoginTypeId", RoleType.Admin.GetHashCode().ToString());
+                                SetCookie("UserLoginTypeId", oUserDetails.RoleId.ToString());
                                 //SetCookie("CompanyId", oCompanyDetails.CompanyId.ToString());
                                 return RedirectToAction("Index", "Lead", new { area = "" });
 
@@ -132,15 +148,18 @@ namespace RealEstate.Controllers
                         }
                         else
                         {
-                            var resultForAgent = DB.TblAgents.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) &&
-                                                                    u.IsActive == true).FirstOrDefault();
+                            //var resultForAgent = DB.TblAgents.Where(u => u.EmailAddress.Equals(model.EmailAddress.Trim()) && u.IsActive == true).FirstOrDefault();
                             //u.Password.Equals(Encryption.EncryptText(model.Password))).FirstOrDefault();
+
+                            var resultForAgent = DB.TblAccounts.Where(u => u.UserName.Equals(model.EmailAddress.Trim()) &&
+                                                      u.RoleId == RoleType.Agent.GetHashCode() && u.Status == true).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
+
 
                             if (resultForAgent != null)
                             {
                                 if (string.IsNullOrEmpty(resultForAgent.Password))
                                 {
-                                    TempData["EmailAddress"] = resultForAgent.EmailAddress;
+                                    TempData["EmailAddress"] = resultForAgent.UserName;
                                     TempData.Keep();
                                     return RedirectToAction("SetPassword", "Account", new { area = "" });
                                 }
@@ -150,14 +169,18 @@ namespace RealEstate.Controllers
                                     {
                                         //if (resultForAgent.RoleId != RoleType.Admin.GetHashCode())
                                         {
-                                            identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAgent.EmailAddress), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
+                                            identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, resultForAgent.UserName), new Claim(ClaimTypes.Role, "Agent") }, CookieAuthenticationDefaults.AuthenticationScheme);
                                             var prinicpal = new ClaimsPrincipal(identity);
                                             var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
-                                            SetCookie("EmailAddress", resultForAgent.EmailAddress);
+                                            SetCookie("EmailAddress", resultForAgent.UserName);
                                             SetCookie("FullName", resultForAgent.FullName);
                                             SetCookie("LoginAccountId", resultForAgent.AccountId.ToString());
-                                            SetCookie("UserLoginTypeId", RoleType.Agent.GetHashCode().ToString());
-                                            return RedirectToAction("Index", "Lead", new { area = "" });
+                                            SetCookie("UserLoginTypeId", resultForAgent.RoleId.ToString());
+                                            //if (resultForAgent.IsEmailConfig == false)
+                                            return RedirectToAction("gettingstarted", "Account", new { area = "" });
+                                            //else
+                                            //return RedirectToAction("Index", "Lead", new { area = "" });
+                                            //return RedirectToAction("Index", "Lead", new { area = "" });
                                         }
                                     }
                                     else
@@ -179,7 +202,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
             return View(model);
@@ -194,8 +217,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage(ex.Message.ToString(), true);
-                ErrorLog.log("Account Controller GoogleLogin:-" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View("Login");
             }
 
@@ -317,7 +341,7 @@ namespace RealEstate.Controllers
             {
                 string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
                 string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
-                ErrorLog.log(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex);
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
         }
@@ -325,6 +349,7 @@ namespace RealEstate.Controllers
         [HttpGet]
         public IActionResult ForgotPassword()
         {
+
             return View();
         }
 
@@ -397,7 +422,7 @@ namespace RealEstate.Controllers
                                 ModelState.Clear();
                                 //ViewBag.sucessMessage = "Forgot Password Mail has been sent successfully. Please check the mail and login again.";
                                 ShowSuccessMessage("Forgot Password Mail has been sent successfully. Please check the mail and login again.", true);
-                                return RedirectToAction("Login","Account");
+                                return RedirectToAction("Login", "Account");
                             }
 
                             ShowErrorMessage("Sorry there is no account with this email address.", true);
@@ -412,8 +437,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.errorMessage = "Oops! Something went ForgotPassword.";
-                ErrorLog.log("Account Controller ForgotPassword:-" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View();
             }
         }
@@ -428,8 +454,9 @@ namespace RealEstate.Controllers
             }
             catch (Exception ex)
             {
-                ShowErrorMessage(ex.Message, true);
-                ErrorLog.log("Account Controller MicrosoftLogin:-" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View("Login");
             }
 
@@ -556,13 +583,51 @@ namespace RealEstate.Controllers
                 Response.Cookies.Delete("FullName");
                 Response.Cookies.Delete("EmailAddress");
                 Response.Cookies.Delete("UserLoginTypeId");
+                Response.Cookies.Delete("LoginAccountId");
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
             {
-                ErrorLog.log("Account Controller Logout:-" + ex);
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return View("Login");
             }
+        }
+
+        public IActionResult gettingstarted(AccountIntegrationViewModel model)
+        {
+            try
+            {
+                //AuthResponseMicrosoft.refreshTokenMicrosoft(this.Configuration.GetSection("MicrosoftEmailPermission")["MicrosoftClientId"], this.Configuration.GetSection("MicrosoftEmailPermission")["MicrosoftClientSecret"], "M.R3_BAY.-CYU*OTLb*bB5E02FuQWE8eH!x2c9YnijegHItUdUwGKAkq!glywkGeatDSJDZD3bEGuLUomu1IVJG8sLZQKqgQ3hZeaz2yiWltW!cXxQnhcXSd8QxuMNK!pEAZPBN!xhBc7gHfLEQCgv!DqQHxYC1ySkkdOcOgFMZUdsbgP5p6QcZ3l99qdGrqrjvRm644tv8zxnYIIQ0Qzukua3ydx5ctqUaHUpoIO8tBMqCqMatVUZOShjyG1lUR87b96v3ketEZ2vN1!acZGc6*YncgdjvB4f3NYUP98K3CKvZ5pXybpZykRESyyFR!XUQ6Gn73vxUC1rh21cZzNc45krFvQqHUg$");
+
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    var AgentName = Request.Cookies["FullName"].ToString();
+                    ViewBag.AgentName = AgentName;
+
+                    TblAccountIntegration oData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                    if (oData != null)
+                    {
+                        model.AuthAccountType = oData.AuthAccountType.Value;
+                        model.EmailAddress = oData.EmailAddress;
+                    }
+                    return View(model);
+                }
+                else
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return RedirectToAction("Login", "Account");
+            }
+        
         }
 
         public bool IsUserExist(string email)
@@ -593,5 +658,277 @@ namespace RealEstate.Controllers
 
             Response.Cookies.Append(key, value, option);
         }
+
+        #region AgentConnectWithGoogle
+        public IActionResult ConnectWithGoogle()
+        {
+            string url = AuthResponse.GetAutenticationURI(this.Configuration.GetSection("Google")["GoogleClientId"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/", this.Configuration.GetSection("Google")["Scope"]);
+            return Redirect(url);
+        }
+
+        public IActionResult authorize(string code)
+        {
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+
+                if (code != null)
+                {
+                    AuthResponse access = AuthResponse.Exchange(code, this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleClientSecret"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/");
+                    if (access != null)
+                    {
+                        //TblAccountIntegration oData = new TblAccountIntegration();
+                        //oData.AccountId = AccountId;
+                        //oData.AuthAccountType = AuthAccountType.GoogleAuth.GetHashCode();
+                        //oData.ExpiresIn = Convert.ToInt32(access.expires_in);
+                        //oData.RefreshToken = access.refresh_token;
+                        //oData.CreatedDate = DateTime.Now;
+                        //_dbContext.TblAccountIntegrations.Add(oData);
+                        //_dbContext.SaveChanges();
+
+
+                       
+                        var EmailRequest = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + access.Access_token;
+                        // Create a request for the URL.
+                        var webRequest = WebRequest.Create(EmailRequest);
+                        // Get the response.
+                        var Response = (HttpWebResponse)webRequest.GetResponse();
+                        // Get the stream containing content returned by the server.
+                        var DataStream = Response.GetResponseStream();
+                        // Open the stream using a StreamReader for easy access.
+                        var Reader = new StreamReader(DataStream);
+                        // Read the content.
+                        var JsonString = Reader.ReadToEnd();
+                        // Cleanup the streams and the response.
+                        Reader.Close();
+                        DataStream.Close();
+                        Response.Close();
+                        RootobjectGmail result = JsonConvert.DeserializeObject<RootobjectGmail>(JsonString);
+                        if (result != null)
+                        {
+                            TblAccountIntegration oData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && x.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode()).FirstOrDefault();
+                            if (oData != null)
+                            {
+                                oData.AccountId = AccountId;
+                                oData.AuthAccountType = AuthAccountType.GoogleAuth.GetHashCode();
+                                oData.EmailAddress = result.email;
+                                oData.Name = result.name;
+                                oData.ExpiresIn = Convert.ToInt32(access.expires_in);
+                                oData.AccessToken = access.Access_token;
+                                oData.RefreshToken = access.refresh_token;
+                                oData.CreatedDate = DateTime.Now;
+                                _dbContext.TblAccountIntegrations.Add(oData);
+                                _dbContext.SaveChanges();
+                            }
+                            else
+                            {
+                                oData = new TblAccountIntegration();
+                                oData.AccountId = AccountId;
+                                oData.AuthAccountType = AuthAccountType.GoogleAuth.GetHashCode();
+                                oData.EmailAddress = result.email;
+                                oData.Name = result.name;
+                                oData.ExpiresIn = Convert.ToInt32(access.expires_in);
+                                oData.AccessToken = access.Access_token;
+                                oData.RefreshToken = access.refresh_token;
+                                oData.CreatedDate = DateTime.Now;
+                                _dbContext.TblAccountIntegrations.Add(oData);
+                                _dbContext.SaveChanges();
+                            }
+
+                            TblAccount oAccount = _dbContext.TblAccounts.Where(x => x.AccountId == AccountId && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
+                            if (oAccount != null)
+                            {
+                                oAccount.IsEmailConfig = true;
+                                _dbContext.SaveChanges();
+                                //TempData["oAuth"] = "Google";
+                                //TempData["IsEmailConfig"] = true;
+                            }
+
+                            //TblAccount oAccount = _dbContext.TblAccounts.Where(x => x.AccountId == AccountId && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
+                            //if (oAccount != null)
+                            //{
+                            //    oAccount.IsEmailConfig = true;
+                            //    _dbContext.SaveChanges();
+                            //    //TempData["oAuth"] = "Google";
+                            //    //TempData["IsEmailConfig"] = true;
+                            //}
+                        }
+                        return RedirectToAction("gettingstarted", "Account");
+                    }
+                    else
+                    {
+                        ShowErrorMessage("Something went wrong in connecting with google. Please try again!");
+                        return RedirectToAction("gettingstarted", "Account");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("You cancelled the current process Please try again!");
+                    return RedirectToAction("gettingstarted", "Account");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+        public IActionResult ConnectWithMicrosoft()
+        {
+            int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+            string url = AuthResponseMicrosoft.GetAutenticationURIMicrosoft(this.Configuration.GetSection("MicrosoftEmailPermission")["MicrosoftClientId"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorizeMicrosoft/", this.Configuration.GetSection("MicrosoftEmailPermission")["Scope"], AccountId);
+            return Redirect(url);
+        }
+
+
+        public IActionResult authorizeMicrosoft(string code, int state)
+        {
+            try
+            {
+                if (code != null)
+                {
+                    AuthResponseMicrosoft access = AuthResponseMicrosoft.ExchangeMicrosoft(code, this.Configuration.GetSection("MicrosoftEmailPermission")["MicrosoftClientId"], this.Configuration.GetSection("MicrosoftEmailPermission")["MicrosoftClientSecret"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorizeMicrosoft/");
+
+                    if (access != null)
+                    {
+                      
+                        const string WEBSERVICE_URL = "https://graph.microsoft.com/v1.0/me";
+                        try
+                        {
+                            var webRequest = System.Net.WebRequest.Create(WEBSERVICE_URL);
+                            if (webRequest != null)
+                            {
+                                webRequest.Method = "GET";
+                                //webRequest.Timeout = 20000;
+                                webRequest.ContentType = "application/json";
+                                webRequest.Headers.Add("Authorization", "Bearer " + access.access_token);
+                                using (System.IO.Stream s = webRequest.GetResponse().GetResponseStream())
+                                {
+                                    using (System.IO.StreamReader sr = new System.IO.StreamReader(s))
+                                    {
+                                        var jsonResponse = sr.ReadToEnd();
+                                        RootobjectMicrosoft result = JsonConvert.DeserializeObject<RootobjectMicrosoft>(jsonResponse);
+                                        if (result.userPrincipalName != null)
+                                        {
+                                            TblAccountIntegration oData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == state && x.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode()).FirstOrDefault();
+                                            if (oData != null)
+                                            {
+                                                oData.AccountId = state;
+                                                oData.AuthAccountType = AuthAccountType.MicrosoftAuth.GetHashCode();
+                                                oData.EmailAddress = result.userPrincipalName;
+                                                oData.Name = result.displayName;
+                                                oData.ExpiresIn = Convert.ToInt32(access.expires_in);
+                                                oData.AccessToken = access.access_token;
+                                                oData.RefreshToken = access.refresh_token;
+                                                oData.CreatedDate = DateTime.Now;
+                                                _dbContext.TblAccountIntegrations.Add(oData);
+                                                _dbContext.SaveChanges();
+                                            }
+                                            else
+                                            {
+                                                oData = new TblAccountIntegration();
+                                                oData.AccountId = state;
+                                                oData.AuthAccountType = AuthAccountType.MicrosoftAuth.GetHashCode();
+                                                oData.EmailAddress = result.userPrincipalName;
+                                                oData.Name = result.displayName;
+                                                oData.ExpiresIn = Convert.ToInt32(access.expires_in);
+                                                oData.AccessToken = access.access_token;
+                                                oData.RefreshToken = access.refresh_token;
+                                                oData.CreatedDate = DateTime.Now;
+                                                _dbContext.TblAccountIntegrations.Add(oData);
+                                                _dbContext.SaveChanges();
+                                            }
+
+
+                                            TblAccount oAccount = _dbContext.TblAccounts.Where(x => x.AccountId == state && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
+                                            if (oAccount != null)
+                                            {
+                                                oAccount.IsEmailConfig = true;
+                                                _dbContext.SaveChanges();
+                                                //TempData["oAuth"] = "Google";
+                                                //TempData["IsEmailConfig"] = true;
+                                            }
+
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                            string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                            ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                        }
+                        return RedirectToAction("gettingstarted", "Account");
+                    }
+                    else
+                    {
+                        ShowErrorMessage("Something went wrong in connecting with microsoft. Please try again!");
+                        return RedirectToAction("gettingstarted", "Account");
+                    }
+                }
+                else
+                {
+                    ShowErrorMessage("You cancelled the current process Please try again!");
+                    return RedirectToAction("gettingstarted", "Account");
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return RedirectToAction("Login", "Account");
+            }
+
+        }
+
+
+        public IActionResult DisconnectAccount(int AuthAccountType)
+        {
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                if (AccountId > 0)
+                {
+                    TblAccount oAccount = _dbContext.TblAccounts.Where(x => x.AccountId == AccountId && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
+                    if (oAccount != null)
+                    {
+                        oAccount.IsEmailConfig = false;
+                        _dbContext.SaveChanges();
+                    }
+                    else
+                    {
+                        ShowErrorMessage("Something went wrong. Please try again!");
+                    }
+
+                    TblAccountIntegration oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && x.AuthAccountType == AuthAccountType).FirstOrDefault();
+                    if (oAccountIntegration != null)
+                    {
+                        _dbContext.TblAccountIntegrations.Remove(oAccountIntegration);
+                        _dbContext.SaveChanges();
+                    }
+                    else
+                    {
+                        ShowErrorMessage("Something went wrong. Please try again!");
+                    }
+                }
+                return RedirectToAction("gettingstarted", "Account");
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
+                return RedirectToAction("Login", "Account");
+            }
+        }
+        #endregion
     }
 }

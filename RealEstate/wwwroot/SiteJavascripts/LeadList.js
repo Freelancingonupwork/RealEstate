@@ -146,14 +146,24 @@ function fnUpdateAgent() {
 
     var agentID = document.getElementById("cmbAgentsn").value;
     if (__glb_fnIsNullOrEmpty(agentID) || agentID <= 0) {
-        $("#divErrorMsgAgent").html("Please select agent!");
-        $('#divErrorMsgAgent').show();
-        document.getElementById("divErrorMsgAgent").classList.add("alert", "alert-danger");
+        $("#divErrorMsgAssignAgent").html("Please select agent!");
+        $('#divErrorMsgAssignAgent').show();
+        document.getElementById("divErrorMsgAssignAgent").classList.add("alert", "alert-danger");
         setTimeout(function () {
-            $("#divErrorMsgAgent").fadeOut();
+            $("#divErrorMsgAssignAgent").fadeOut();
         }, 3000);
         document.getElementById("cmbAgentsn").focus();
         return;
+
+         //$("#divErrorMsgAgent").html("Please select agent!");
+        //$('#divErrorMsgAgent').show();
+        //document.getElementById("divErrorMsgAgent").classList.add("alert", "alert-danger");
+        //setTimeout(function () {
+        //    $("#divErrorMsgAgent").fadeOut();
+        //}, 3000);
+        //document.getElementById("cmbAgentsn").focus();
+        //return;
+
     }
     var formData = new FormData();
     formData.append("agentID", agentID);
