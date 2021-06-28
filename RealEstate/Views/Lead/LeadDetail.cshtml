@@ -14,6 +14,30 @@
     int AccountId = Convert.ToInt32(Context.Request.Cookies["LoginAccountId"].ToString());
 
 }
+<style type="text/css">
+    .circle__spinner {
+        animation: 2s linear infinite svg-animation;
+        max-width: 100px;
+    }
+
+    .circle_loader {
+        width: 100%;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        z-index: 9999;
+        background-color: rgba(0,0,0,0.6);
+    }
+
+    .circle__item {
+        width: 200px;
+        height: 200px;
+    }
+</style>
 <link href="~/css/select2.css" rel="stylesheet" />
 <link href="~/css/select2.min.css" rel="stylesheet" />
 <div class="modal fade" id="divAssignAgent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -221,6 +245,13 @@
     </div>
 </div>
 <div role="alert" id="divAlertMessage" style="display:none"></div>
+<div class="circle_loader" id="divLoader" style="display:none;">
+    <div class="circle__item">
+        <svg class="circle__spinner" viewBox="0 0 100 100">
+            <circle class="path" cx="50" cy="50" r="45" fill="none" stroke="#93bfec" stroke-width="1"></circle>
+        </svg>
+    </div>
+</div>
 <div class="content-wrapper">
     <div class="container-fluid">
         <div class="row">
@@ -415,7 +446,8 @@
                                         </li>
                                         <li>
                                             <b><i style="color:#BF0D1C" class="fa fa-envelope" aria-hidden="true"></i></b>
-                                            <span>@(item.Agent == null ? "N/A" : item.Agent.UserName)</span>
+                                            @*<span>@(item.Agent == null ? "N/A" : item.Agent.UserName)</span>*@
+                                            <span>@(item.Account == null ? "N/A" : item.Account.UserName)</span>
                                         </li>
                                     </ul>
                                     <hr />
@@ -1070,7 +1102,7 @@
                                                 {
                                                     @foreach (var itemAns in Model.CustomFieldAnswer.Where(x => x.CustomFieldId == item.Key))
                                                     {
-                                                        if (itemAns.LeadId == Model.LeadId && itemAns.AccountId == AccountId)
+                                                        if (itemAns.LeadId == Model.LeadId) // && itemAns.AccountId == AccountId
                                                         {
 
                                                             @itemAns.FieldAns
@@ -1167,8 +1199,8 @@
                                         Subject: <input type="text" id="txtMailSubject" class="form-control mb-3" />
                                     </p>
                                     <textarea id="txtMailBody" class="form-control mb-3" rows="200"></textarea>
-                                    <p style="display:none">
-                                        Attachments:<input type="file" id="fileInput" multiple class="form-control mb-3" />
+                                    <p>
+                                        Attachments:<input type="file" id="fileInputMail" multiple class="form-control mb-3" />
                                     </p>
                                     <div class="row">
                                         <div class="col-6">
@@ -1500,8 +1532,8 @@
         });
 
         CKEDITOR.replace('txtMailBody', {
-            filebrowserImageBrowseUrl: '/Admin/uploadPartial',
-            filebrowserImageUploadUrl: '/Admin/UploadImage'
+            filebrowserImageBrowseUrl: '/Lead/uploadPartial',
+            filebrowserImageUploadUrl: '/Lead/UploadImage'
         })
     });
     function chkatchtbl() {
@@ -1528,4 +1560,13 @@
         $('#FilesList').html('');
         $('.my-custom-scrollbar').removeAttr('style');
     });
+    /*$(function () {*/
+    //$("#DownloadAttachment").click(function () {
+    //    alert(1);
+    //    var fileName = $(this).attr("name");
+    //    var LeadID = $(this).attr("name1");
+
+    //    window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?fileName=' + fileName + "&LeadId=" + LeadID;
+    //});
+    /*});*/
 </script>

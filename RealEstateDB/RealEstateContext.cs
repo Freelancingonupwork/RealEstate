@@ -20,7 +20,6 @@ namespace RealEstateDB
         public virtual DbSet<TblAccount> TblAccounts { get; set; }
         public virtual DbSet<TblAccountCompany> TblAccountCompanies { get; set; }
         public virtual DbSet<TblAccountIntegration> TblAccountIntegrations { get; set; }
-        public virtual DbSet<TblAgent> TblAgents { get; set; }
         public virtual DbSet<TblAppointmentOutcome> TblAppointmentOutcomes { get; set; }
         public virtual DbSet<TblAppointmentType> TblAppointmentTypes { get; set; }
         public virtual DbSet<TblCustomField> TblCustomFields { get; set; }
@@ -38,6 +37,7 @@ namespace RealEstateDB
         public virtual DbSet<TblLeadStatus> TblLeadStatuses { get; set; }
         public virtual DbSet<TblLeadTag> TblLeadTags { get; set; }
         public virtual DbSet<TblRole> TblRoles { get; set; }
+        public virtual DbSet<TblSmtp> TblSmtps { get; set; }
         public virtual DbSet<TblStage> TblStages { get; set; }
         public virtual DbSet<TblTag> TblTags { get; set; }
         public virtual DbSet<TblTemplateCategory> TblTemplateCategories { get; set; }
@@ -74,6 +74,10 @@ namespace RealEstateDB
 
                 entity.Property(e => e.IsEmailConfig).HasDefaultValueSql("((0))");
 
+                entity.Property(e => e.IsTempPassword)
+                    .HasColumnName("isTempPassword")
+                    .HasDefaultValueSql("((0))");
+
                 entity.Property(e => e.Password)
                     .HasMaxLength(50)
                     .IsUnicode(false);
@@ -89,6 +93,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.TblAccounts)
                     .HasForeignKey(d => d.RoleId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblUser_tblRole");
             });
 
@@ -116,6 +121,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblAccountCompanies)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblCompany_tblCompany");
             });
 
@@ -136,33 +142,8 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblAccountIntegrations)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblAccountIntegration_tblAccount");
-            });
-
-            modelBuilder.Entity<TblAgent>(entity =>
-            {
-                entity.ToTable("tblAgent");
-
-                entity.Property(e => e.Id).HasColumnName("ID");
-
-                entity.Property(e => e.CellPhone).HasMaxLength(20);
-
-                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
-
-                entity.Property(e => e.EmailAddress).HasMaxLength(50);
-
-                entity.Property(e => e.FullName)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Password)
-                    .HasMaxLength(50)
-                    .IsUnicode(false);
-
-                entity.HasOne(d => d.Account)
-                    .WithMany(p => p.TblAgents)
-                    .HasForeignKey(d => d.AccountId)
-                    .HasConstraintName("FK_tblAgent_tblAccount");
             });
 
             modelBuilder.Entity<TblAppointmentOutcome>(entity =>
@@ -180,6 +161,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblAppointmentOutcomes)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblAppointmentOutcomes_tblAccount");
             });
 
@@ -198,6 +180,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblAppointmentTypes)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblAppointmentTypes_tblAccount");
             });
 
@@ -214,11 +197,13 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblCustomFields)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblCustomField_tblAccount");
 
                 entity.HasOne(d => d.FieldType)
                     .WithMany(p => p.TblCustomFields)
                     .HasForeignKey(d => d.FieldTypeId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblCustomField_tblCustomFieldType");
             });
 
@@ -239,6 +224,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblCustomFieldAnswers)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblCustomFieldAnswer_tblAccount");
 
                 entity.HasOne(d => d.CustomField)
@@ -279,6 +265,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.CustomField)
                     .WithMany(p => p.TblCustomFieldValues)
                     .HasForeignKey(d => d.CustomFieldId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblCustomFieldValue_tblCustomField");
             });
 
@@ -305,6 +292,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblEmailTemplates)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblEmailTemplates_tblAccount");
 
                 entity.HasOne(d => d.TemplateType)
@@ -429,6 +417,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadAccounts)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLead_tblAccount");
 
                 entity.HasOne(d => d.Agent)
@@ -466,6 +455,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadAppointmentAccounts)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLeadAppointment_tblAccount");
 
                 entity.HasOne(d => d.Agent)
@@ -510,6 +500,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadEmailMessages)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLeadEmailMessage_tblAccount");
 
                 entity.HasOne(d => d.Lead)
@@ -549,6 +540,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadFiles)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLeadFile_tblAccount");
 
                 entity.HasOne(d => d.Lead)
@@ -574,6 +566,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadSources)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLeadSource_tblAccount");
             });
 
@@ -602,6 +595,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblLeadTags)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblLeadTag_tblAccount");
 
                 entity.HasOne(d => d.Lead)
@@ -626,6 +620,13 @@ namespace RealEstateDB
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<TblSmtp>(entity =>
+            {
+                entity.ToTable("tblSMTP");
+
+                entity.Property(e => e.CreatedDate).HasColumnType("datetime");
+            });
+
             modelBuilder.Entity<TblStage>(entity =>
             {
                 entity.HasKey(e => e.StageId);
@@ -641,6 +642,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblStages)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblStage_tblAccount");
             });
 
@@ -659,6 +661,7 @@ namespace RealEstateDB
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.TblTags)
                     .HasForeignKey(d => d.AccountId)
+                    .OnDelete(DeleteBehavior.Cascade)
                     .HasConstraintName("FK_tblTags_tblAccount");
             });
 

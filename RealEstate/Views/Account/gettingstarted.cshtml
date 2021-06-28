@@ -30,7 +30,7 @@
                             <p class="panel-body">Keep track of every email conversation</p>  @*and sync your calendar*@
                             @if (Model.AuthAccountType != 0)
                             {
-                        <a style="@(Model.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode() ? "display:block" : "display:none")"><img class="mb-2" src="~/image/connected-account.png"> <b> @("(" + Model.EmailAddress + ")")</b></a> 
+                                <a style="@(Model.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode() ? "display:block" : "display:none")"><img class="mb-2" src="~/image/connected-account.png"> <b> @("(" + Model.EmailAddress + ")")</b></a> 
                                 <a style="@(Model.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode() ? "display:block" : "display:none")" asp-action="DisconnectAccount" asp-controller="Account" asp-route-AuthAccountType="@Model.AuthAccountType">Disconnect</a> // asp-route-AuthAccountType="@Model.AuthAccountType"
                                 @*<br><span>OR</span><br />*@
                                 <a style="@(Model.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode() ? "display:block" : "display:none")"><img class="mb-2" src="~/image/connected-microsoft.png"></a>

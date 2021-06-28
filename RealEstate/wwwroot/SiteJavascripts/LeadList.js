@@ -188,15 +188,28 @@ function fnUpdateAgent() {
 
 
 function SendBulkMail() {
-    var checkedLeadID = new Array();
-    $("input[type='checkbox'][name^='checkbox-']").each(function () {
-        this.checked ? checkedLeadID.push($(this).val()) : null;
-    });
-    if (checkedLeadID.length <= 0) {
-        showAlertMessage("warning", "Select alteast one lead for mail!")
-        return;
+
+    var formData = new FormData();
+    var result = __glb_fnIUDOperation(formData, "/Lead/CheckAgentAccountIntegration");
+    if (result.success === true) {
+        console.log(result);
+        var checkedLeadID = new Array();
+        $("input[type='checkbox'][name^='checkbox-']").each(function () {
+            this.checked ? checkedLeadID.push($(this).val()) : null;
+        });
+        if (checkedLeadID.length <= 0) {
+            showAlertMessage("warning", "Select alteast one lead for mail!")
+            return;
+        }
+        $('#spnemailList').html(result.emailAddres);
+        $('#BulkEmailModel').modal('show');
+        $('#hdnConnectedEmailAddress').val(result.emailAddres);
+        //alert($('#hdnConnectedEmailAddress').val());
     }
-    $('#BulkEmailModel').modal('show');
+    else {
+        $('#AccountIntegrationModel').modal('show');
+    }
+    
     //var desc = CKEDITOR.instances['DSC'].getData();
 }
 
@@ -223,6 +236,7 @@ function fnSendBulkMail() {
 
 
     var subject = $("#txtEmailSubject").val();
+    var fromEmailAddress = $("#hdnConnectedEmailAddress").val();
     var mailBody = CKEDITOR.instances['txtMailBody'].getData();
     if (mailBody == '') {
         $("#divErrorMsgMail").html("Mail body is requied.");
@@ -247,6 +261,7 @@ function fnSendBulkMail() {
 
 
     var formData = new FormData();
+    formData.append("fromEmailaddress", fromEmailAddress);
     formData.append("subject", subject);
     formData.append("mailBody", mailBody);
     formData.append("checkedEmailList", checkedEmailList);

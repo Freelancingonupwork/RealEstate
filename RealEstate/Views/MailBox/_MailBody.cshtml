@@ -1,77 +1,210 @@
-﻿@model IEnumerable<LeadEmailMessageViewModel>
-<div class="content-bg mt-3">
-    @if (Model.Count() >= 1)
+﻿@*@model IEnumerable<LeadEmailMessageViewModel>*@
+@model LeadEmailDetails
+@{
+    string sub = string.Empty, ToName = string.Empty;
+    if (Model.LeadEmailMessageViewModel.Count() >= 1)
     {
-        @foreach (var item in Model)
+        sub = Model.LeadEmailMessageViewModel.OrderByDescending(x => x.CreatedDate).FirstOrDefault().Subject;
+        ToName = Model.LeadEmailMessageViewModel.OrderBy(x => x.CreatedDate).FirstOrDefault().ToName;
+    }
+}
+
+<div class="content-bg inbox-mail">
+    <div class="inbox-mail-header">
+        <div class="row no-gutters">
+            <div class="col-12">
+                <div class="custom-card-header">
+                    <div class="chat-icon btn-icon">
+                        <i class="fa fa-envelope"></i>
+                    </div>
+                    <div class="chat-header-detail flex-grow-1 ml-3">
+                        <h4>@ToName</h4>
+                        <h5>@sub</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="inbox-mail-body">
+        <div class="row no-gutters">
+            @if (Model.LeadEmailMessageViewModel.Count() >= 1)
+            {
+                @foreach (var item in Model.LeadEmailMessageViewModel)
+                {
+                    <div class="col-12">
+                        <div class="tab-content" id="pills-tabContent">
+                            <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                 aria-labelledby="create-note-tab">
+                                <div class="custom-card-mail">
+                                    <div class="custom-card-header">
+                                        <div class="user">
+                                            <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                        </div>
+                                        <div class="chat-header-detail ml-2">
+                                            <h6 class="mt-0 d-inline-block">@item.FromName, </h6>
+                                            @*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
+                                            <p class="text-dark mb-0"> To <b>@item.ToName</b> </p>
+                                        </div>
+                                        <div class="chat-action">
+                                            <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", item.CreatedDate))</a>
+                                            <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
+                                            <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
+                                        </div>
+                                    </div>
+                                    <div class="custom-card-text">
+                                        @Html.Raw(item.Body)
+                                    </div>
+                                    @foreach (var itemAttachment in item.LeadEmailMessageattachement)
+                                    {
+                                        <a target="_blank" class="custom-card-text" asp-controller="Lead" asp-action="DownloadMailAttachmentFile" asp-route-LeadId="@itemAttachment.LeadId" asp-route-fileName="@itemAttachment.FileName">
+                                            <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemAttachment.FileName
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    if (item.LeadEmailMessageReplayList.Count >= 1)
+                    {
+                        foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+                        {
+                            <div class="col-12">
+                                <div class="tab-content" id="pills-tabContent">
+                                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                         aria-labelledby="create-note-tab">
+                                        <div class="custom-card-mail">
+                                            <div class="custom-card-header">
+                                                <div class="user">
+                                                    <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                                </div>
+                                                <div class="chat-header-detail ml-2">
+                                                    <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6>
+                                                    @*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
+                                                    <p class="text-dark mb-0"> To <b>@itemReplayBody.ToName</b> </p>
+                                                </div>
+                                                <div class="chat-action">
+                                                    <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", itemReplayBody.CreatedDate))</a>
+                                                    <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
+                                                    <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
+                                                </div>
+                                            </div>
+                                            <div class="custom-card-text">
+                                                @Html.Raw(itemReplayBody.Body)
+                                            </div>
+                                            @foreach (var itemReplayAttachment in itemReplayBody.LeadEmailMessageReplayAttachement)
+                                            {
+                                                <a target="_blank" class="custom-card-text" asp-action="DownloadMailAttachmentFile" asp-controller="Lead" asp-route-LeadId="@itemReplayAttachment.LeadId" asp-route-fileName="@itemReplayAttachment.FileName">
+                                                    <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemReplayAttachment.FileName
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+            }
+            <div class="col-12">
+                <div class="inbox-mail-reply" style="display:none">
+                    <button class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i>Reply</button>
+                    <button class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i>Reply All</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="inbox-mail-footer" style="display:none">
+    <form>
+        <div class="form-group mb-0">
+            <textarea class="form-control" id="exampleFormControlTextarea1" rows="1" placeholder="Write a note"></textarea>
+            <button type="submit" class="btn create-note-btn btn-primary">Create Note</button>
+        </div>
+    </form>
+</div>
+
+@*<div class="content-bg mt-3">
+        @if (Model.Count() >= 1)
         {
-            <div class="row">
-                <div class="tab-content" id="pills-tabContent">
-                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                         aria-labelledby="create-note-tab">
-                        <div class="custom-card-text">
-                            <div class="custom-card-mail-reply">
-                                <div class="mb-2 d-block">
-                                    <h4 class="d-inline-block"> @item.Subject </h4>
-                                </div>
-                                <div class="custom-card-header">
-                                    <div class="user">
-                                        <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+            @foreach (var item in Model)
+            {
+                <div class="row">
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                             aria-labelledby="create-note-tab">
+                            <div class="custom-card-text">
+                                <div class="custom-card-mail-reply">
+                                    <div class="mb-2 d-block">
+                                        <h4 class="d-inline-block"> @item.Subject </h4>
                                     </div>
-                                    <div class="chat-header-detail flex-grow-1 ml-2">
-                                        <h6 class="mt-0 d-inline-block">@item.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</a>
-                                        <p class="text-dark"> To <b>@item.ToName</b> </p>
+                                    <div class="custom-card-header">
+                                        <div class="user">
+                                            <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                        </div>
+                                        <div class="chat-header-detail flex-grow-1 ml-2">
+                                            <h6 class="mt-0 d-inline-block">@item.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", item.CreatedDate))</a>
+                                            <p class="text-dark"> To <b>@item.ToName</b> </p>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="custom-card-text">
-                                    @Html.Raw(item.Body)
+                                    <div class="custom-card-text">
+                                        @Html.Raw(item.Body)
+                                    </div>
+                                    @foreach (var itemAttachment in item.LeadEmailMessageattachement)
+                                    {
+                                        <a target="_blank" class="custom-card-text" asp-controller="Lead" asp-action="DownloadMailAttachmentFile" asp-route-LeadId="@itemAttachment.LeadId" asp-route-fileName="@itemAttachment.FileName">
+                                            <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemAttachment.FileName
+                                        </a>
+                                    }
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            if (item.LeadEmailMessageReplayList.Count >= 1)
-            {
-                foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+                if (item.LeadEmailMessageReplayList.Count >= 1)
                 {
-                    <div class="row">
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                                 aria-labelledby="create-note-tab">
-                                <div class="custom-card-text">
-                                    <div class="custom-card-mail-reply">
-                                        <div class="mb-2 d-block">
-                                            <h4 class="d-inline-block"> @itemReplayBody.Subject </h4>
-                                        </div>
-                                        <div class="custom-card-header">
-                                            <div class="user">
-                                                <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                    foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+                    {
+                        <div class="row">
+                            <div class="tab-content" id="pills-tabContent">
+                                <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                     aria-labelledby="create-note-tab">
+                                    <div class="custom-card-text">
+                                        <div class="custom-card-mail-reply">
+                                            <div class="mb-2 d-block">
+                                                <h4 class="d-inline-block"> @itemReplayBody.Subject </h4>
                                             </div>
-                                            <div class="chat-header-detail flex-grow-1 ml-2">
-                                                <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", itemReplayBody.CreatedDate))</a>
-                                                <p class="text-dark"> To <b>@itemReplayBody.ToName</b> </p>
+                                            <div class="custom-card-header">
+                                                <div class="user">
+                                                    <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                                </div>
+                                                <div class="chat-header-detail flex-grow-1 ml-2">
+                                                    <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6> <a class="pl-2 text-muted" href="#">@Convert.ToString(string.Format("{0:dd/MM/yyyy hh:mm}", itemReplayBody.CreatedDate))</a>
+                                                    <p class="text-dark"> To <b>@itemReplayBody.ToName</b> </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="custom-card-text">
-                                            @Html.Raw(itemReplayBody.Body)
+                                            <div class="custom-card-text">
+                                                @Html.Raw(itemReplayBody.Body)
+                                            </div>
+                                            @foreach (var itemReplayAttachment in itemReplayBody.LeadEmailMessageReplayAttachement)
+                                            {
+                                                <a target="_blank" class="custom-card-text" asp-action="DownloadMailAttachmentFile" asp-controller="Lead" asp-route-LeadId="@itemReplayAttachment.LeadId" asp-route-fileName="@itemReplayAttachment.FileName">
+                                                    <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemReplayAttachment.FileName
+                                                </a>
+                                            }
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 }
             }
-            @*else
-            {
-                <span style="text-align:center;color:#777">No Email Replay Found.</span>
-            }*@
-        }
 
-    }
-    else
-    {
-        <span style="text-align:center;color:#777">No Email Replay Found.</span>
-    }
-</div>
+        }
+        else
+        {
+            <span style="text-align:center;color:#777">No Email Replay Found.</span>
+        }
+    </div>*@

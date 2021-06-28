@@ -1,0 +1,23 @@
+﻿@model IEnumerable<CkEditorImagesViewModel>
+@{
+    Layout = null;
+}
+@foreach (var image in Model)
+{
+    <a href="#" class="returnImage" data-url="@image.Url">
+        <img src="@(image.Url)" id="#image" data-source="@image.Url" width="200" height="200" />
+    </a>
+}
+<script src="~/js/jquery-3.3.1.js"></script>
+<script src="~/js/jquery-3.3.1.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".returnImage").click("click", function (e) {
+            var urlImage = $(this).attr("data-url");
+            window.opener.updateValue("cke_150_textInput", urlImage);
+            window.close();
+        });
+
+    });
+
+</script>

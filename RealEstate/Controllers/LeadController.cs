@@ -420,6 +420,7 @@ namespace RealEstate.Controllers
             try
             {
                 int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                int UserLoginTypeId = Convert.ToInt32(Request.Cookies["UserLoginTypeId"]);
 
                 Dictionary<string, string> sOwnerList = new Dictionary<string, string>();
                 var users = _dbContext.TblAccounts.Where(u => u.RoleId == RoleType.Admin.GetHashCode() && u.Status == true).ToList();
@@ -450,17 +451,46 @@ namespace RealEstate.Controllers
                 //ViewBag.AgentList = oAgentlist;
 
 
-
-                var agents = (from A in _dbContext.TblAccounts // outer sequence
-                              join AC in _dbContext.TblAccountCompanies //inner sequence 
-                              on A.AccountId equals AC.AccountId // key selector 
-                              where AC.AddedBy == AccountId && A.RoleId == RoleType.Agent.GetHashCode()
-                              select A).ToList();
-                foreach (var item in agents)
+                if (UserLoginTypeId == RoleType.Agent.GetHashCode())
                 {
-                    oAgentlist.Add(item.AccountId, item.FullName);
+                    var agents = (from A in _dbContext.TblAccounts // outer sequence
+                                  join AC in _dbContext.TblAccountCompanies //inner sequence 
+                                  on A.AccountId equals AC.AccountId // key selector 
+                                  where AC.AccountId == AccountId
+                                  select A).ToList();
+
+                    var agentsId = (from A in _dbContext.TblAccounts // outer sequence
+                                  join AC in _dbContext.TblAccountCompanies //inner sequence 
+                                  on A.AccountId equals AC.AccountId // key selector 
+                                  where AC.AccountId == AccountId
+                                  select AC.AddedBy).FirstOrDefault();
+
+                    var oMainAgentName = _dbContext.TblAccounts.Where(x => x.AccountId == agentsId).FirstOrDefault();
+                    if(oMainAgentName != null)
+                    {
+                        oAgentlist.Add(oMainAgentName.AccountId, oMainAgentName.FullName);
+                    }
+
+                    foreach (var item in agents)
+                    {
+                        oAgentlist.Add(item.AccountId, item.FullName);
+                    }
+                    ViewBag.AgentList = oAgentlist;
                 }
-                ViewBag.AgentList = oAgentlist;
+                else
+                {
+                    var agents = (from A in _dbContext.TblAccounts // outer sequence
+                                  join AC in _dbContext.TblAccountCompanies //inner sequence 
+                                  on A.AccountId equals AC.AccountId // key selector 
+                                  where AC.AddedBy == AccountId && A.RoleId == RoleType.Agent.GetHashCode()
+                                  select A).ToList();
+                    foreach (var item in agents)
+                    {
+                        oAgentlist.Add(item.AccountId, item.FullName);
+                    }
+                    ViewBag.AgentList = oAgentlist;
+                }
+
 
 
 
@@ -481,14 +511,29 @@ namespace RealEstate.Controllers
                 }
                 ViewBag.TagList = oTaglist;
 
-
-                Dictionary<int, string> oCustomFieldlist = new Dictionary<int, string>();
-                var CustomFields = _dbContext.TblCustomFields.Where(u => u.AccountId == AccountId).ToList();
-                foreach (var item in CustomFields)
+                if (UserLoginTypeId == RoleType.Agent.GetHashCode())
                 {
-                    oCustomFieldlist.Add(item.Id, item.FieldName);
+                    AccountId = (int)_dbContext.TblAccountCompanies.Where(x => x.AccountId == AccountId).Select(x => x.AddedBy).FirstOrDefault();
+                    Dictionary<int, string> oCustomFieldlist = new Dictionary<int, string>();
+                    var CustomFields = _dbContext.TblCustomFields.Where(u => u.AccountId == AccountId).ToList();
+                    foreach (var item in CustomFields)
+                    {
+                        oCustomFieldlist.Add(item.Id, item.FieldName);
+                    }
+                    ViewBag.CustomFieldlist = oCustomFieldlist;
                 }
-                ViewBag.CustomFieldlist = oCustomFieldlist;
+                else
+                {
+
+                    Dictionary<int, string> oCustomFieldlist = new Dictionary<int, string>();
+                    var CustomFields = _dbContext.TblCustomFields.Where(u => u.AccountId == AccountId).ToList();
+                    foreach (var item in CustomFields)
+                    {
+                        oCustomFieldlist.Add(item.Id, item.FieldName);
+                    }
+                    ViewBag.CustomFieldlist = oCustomFieldlist;
+                }
+
 
 
                 Dictionary<int, string> oAppointmentTypeslist = new Dictionary<int, string>();
@@ -894,7 +939,11 @@ namespace RealEstate.Controllers
                     var oAccountIntegrationData = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && x.AuthAccountType == AuthAccountType.HubSportAuth.GetHashCode()).FirstOrDefault();
                     if (oAccountIntegrationData != null)
                     {
-                        if (DateTime.Now.Subtract(oAccountIntegrationData.CreatedDate.Value).Hours >= 1)
+                        DateTime myDate1 = oAccountIntegrationData.CreatedDate.Value;
+                        DateTime myDate2 = DateTime.Now;
+                        TimeSpan difference = myDate2.Subtract(myDate1);
+                        //if (DateTime.Now.Subtract(oAccountIntegrationData.CreatedDate.Value).Hours >= 1)
+                        if (difference.TotalHours >= 1)
                         {
                             var postParams = new Dictionary<string, string>();
 
@@ -1424,10 +1473,12 @@ namespace RealEstate.Controllers
                 if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
                     return RedirectToAction("Login", "Account");
 
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                 string subject = Request.Form["subject"];
                 string MailBody = Request.Form["mailBody"];
                 var checkedEmailList = Request.Form["checkedEmailList"].ToString().Split(",");
                 var checkedAgentEmailList = Request.Form["checkedAgentEmailList"].ToString().Split(",");
+                string fromEmailaddress = Request.Form["fromEmailaddress"];
 
                 var emailList = new HashSet<string>(checkedEmailList);
                 var fromEmailList = new HashSet<string>(checkedAgentEmailList);
@@ -1442,7 +1493,31 @@ namespace RealEstate.Controllers
                         string fromEmail = this._config.GetSection("MailSettings")["fromEmail"];
                         bool isSSL = Convert.ToBoolean(this._config.GetSection("MailSettings")["isSSL"]);
 
-                        Utility.sendMail(item, MailBody, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                        //Utility.sendMail(item, MailBody, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                        //var SMTPDetail = _dbContext.TblSmtps.FirstOrDefault();
+                        var SMTPDetail = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
+                        if (SMTPDetail != null)
+                        {
+                            DateTime myDate1 = SMTPDetail.CreatedDate.Value;
+                            DateTime myDate2 = DateTime.Now;
+                            TimeSpan difference = myDate2.Subtract(myDate1);
+                            if (difference.TotalHours >= 1)
+                            {
+                                AuthResponse response = AuthResponse.refresh(this._config.GetSection("Google")["GoogleClientId"], this._config.GetSection("Google")["GoogleoAuthTokenURL"], this._config.GetSection("Google")["GoogleClientSecret"], SMTPDetail.RefreshToken);
+
+                                if (response.Access_token != null)
+                                {
+                                    SMTPDetail.AccessToken = response.Access_token;
+                                    SMTPDetail.CreatedDate = response.created;
+                                    _dbContext.SaveChanges();
+                                    Utility.SendMailAccessToken(fromEmailaddress, SMTPDetail.AccessToken, item, subject, MailBody);
+                                }
+                            }
+                            else
+                            {
+                                Utility.SendMailAccessToken(fromEmailaddress, SMTPDetail.AccessToken, item, subject, MailBody);
+                            }
+                        }
                     }
                     return Json(new { success = true, message = "Your emails are on the way!" });
                 }
@@ -1459,6 +1534,36 @@ namespace RealEstate.Controllers
                 return Json(new { success = false, message = "Opps Something wrong!" });
             }
             //return View();
+        }
+
+        public ActionResult CheckAgentAccountIntegration()
+        {
+            try
+            {
+                if (!Request.Cookies.ContainsKey("FullName") && !Request.Cookies.ContainsKey("EmailAddress"))
+                    return RedirectToAction("Login", "Account");
+
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+
+                var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                if(oAccountIntegration != null)
+                {
+
+                    return Json(new { success = true , emailAddres = oAccountIntegration.EmailAddress });
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+               
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps Something wrong!" });
+            }
         }
 
 
@@ -1556,7 +1661,7 @@ namespace RealEstate.Controllers
                             FieldTypeName = str,
                             AccountId = data.AccountId,
                             FieldTypeAns = data.TblCustomFieldAnswers.Where(x => x.LeadId == LeadId).ToList()
-                        }); ;
+                        });
                     }
                     else
                     {
@@ -1935,6 +2040,11 @@ namespace RealEstate.Controllers
             return $"{_webHostEnvironment.WebRootPath}\\LeadFile\\{AccountId}\\{LeadId}";
         }
 
+        private string GetFullPathOfFileMail(int AccountId, int LeadId)
+        {
+            return $"{_webHostEnvironment.WebRootPath}\\MailAttachment\\{AccountId}\\{LeadId}";
+        }
+
         public FileResult DownloadFile(int id, string fileName)
         {
             try
@@ -1993,7 +2103,7 @@ namespace RealEstate.Controllers
 
 
         #region LeadEmail
-        public IActionResult LeadSendMailByLeadID()
+        public async Task<ActionResult> LeadSendMailByLeadID(IList<IFormFile> files)
         {
             try
             {
@@ -2013,9 +2123,10 @@ namespace RealEstate.Controllers
 
 
                     var TOName = _dbContext.TblLeads.Where(x => x.LeadId == LeadId).FirstOrDefault();
-                    var FromName = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
-                    
+                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
 
+                    var fName = Request.Cookies["FullName"].ToString();
+                    List<string> AttachmentFiles = new List<string>();
                     if (IsReplay != "")
                     {
                         if (Convert.ToBoolean(IsReplay) == true)
@@ -2024,8 +2135,10 @@ namespace RealEstate.Controllers
                             TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
                             oLeadEmailMessage.LeadId = LeadId;
                             oLeadEmailMessage.AccountId = AccountId;
-                            oLeadEmailMessage.FromName = FROMNAME;
-                            oLeadEmailMessage.ToName = TONAME;
+                            //oLeadEmailMessage.FromName = TONAME;// FROMNAME;
+                            //oLeadEmailMessage.ToName = FROMNAME;// TONAME;
+                            oLeadEmailMessage.FromName = oAccountIntegration == null ? fName : oAccountIntegration.Name;
+                            oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
                             oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
                             oLeadEmailMessage.Body = MailBody;
                             oLeadEmailMessage.EmailMessageId = EmailMessageId != "" ? Convert.ToInt32(EmailMessageId) == 0 ? Convert.ToInt32(LeadEmailMsgId) : Convert.ToInt32(EmailMessageId) : 0;
@@ -2040,15 +2153,50 @@ namespace RealEstate.Controllers
                                 oUpdateDate.CreatedDate = DateTime.Now;
                                 _dbContext.SaveChanges();
                             }
+
+
+                            string fileName = null;
+                            if (files.Count > 0)
+                            {
+                                foreach (IFormFile source in files)
+                                {
+                                    // Get original file name to get the extension from it.
+                                    string orgFileName = source.FileName;// ContentDispositionHeaderValue.Parse(source.ContentDisposition).FileName;
+
+                                    // Create a new file name to avoid existing files on the server with the same names.
+                                    string fullPath = GetFullPathOfFileMail(AccountId, LeadId);
+
+                                    // Create the directory.
+                                    if (!Directory.Exists(fullPath))
+                                    {
+                                        Directory.CreateDirectory(fullPath);
+                                    }
+
+                                    // Save the file to the server.
+                                    fileName = Guid.NewGuid().ToString("N").Substring(0, 8) + Path.GetExtension(orgFileName);
+                                    using (FileStream stream = new FileStream(Path.Combine(fullPath, fileName), FileMode.Create))
+                                    {
+                                        await source.CopyToAsync(stream);
+                                    }
+
+                                    AttachmentFiles.Add(fullPath + "\\" + fileName);
+                                    TblLeadEmailMessageAttachment oData = new TblLeadEmailMessageAttachment();
+                                    oData.LeadEmailMessageId = oLeadEmailMessage.LeadEmailMessageId;
+                                    oData.Attachement = string.IsNullOrEmpty(fileName) ? string.Empty : fileName;
+                                    oData.CreatedDate = DateTime.Now;
+                                    _dbContext.TblLeadEmailMessageAttachments.Add(oData);
+                                    _dbContext.SaveChanges();
+                                }
+                            }
+
                         }
                     }
                     else
                     {
-                        var fName = Request.Cookies["FullName"].ToString();
                         TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
                         oLeadEmailMessage.LeadId = LeadId;
                         oLeadEmailMessage.AccountId = AccountId;
-                        oLeadEmailMessage.FromName = FromName == null ? fName : FromName.Name;
+                        oLeadEmailMessage.FromName = oAccountIntegration == null ? fName : oAccountIntegration.Name;
                         oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
                         oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
                         oLeadEmailMessage.Body = MailBody;
@@ -2056,18 +2204,57 @@ namespace RealEstate.Controllers
                         _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
                         _dbContext.SaveChanges();
 
+                        string fileName = null;
+
+                        if (files.Count > 0)
+                        {
+                            foreach (IFormFile source in files)
+                            {
+                                // Get original file name to get the extension from it.
+                                string orgFileName = source.FileName;// ContentDispositionHeaderValue.Parse(source.ContentDisposition).FileName;
+
+                                // Create a new file name to avoid existing files on the server with the same names.
+                                string fullPath = GetFullPathOfFileMail(AccountId, LeadId);
+
+                                // Create the directory.
+                                if (!Directory.Exists(fullPath))
+                                {
+                                    Directory.CreateDirectory(fullPath);
+                                }
+
+                                // Save the file to the server.
+                                fileName = Guid.NewGuid().ToString("N").Substring(0, 8) + Path.GetExtension(orgFileName);
+                                using (FileStream stream = new FileStream(Path.Combine(fullPath, fileName), FileMode.Create))
+                                {
+                                    await source.CopyToAsync(stream);
+                                }
+
+                                //AttachmentFiles.Add(fileName);
+                                AttachmentFiles.Add(fullPath + "\\" + fileName);
+                                TblLeadEmailMessageAttachment oData = new TblLeadEmailMessageAttachment();
+                                oData.LeadEmailMessageId = oLeadEmailMessage.LeadEmailMessageId;
+                                oData.Attachement = string.IsNullOrEmpty(fileName) ? string.Empty : fileName;
+                                oData.CreatedDate = DateTime.Now;
+                                _dbContext.TblLeadEmailMessageAttachments.Add(oData);
+                                _dbContext.SaveChanges();
+                            }
+                        }
+
                     }
 
                     //var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId).Include(x => x.Account).ToList();
 
-                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                    //var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
                     if (oAccountIntegration != null)
                     {
-                        if (DateTime.Now.Subtract(oAccountIntegration.CreatedDate.Value).Hours >= 1)
+                        DateTime myDate1 = oAccountIntegration.CreatedDate.Value;
+                        DateTime myDate2 = DateTime.Now;
+                        TimeSpan difference = myDate2.Subtract(myDate1);
+                        if (difference.TotalHours >= 1)
                         {
                             if (oAccountIntegration.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode())
                             {
-                                AuthResponse response = AuthResponse.refresh(this._config.GetSection("Google")["GoogleClientId"], this._config.GetSection("Google")["GoogleClientSecret"], oAccountIntegration.RefreshToken);
+                                AuthResponse response = AuthResponse.refresh(this._config.GetSection("Google")["GoogleClientId"], this._config.GetSection("Google")["GoogleoAuthTokenURL"], this._config.GetSection("Google")["GoogleClientSecret"], oAccountIntegration.RefreshToken);
 
                                 if (response.Access_token != null)
                                 {
@@ -2075,7 +2262,7 @@ namespace RealEstate.Controllers
                                     oAccountIntegration.CreatedDate = response.created;
                                     _dbContext.SaveChanges();
 
-                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles);
 
                                 }
                             }
@@ -2114,7 +2301,7 @@ namespace RealEstate.Controllers
                                 //Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
                                 if (oAccountIntegration.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode())
                                 {
-                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
+                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles);
                                 }
 
                                 if (oAccountIntegration.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode())
@@ -2206,6 +2393,7 @@ namespace RealEstate.Controllers
                             MainMessageList.ToName = item.ToName;
                             MainMessageList.FromName = item.FromName;
                             MainMessageList.LeadEmailMessageReplayList = new List<LeadEmailMessageViewModel>();
+                            MainMessageList.LeadEmailMessageattachement = new List<LeadEmailMessageAttachement>();
                             foreach (var itemReplay in oReplayMsgList.Where(x => x.EmailMessageId == item.LeadEmailMessageId).OrderByDescending(x => x.CreatedDate))
                             {
                                 var ReplayMessageList = new LeadEmailMessageViewModel();
@@ -2219,7 +2407,24 @@ namespace RealEstate.Controllers
                                 ReplayMessageList.Subject = itemReplay.Subject;
                                 ReplayMessageList.ToName = itemReplay.ToName;
                                 ReplayMessageList.FromName = itemReplay.FromName;
+                                ReplayMessageList.LeadEmailMessageReplayAttachement = new List<LeadEmailMessageReplayAttachement>();
+                                foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == itemReplay.LeadEmailMessageId).ToList())
+                                {
+                                    var MessageAttachmentList = new LeadEmailMessageReplayAttachement();
+                                    MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
+                                    MessageAttachmentList.LeadId = (int)LeadId;
+                                    MessageAttachmentList.FileName = itemAttachment.Attachement;
+                                    ReplayMessageList.LeadEmailMessageReplayAttachement.Add(MessageAttachmentList);
+                                }
                                 MainMessageList.LeadEmailMessageReplayList.Add(ReplayMessageList);
+                            }
+                            foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == item.LeadEmailMessageId).ToList())
+                            {
+                                var MessageAttachmentList = new LeadEmailMessageAttachement();
+                                MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
+                                MessageAttachmentList.LeadId = (int)LeadId;
+                                MessageAttachmentList.FileName = itemAttachment.Attachement;
+                                MainMessageList.LeadEmailMessageattachement.Add(MessageAttachmentList);
                             }
                             model.Add(MainMessageList);
                         }
@@ -2256,6 +2461,7 @@ namespace RealEstate.Controllers
                     return Json(_dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadEmailMessageId == LeadEmailMessageId && x.LeadId == LeadId).Select(x => new
                     {
                         success = true,
+                        //IsReplay = x.IsReplay,
                         LeadEmailMessageId = x.LeadEmailMessageId,
                         EmailMessageId = x.EmailMessageId,
                         FromName = x.FromName,
@@ -2276,6 +2482,65 @@ namespace RealEstate.Controllers
                 ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
                 return Json(new { success = false, message = "Opps! Something went wrong!" });
             }
+        }
+
+        public FileResult DownloadMailAttachmentFile(int LeadId, string fileName)
+        {
+            try
+            {
+                int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                //string fileName = Request.Form["fileName"].ToString();
+                //int LeadId = Convert.ToInt32(Request.Form["LeadId"]);
+                //Build the File Path.
+                string path = Path.Combine(this._webHostEnvironment.WebRootPath, @"MailAttachment\" + AccountId + @"\" + LeadId + @"\") + fileName;
+
+                //Read the File data into Byte Array.
+                byte[] bytes = System.IO.File.ReadAllBytes(path);
+
+                //Send the File to Download.
+                return File(bytes, "application/octet-stream", fileName);
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return null;
+            }
+
+        }
+
+
+        public IActionResult UploadImage(IFormFile upload, string CKEditorFuncNum, string CKEditor, string langCode)
+        {
+            if (upload.Length <= 0) return null;
+
+            var fileName = Guid.NewGuid() + Path.GetExtension(upload.FileName).ToLower();
+
+            var path = Path.Combine(
+                _webHostEnvironment.WebRootPath, "image/uploads/",
+                fileName);
+
+            using (var stream = new FileStream(path, FileMode.Create))
+            {
+                upload.CopyTo(stream);
+
+            }
+            var url = $"{"/image/uploads/"}{fileName}";
+            return Json(new { uploaded = true, url });
+        }
+
+        public ActionResult uploadPartial()
+        {
+            string webRootPath = _webHostEnvironment.WebRootPath;
+            string path = "";
+            path = Path.Combine(webRootPath, "image/uploads/");
+            var images = Directory.GetFiles(path).Select(x => new CkEditorImagesViewModel
+            {
+                Url = Url.Content("/image/uploads/" + Path.GetFileName(x))
+            });
+            return View(images);
+
         }
 
         #endregion

@@ -645,7 +645,7 @@ function fnSendEmail(LeadId) {
     var ToMailAddress = document.getElementById('hdnToMailAddress');
     var MailSubject = document.getElementById("txtMailSubject");
     var MailBody = CKEDITOR.instances['txtMailBody'].getData()
-    var fileInput = document.getElementById('fileInput');
+    var fileInputMail = document.getElementById('fileInputMail');
 
     if (MailSubject.value == '' && MailBody == '') {
         $("html, body").animate({ scrollTop: 0 }, "slow");
@@ -654,10 +654,35 @@ function fnSendEmail(LeadId) {
         $("#divAlertMessage").addClass("alert alert-danger");
         setTimeout(function () {
             $("#divAlertMessage").fadeOut();
+            //loading.hide().delay(90000);
+            $('html, body').animate({
+                scrollTop: $("#pills-tabContent").offset().top
+            }, 500);
         }, 5000);
         return;
     }
 
+    if (fileInputMail.files.length > 1) {
+        var f = fileInputMail.files[0]
+        //here I CHECK if the FILE SIZE is bigger than 8 MB (numbers below are in bytes)
+
+        if (f.size > 8388608 || f.fileSize > 8388608) {
+            //alert(f.size);
+            //show an alert to the user
+            fileInputMail.value = null;
+            $("html, body").animate({ scrollTop: 0 }, "slow");
+            $("#divAlertMessage").html("Allowed file size exceeded. (Max. 8 MB).");
+            $('#divAlertMessage').show();
+            $("#divAlertMessage").addClass("alert alert-danger");
+            setTimeout(function () {
+                $("#divAlertMessage").fadeOut();
+                $('html, body').animate({
+                    scrollTop: $("#send-email").offset().top
+                }, 500);
+            }, 5000);
+            return;
+        }
+    }
     var formData = new FormData(); //FormData object
     formData.append("EmailSubject", MailSubject.value);
     formData.append("MailBody", MailBody);
@@ -667,66 +692,24 @@ function fnSendEmail(LeadId) {
     formData.append("FromName", document.getElementById("hdnFromName").value);
     formData.append("ToName", document.getElementById("hdnToName").value);
     formData.append("IsReplay", document.getElementById("hdnIsReplay").value);
-    for (i = 0; i < fileInput.files.length; i++) {
-        formData.append("files", fileInput.files[i]);
+    for (i = 0; i < fileInputMail.files.length; i++) {
+        formData.append("files", fileInputMail.files[i]);
     }
     formData.append("leadID", LeadId);
     var result = __glb_fnIUDOperation(formData, "/Lead/LeadSendMailByLeadID");
     if (result.success === true) {
+        $("#divLoader").show();
         console.log(result.data);
-
         fnGetLeadDetailMails();
-        //$("#divMailList").html('');
-        //if (result.data.length > 1) {
-        //    for (i = 0; i < result.data.length; i++) {
-        //        var row = "<div class=\"custom-card-header\">" +
-        //            "<div class=\"chat-icon btn-icon\">" +
-        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" " +
-        //            "viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" " +
-        //            "stroke-linecap=\"round\" stroke-linejoin=\"round\" " +
-        //            "class=\"feather feather-mail\">" +
-        //            "<path d=\"M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z\">" +
-        //            "</path>" +
-        //            "<polyline points=\"22, 6 12, 13 2, 6\"></polyline>" +
-        //            "</svg>" +
-        //            "</div>" +
-        //            "<div class=\"chat-header-detail flex-grow-1 ml-3\">" +
-        //            "<h5>" +
-        //            "Dan Corkill" +
-        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-chevron-right\"><polyline points=\"9 18 15 12 9 6\"></polyline></svg>" +
-        //            "Ifiok Charles" +
-        //            "</h5>" +
-        //            "<span>8 days ago</span>" +
-        //            "<h5>Automate your lead engagement</h5>" +
-        //            "</div>" +
-        //            "<div class=\"chat-action\">" +
-        //            "<button class=\"btn btn-secondary\">Reply</button>" +
-        //            "<button class=\"btn btn-secondary\">Reply All</button>" +
-        //            "<button class=\"btn btn-secondary\">" +
-        //            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-more-vertical\"><circle cx=\"12\" cy=\"12\" r=\"1\"></circle><circle cx=\"12\" cy=\"5\" r=\"1\"></circle><circle cx=\"12\" cy=\"19\" r=\"1\"></circle></svg>" +
-        //            "</button>" +
-        //            "</div>" +
-        //            "</div >" +
-        //            "<div class=\"custom-card-text ml-5\">" +
-        //            "<p> Hi Ifiok,</p>" +
-        //            "<p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away.</p>" +
-        //            "<p>Need help? Just hit reply.</p>" +
-        //            "<p>Regards, <br>The Estajo Team</p>" +
-        //            "<p><br></p>" +
-        //            "</div>" +
-        //            "<div class=\"divider my-5\"></div>";
-        //        $("#divMailList").append(row);
-        //    }
-        //}
-        //else {
-        //    $("#divMailList").append("No Mail Found.");
-        //}
         $('#txtMailSubject').val('');
+        $('#fileInputMail').val('');
         CKEDITOR.instances.txtMailBody.setData('');
-        //$("html, body").animate({ scrollTop: $(document).height() - $(window).height() });
         $('html, body').animate({
             scrollTop: $("#divMailList").offset().top
-        }, 2000);
+        }, 2000, function () {
+            $("#divLoader").hide();
+        });
+
     }
     else {
         $("#divAlertMessage").html(result.message);
@@ -740,6 +723,7 @@ function fnSendEmail(LeadId) {
 }
 
 function fnGetLeadDetailMails() {
+
     var LeadId = document.getElementById("hdnLeadID").value;
     var formData = new FormData(); //FormData object
     formData.append("leadID", LeadId);
@@ -765,7 +749,7 @@ function fnGetLeadDetailMails() {
                         result.data[i].leadEmailMessageReplayList[0].fromName +
                         " <i class=\"fa fa-chevron-right\"></i> " +
                         //capitalize(AccountName) +
-                        result.data[i].leadEmailMessageReplayList[0].toName + 
+                        result.data[i].leadEmailMessageReplayList[0].toName +
                         "</h5> " +
                         fromNow(result.data[i].leadEmailMessageReplayList[0].createdDate) +
                         "<h5>" + result.data[i].leadEmailMessageReplayList[0].subject + "</h5> " +
@@ -778,6 +762,12 @@ function fnGetLeadDetailMails() {
                         "</div>" +
                         "<div class=\"custom-card-text ml-5\"> " +
                         result.data[i].leadEmailMessageReplayList[0].body;
+                    if (result.data[i].leadEmailMessageReplayList[0].leadEmailMessageReplayAttachement.length > 0) {
+                        for (ji = 0; ji < result.data[i].leadEmailMessageReplayList[0].leadEmailMessageReplayAttachement.length; ji++) {
+                            row = row += "<p> <a style=\"color:#BF0D1C\" src =\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageReplayList[0].leadEmailMessageReplayAttachement[ji].fileName + "'," + result.data[i].leadEmailMessageReplayList[0].leadEmailMessageReplayAttachement[ji].leadId + ");\"><i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i> " +
+                                result.data[i].leadEmailMessageReplayList[0].leadEmailMessageReplayAttachement[ji].fileName + "</a></p>";
+                        }
+                    }
                     var NestedRow = "<div class=\"custom-card-mail-reply\"> " +
                         "<div class=\"custom-card-header\"> " +
                         "<div class=\"chat-icon btn-icon\"> " +
@@ -800,13 +790,35 @@ function fnGetLeadDetailMails() {
                         "</div> " +
                         "<div class=\"custom-card-text\"> " +
                         "<p> BODYVAR </p> " +
+                        "<p> ATTACHMENTVAR </p> " +
                         "</div> " +
                         "</div> ";
-
+                    console.log("aaaaa:-" + result.data[i].leadEmailMessageReplayList);
                     for (j = 1; j < result.data[i].leadEmailMessageReplayList.length; j++) {
-                        html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                        //html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                        if (result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement.length > 0) {
+                            for (k = 0; k < result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement.length; k = j) {
+                                //alert(NestedRow);
+                                //alert(result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName);
+                                //html = row += NestedRow.replace("ATTACHMENTVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName);
+                                html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src =\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "'," + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].leadId + ");\"><i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                                //html = html + NestedRow.replace("ATTACHMENTVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName).replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body)
+                            }
+                        }
+                        else {
+                            //html = row += NestedRow.replace(" ATTACHMENTVAR ","1111");
+                            html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                        }
                     }
-                    html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                 
+                    if (result.data[i].leadEmailMessageattachement.length > 0) {
+                        for (ji = 0; ji < result.data[i].leadEmailMessageattachement.length; ji++) {
+                            html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src=\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageattachement[ji].fileName + "'," + result.data[i].leadEmailMessageattachement[ji].leadId + ");\">&nbsp;<i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageattachement[ji].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                        }
+                    }
+                    else {
+                        html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                    }
                     html = html + "</div>";
                 }
                 else {
@@ -832,12 +844,20 @@ function fnGetLeadDetailMails() {
                         "<div class=\"custom-card-text ml-5\"> " +
                         result.data[i].body +
                         "</div>";
+                    if (result.data[i].leadEmailMessageattachement.length > 0) {
+                        for (ji = 0; ji < result.data[i].leadEmailMessageattachement.length; ji++) {
+                            html = html += "<div class=\"custom-card-text ml-5\">" +
+                                "<a style=\"color:#BF0D1C\" src=\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageattachement[ji].fileName + "'," + result.data[i].leadEmailMessageattachement[ji].leadId + ");\"><i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp; " + result.data[i].leadEmailMessageattachement[ji].fileName + "</a>" +
+                                "</div>";
+                        }
+                    }
                 }
                 var divider = html + "<div class=\"divider my-5\"></div>";
                 $("#divMailList").append(divider);
             }
         }
         else {
+
             $("#divMailList").css('text-align', 'center').css('color', '#777').append("No Mail Found.");
         }
     }
@@ -878,6 +898,12 @@ function fnGetEmailSubject(leadEmailMessageId, LeadId) {
 
 }
 
+function fnDownloadMailAttachment(fileName, LeadID) {
+    //alert(fileName);
+    //alert(LeadID);
+    //window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?fileName=' + fileName + "&LeadId=" + LeadID;
+    window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?LeadId=' + LeadID + "&fileName=" + fileName;
+}
 function fromNow(date) {
     const SECOND = 1000;
     const MINUTE = 60 * SECOND;

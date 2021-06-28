@@ -494,7 +494,7 @@ namespace RealEstate.Controllers
             if (expireTimeInDays > 0)
                 option.Expires = DateTime.Now.AddMinutes(expireTimeInDays.Value);
             else
-                option.Expires = DateTime.Now.AddMinutes(15); //minimum 15 Minutes
+                option.Expires = DateTime.Now.AddMinutes(45); //minimum 15 Minutes
 
             Response.Cookies.Append(key, value, option);
         }

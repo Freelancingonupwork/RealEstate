@@ -1,0 +1,103 @@
+﻿@model LeadEmailDetails
+
+@if (Model != null)
+{
+    <div class="custom-card-header">
+        <div class="chat-icon btn-icon">
+            <i class="fa fa-envelope"></i>
+        </div>
+        <div class="chat-header-detail flex-grow-1 ml-3">
+            <h4>@Model.LeadName </h4>
+            @*<h5>Last Communication 3 days ago</h5>*@
+        </div>
+    </div>
+    <div class="mailbox-info-body">
+        <div class="contact-info">
+            <ul>
+                <li>
+                    <a href="javascript:void(0)" style="color: #BF0D1C">
+                        <i class="fa fa-phone" aria-hidden="true"></i> <span>@Model.Phonenumber</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="javascript:void(0)" style="word-break: break-all;color: #BF0D1C">
+                        <i class="fa fa-envelope-o" aria-hidden="true"></i> <span>@Model.EmailAddress</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!--  -->
+        <div class="accordion" id="accordionExample">
+            @*<div class="card">
+                <div class="card-header" id="headingOne">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            <i class="fa fa-users" aria-hidden="true"></i>Relationships<span><i class="fa fa-chevron-right" aria-hidden="true"></i></span>
+                        </button>
+                    </h2>
+                </div>
+
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
+                    <div class="card-body">
+                        No relationships
+                    </div>
+                </div>
+            </div>*@
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+                            <i class="fa fa-list-ul" aria-hidden="true"></i>Details<span><i class="fa fa-chevron-right" aria-hidden="true"></i></span>
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseTwo" class="collapse show" aria-labelledby="headingTwo" data-parent="#accordionExample">
+                    <div class="card-body">
+                        <ul class="list-unstyled ditail-list">
+                            <li><span>Stage</span> @Model.StageName</li>
+                            <li><span>Agent</span> @Model.AgentName</li>
+                            @*<li><span>Lender</span> Lead</li>*@
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingThree">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            <i class="fa fa-comments" aria-hidden="true"></i>Recent Conversations<span><i class="fa fa-chevron-right" aria-hidden="true"></i></span>
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+                    <div class="card-body">
+                        <ul class="list-unstyled recent-list">
+                            @if (Model.LeadEmailMessageViewModel.Count() > 0)
+                            {
+                                @foreach (var item in Model.LeadEmailMessageViewModel)
+                                {
+                                    <li><a href="javascript:void(0)" onclick="showMailBody(@item.LeadEmailMessageId)"><i class="fa fa-envelope-o" aria-hidden="true"></i> @item.Subject </a></li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="display:none">
+                <div class="card-header" id="headingFour">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            <i class="fas fa-chart-line"></i>Activity<span><i class="fa fa-chevron-right" aria-hidden="true"></i></span>
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+                    <div class="card-body activity-body">
+                        <a href="#" class="btn btn-secondary">Install Pixel on your website</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}

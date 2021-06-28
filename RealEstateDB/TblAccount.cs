@@ -11,7 +11,6 @@ namespace RealEstateDB
         {
             TblAccountCompanies = new HashSet<TblAccountCompany>();
             TblAccountIntegrations = new HashSet<TblAccountIntegration>();
-            TblAgents = new HashSet<TblAgent>();
             TblAppointmentOutcomes = new HashSet<TblAppointmentOutcome>();
             TblAppointmentTypes = new HashSet<TblAppointmentType>();
             TblCustomFieldAnswers = new HashSet<TblCustomFieldAnswer>();
@@ -39,13 +38,13 @@ namespace RealEstateDB
         public bool? Status { get; set; }
         public int? RoleId { get; set; }
         public bool? IsEmailConfig { get; set; }
+        public bool? IsTempPassword { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 
         public virtual TblRole Role { get; set; }
         public virtual ICollection<TblAccountCompany> TblAccountCompanies { get; set; }
         public virtual ICollection<TblAccountIntegration> TblAccountIntegrations { get; set; }
-        public virtual ICollection<TblAgent> TblAgents { get; set; }
         public virtual ICollection<TblAppointmentOutcome> TblAppointmentOutcomes { get; set; }
         public virtual ICollection<TblAppointmentType> TblAppointmentTypes { get; set; }
         public virtual ICollection<TblCustomFieldAnswer> TblCustomFieldAnswers { get; set; }

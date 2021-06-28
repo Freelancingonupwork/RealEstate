@@ -72,7 +72,7 @@
                             </a>
                         </li>
                         <li class="@Html.IsSelectedMultiple(controllers: "MailBox", actions: "Index")">
-                            <a asp-action="Index" asp-controller="MailBox" >
+                            <a asp-action="Index" asp-controller="MailBox">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                      fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                                      stroke-linejoin="round" class="feather feather-inbox">
@@ -138,7 +138,7 @@
 
                         @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                         {
-                            <li id="liAdmin" class="@Html.IsSelectedMultiple(controllers: "Admin,Company", actions: "Team,AdminUser,AddAdminUser,AddAgents,EmailTemplate,AddEmailTemplate,TextTemplate,AddTextTemplate,CustomFields,AddCustomFields,CompanySetting,Stage,AddStage,Tags,AddTags,AppointmentTypes,AddAppointmentTypes,AppointmentOutcomes,AddAppointmentOutcomes,CompanySetting")">
+                            <li id="liAdmin" class="@Html.IsSelectedMultiple(controllers: "Admin,Company", actions: "Team,AdminUser,AddAdminUser,AddAgents,EmailTemplate,AddEmailTemplate,TextTemplate,AddTextTemplate,CustomFields,AddCustomFields,CompanySetting,Stage,AddStage,Tags,AddTags,AppointmentTypes,AddAppointmentTypes,AppointmentOutcomes,AddAppointmentOutcomes,CompanySetting,EmailTemplateList")">
                                 <a asp-action="Team" asp-controller="Admin">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                                          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -166,17 +166,17 @@
                             </a>
                             <div class="search-box not-click">
                                 @*<form action="" method="get">*@
-                                    <input type="text" class="not-click form-control" name="search" placeholder="Search..">
-                                    <button class="search-button">
-                                        <div class="search-icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                                 stroke-linejoin="round" class="feather feather-search">
-                                                <circle cx="11" cy="11" r="8"></circle>
-                                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                            </svg>
-                                        </div>
-                                    </button>
+                                <input type="text" class="not-click form-control" name="search" placeholder="Search..">
+                                <button class="search-button">
+                                    <div class="search-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                             stroke-linejoin="round" class="feather feather-search">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                    </div>
+                                </button>
                                 @*</form>*@
                             </div>
                         </div>
@@ -225,7 +225,14 @@
                                 </div>
                                 <div class="light-button">
                                     <ul>
-                                        <li><a class="dropdown-item" href="#">My Account</a></li>
+                                        @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                                        {
+                                            <li><a class="dropdown-item" href="#">My Account</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li><a class="dropdown-item" asp-action="gettingstarted" asp-controller="Account">My Account</a></li>
+                                        }
                                         @*<li><a class="dropdown-item" asp-action="Index" asp-controller="LeadData">My Account</a></li>*@
                                         <li>
                                             <a class="dropdown-item" asp-action="Logout" asp-controller="Account">Sign Out</a>

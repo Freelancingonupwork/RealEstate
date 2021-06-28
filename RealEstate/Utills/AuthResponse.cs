@@ -45,9 +45,9 @@ namespace RealEstate.Utills
             return result;
         }
 
-        public static AuthResponse refresh(string clientId, string secret, string refresh_token)
+        public static AuthResponse refresh(string clientId, string GoogleoAuthTokenURL, string secret, string refresh_token)
         {
-            var request = (HttpWebRequest)WebRequest.Create("https://www.googleapis.com/oauth2/v4/token");
+            var request = (HttpWebRequest)WebRequest.Create(GoogleoAuthTokenURL);
             string postData = string.Format("client_id={0}&client_secret={1}&refresh_token={2}&grant_type=refresh_token", clientId, secret, refresh_token);
             var data = Encoding.ASCII.GetBytes(postData);
 
@@ -70,10 +70,10 @@ namespace RealEstate.Utills
         }
 
 
-        public static AuthResponse Exchange(string authCode, string clientid, string secret, string redirectURI)
+        public static AuthResponse Exchange(string authCode,string GoogleoAuthTokenURL, string clientid, string secret, string redirectURI)
         {
 
-            var request = (HttpWebRequest)WebRequest.Create("https://www.googleapis.com/oauth2/v4/token"); //https://accounts.google.com/o/oauth2/token
+            var request = (HttpWebRequest)WebRequest.Create(GoogleoAuthTokenURL); //https://accounts.google.com/o/oauth2/token //"https://www.googleapis.com/oauth2/v4/token"
 
             string postData = string.Format("code={0}&client_id={1}&client_secret={2}&redirect_uri={3}&grant_type=authorization_code", authCode, clientid, secret, redirectURI);
             var data = Encoding.ASCII.GetBytes(postData);
@@ -102,7 +102,7 @@ namespace RealEstate.Utills
 
 
 
-        public static string GetAutenticationURI(string clientId, string redirectUri,string scopes)
+        public static string GetAutenticationURI(string GoogleoAuthURL, string clientId, string redirectUri,string scopes)
         {
             ////string scopes = "https://www.googleapis.com/auth/plus.login email";
             //string scopes = "https://mail.google.com/+https://www.googleapis.com/auth/userinfo.email+https://www.googleapis.com/auth/userinfo.profile"; //, 
@@ -112,7 +112,7 @@ namespace RealEstate.Utills
             //    redirectUri = "urn:ietf:wg:oauth:2.0:oob";
             //}
             //string oauth = string.Format("https://accounts.google.com/o/oauth2/auth?client_id={0}&redirect_uri={1}&scope={2}&response_type=code&access_type=offline&approval_prompt=force", clientId, redirectUri, scopes);
-            string oauth = string.Format("https://accounts.google.com/o/oauth2/v2/auth/oauthchooseaccount?client_id={0}&redirect_uri={1}&scope={2}&response_type=code&access_type=offline&approval_prompt=force&type=web_server&flowName=GeneralOAuthFlow", clientId, redirectUri, scopes);
+            string oauth = string.Format(GoogleoAuthURL + "?client_id={0}&redirect_uri={1}&scope={2}&response_type=code&access_type=offline&approval_prompt=force&type=web_server&flowName=GeneralOAuthFlow", clientId, redirectUri, scopes);
             return oauth;
         }
 

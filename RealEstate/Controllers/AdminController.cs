@@ -164,15 +164,16 @@ namespace RealEstate.Controllers
                     //_dbContext.TblAgents.Add(oData);
                     //_dbContext.SaveChanges();
 
-
+                    var Password = Guid.NewGuid().ToString("N").Substring(0, 8);
                     TblAccount oData = new TblAccount();
                     oData.FullName = string.IsNullOrEmpty(model.FullName) ? string.Empty : model.FullName;
                     oData.PhoneNumber = string.IsNullOrEmpty(model.CellPhone) ? string.Empty : model.CellPhone;
                     oData.UserName = string.IsNullOrEmpty(model.EmailAddress) ? string.Empty : model.EmailAddress;
-                    //oData.Password = Encryption.EncryptText("Estajo@123");
+                    oData.Password = Encryption.EncryptText(Password);
                     oData.IsOwner = false;
                     oData.CreatedDate = DateTime.Now;
                     oData.RoleId = RoleType.Agent.GetHashCode();
+                    oData.IsTempPassword = true;
                     oData.Status = true;
                     _dbContext.TblAccounts.Add(oData);
                     _dbContext.SaveChanges();
@@ -197,16 +198,41 @@ namespace RealEstate.Controllers
                     //var password = Encryption.DecryptText(oData.Password);
                     var body = "<p>Hi,</p>" +
                                 "<p>Your Agent Email Address is:- " + oData.UserName + "</p>" +
-                                "<p>Your Temporary Agent Password is:- Estajo@123</p>" +
+                                "<p>Your Temporary Agent Password is:- " + Password + "</p>" +
                                 "<p><a href=" + LoginURL + ">Please login with the above details and set your own password.</a></p><br/>" +
                                 "Thank You.";
 
-                    var subject = "Estajo - Agent Details";
-                    Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    var subject = "Estajo - Agent Login Details";
+
+                    //Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+
+                    var SMTPDetail = _dbContext.TblSmtps.FirstOrDefault();
+                    if (SMTPDetail != null)
+                    {
+                        DateTime myDate1 = SMTPDetail.CreatedDate.Value;
+                        DateTime myDate2 = DateTime.Now;
+                        TimeSpan difference = myDate2.Subtract(myDate1);
+                        if (difference.TotalHours >= 1)
+                        {
+                            AuthResponse response = AuthResponse.refresh(this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleoAuthTokenURL"], this.Configuration.GetSection("Google")["GoogleClientSecret"], SMTPDetail.RefreshToken);
+
+                            if (response.Access_token != null)
+                            {
+                                SMTPDetail.AccessToken = response.Access_token;
+                                SMTPDetail.CreatedDate = response.created;
+                                _dbContext.SaveChanges();
+                                Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oData.UserName, subject, body);
+                            }
+                        }
+                        else
+                        {
+                            Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oData.UserName, subject, body);
+                        }
+                    }
 
                     #endregion
 
-                    ShowSuccessMessage("User added Successfully.", true);
+                    ShowSuccessMessage("User added Successfully. Please check your email address for login details.", true);
                     return RedirectToAction("Team", "Admin");
                 }
                 else
@@ -269,6 +295,64 @@ namespace RealEstate.Controllers
                 int id = 0;
                 if (Request.Form.ContainsKey("id")) { id = Convert.ToInt32(Request.Form["id"]); }
                 if (id <= 0) { throw new Exception("Identity can not be blank!"); }
+
+                var model = _dbContext.TblCustomFieldValues.Where(x => x.AccountId == id).ToList();
+                if (model.Count > 0)
+                {
+                    foreach (var obj in model)
+                    {
+                        _dbContext.Entry(obj).State = EntityState.Deleted;
+                    }
+                    _dbContext.SaveChanges();
+                }
+
+                TblCustomField oData = _dbContext.TblCustomFields.Where(x => x.AccountId == id).FirstOrDefault();
+                if (oData != null)
+                {
+                    _dbContext.TblCustomFields.Remove(oData);
+                    _dbContext.SaveChanges();
+                }
+
+
+                var oTblLeads = _dbContext.TblLeads.Where(x => x.AgentId == id).ToList();
+                foreach (var item in oTblLeads)
+                {
+                    var oCustomFieldAnswer = _dbContext.TblCustomFieldAnswers.Where(x => x.LeadId == item.LeadId).ToList();
+                    foreach (var itemCustomFieldAnswer in oCustomFieldAnswer)
+                    {
+                        _dbContext.TblCustomFieldAnswers.Remove(itemCustomFieldAnswer);
+                        _dbContext.SaveChanges();
+                    }
+
+                    var oLeadEmailMessage = _dbContext.TblLeadEmailMessages.Where(x => x.LeadId == item.LeadId).ToList();
+                    foreach (var itemLeadEmailMessage in oLeadEmailMessage)
+                    {
+
+                        var oLeadEmailMessageAttachment = _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == itemLeadEmailMessage.LeadEmailMessageId).ToList();
+                        foreach (var itemLeadEmailMessageAttachment in oLeadEmailMessageAttachment)
+                        {
+                            _dbContext.TblLeadEmailMessageAttachments.Remove(itemLeadEmailMessageAttachment);
+                            _dbContext.SaveChanges();
+                        }
+                        _dbContext.TblLeadEmailMessages.Remove(itemLeadEmailMessage);
+                        _dbContext.SaveChanges();
+                    }
+
+                    item.AgentId = null;
+                    //_dbContext.TblLeads.Remove(item);
+                    _dbContext.SaveChanges();
+                }
+
+                var oLeadAppointment = _dbContext.TblLeadAppointments.Where(x => x.AgentId == id).ToList();
+                foreach (var itemLeadAppointment in oLeadAppointment)
+                {
+                    _dbContext.TblLeadAppointments.Remove(itemLeadAppointment);
+                    _dbContext.SaveChanges();
+                }
+
+
+                //_dbContext.TblLeads.RemoveRange(_dbContext.TblLeads.Where(x => x.AgentId == id));
+                _dbContext.TblAccountIntegrations.Remove(_dbContext.TblAccountIntegrations.Where(x => x.AccountId == id).FirstOrDefault());
                 _dbContext.TblAccountCompanies.Remove(_dbContext.TblAccountCompanies.Where(x => x.AccountId == id).FirstOrDefault());
                 _dbContext.TblAccounts.Remove(_dbContext.TblAccounts.Where(x => x.AccountId == id).FirstOrDefault());
                 _dbContext.SaveChanges();
@@ -361,7 +445,7 @@ namespace RealEstate.Controllers
                 string stremailAddress = Request.Form["emailAddress"];
                 string strcellPhone = Request.Form["cellPhone"];
 
-                if (_dbContext.TblAccounts.Where(x => x.UserName.Equals(stremailAddress) ).FirstOrDefault() != null) //&& x.AccountId != AccountId
+                if (_dbContext.TblAccounts.Where(x => x.UserName.Equals(stremailAddress)).FirstOrDefault() != null) //&& x.AccountId != AccountId
                     return Json(new { success = false, message = "Email address is already in use! Try another email address!" });
 
                 TblAccount oAgent = _dbContext.TblAccounts.Where(x => x.AccountId == AccountId && x.RoleId == RoleType.Agent.GetHashCode()).FirstOrDefault();
@@ -606,7 +690,30 @@ namespace RealEstate.Controllers
                                 "Thank You.";
 
                     var subject = "Estajo - Admin Details";
-                    Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    //Utility.sendMail(oData.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                    var SMTPDetail = _dbContext.TblSmtps.FirstOrDefault();
+                    if (SMTPDetail != null)
+                    {
+                        DateTime myDate1 = SMTPDetail.CreatedDate.Value;
+                        DateTime myDate2 = DateTime.Now;
+                        TimeSpan difference = myDate2.Subtract(myDate1);
+                        if (difference.TotalHours >= 1)
+                        {
+                            AuthResponse response = AuthResponse.refresh(this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleoAuthTokenURL"], this.Configuration.GetSection("Google")["GoogleClientSecret"], SMTPDetail.RefreshToken);
+
+                            if (response.Access_token != null)
+                            {
+                                SMTPDetail.AccessToken = response.Access_token;
+                                SMTPDetail.CreatedDate = response.created;
+                                _dbContext.SaveChanges();
+                                Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oData.UserName, subject, body);
+                            }
+                        }
+                        else
+                        {
+                            Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oData.UserName, subject, body);
+                        }
+                    }
 
                     #endregion
 

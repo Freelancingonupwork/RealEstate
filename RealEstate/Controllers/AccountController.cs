@@ -55,6 +55,7 @@ namespace RealEstate.Controllers
                     //TblAgent agent = _dbContext.TblAgents.Where(x => x.EmailAddress.Equals(model.EmailAddress)).SingleOrDefault();
                     TblAccount agent = _dbContext.TblAccounts.Where(x => x.UserName.Equals(model.EmailAddress) && x.RoleId == RoleType.Agent.GetHashCode()).SingleOrDefault();
                     agent.Password = Encryption.EncryptText(model.ConfirmPassword);
+                    agent.IsTempPassword = false;
                     _dbContext.Entry(agent).State = EntityState.Modified;
                     _dbContext.SaveChanges();
 
@@ -64,7 +65,7 @@ namespace RealEstate.Controllers
                     var login = HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, prinicpal);
                     SetCookie("EmailAddress", agent.UserName);
                     SetCookie("FullName", agent.FullName);
-                    //SetCookie("LoginAccountId", agent.AccountId.ToString());
+                    SetCookie("LoginAccountId", agent.AccountId.ToString());
                     SetCookie("UserLoginTypeId", RoleType.Agent.GetHashCode().ToString());
                     if (model.KeepMeSigninIn)
                     {
@@ -93,6 +94,7 @@ namespace RealEstate.Controllers
 
         public IActionResult Index()
         {
+            //string aa = Encryption.DecryptText("LpttwucveqvF+11N8pt1PzXsWyfcK3bz");
             return View();
         }
         [HttpGet]
@@ -152,12 +154,13 @@ namespace RealEstate.Controllers
                             //u.Password.Equals(Encryption.EncryptText(model.Password))).FirstOrDefault();
 
                             var resultForAgent = DB.TblAccounts.Where(u => u.UserName.Equals(model.EmailAddress.Trim()) &&
-                                                      u.RoleId == RoleType.Agent.GetHashCode() && u.Status == true).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
+                                                      u.RoleId == RoleType.Agent.GetHashCode() && u.Password.Equals(Encryption.EncryptText(model.Password)) && u.Status == true).FirstOrDefault(); // && u.LogionTypeId == UserLoginType.Company.GetHashCode()
 
 
                             if (resultForAgent != null)
                             {
-                                if (string.IsNullOrEmpty(resultForAgent.Password))
+                                //if (string.IsNullOrEmpty(resultForAgent.Password))
+                                if(resultForAgent.IsTempPassword == true)
                                 {
                                     TempData["EmailAddress"] = resultForAgent.UserName;
                                     TempData.Keep();
@@ -176,10 +179,10 @@ namespace RealEstate.Controllers
                                             SetCookie("FullName", resultForAgent.FullName);
                                             SetCookie("LoginAccountId", resultForAgent.AccountId.ToString());
                                             SetCookie("UserLoginTypeId", resultForAgent.RoleId.ToString());
-                                            //if (resultForAgent.IsEmailConfig == false)
-                                            return RedirectToAction("gettingstarted", "Account", new { area = "" });
-                                            //else
-                                            //return RedirectToAction("Index", "Lead", new { area = "" });
+                                            if (resultForAgent.IsEmailConfig == false)
+                                                return RedirectToAction("gettingstarted", "Account", new { area = "" });
+                                            else
+                                                return RedirectToAction("Index", "Lead", new { area = "" });
                                             //return RedirectToAction("Index", "Lead", new { area = "" });
                                         }
                                     }
@@ -391,7 +394,30 @@ namespace RealEstate.Controllers
                                         "Thank You.";
 
                             var subject = "Estajo - ForgotPassword Mail";
-                            Utility.sendMail(oUser.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                            //Utility.sendMail(oUser.UserName, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                            var SMTPDetail = _dbContext.TblSmtps.FirstOrDefault();
+                            if (SMTPDetail != null)
+                            {
+                                DateTime myDate1 = SMTPDetail.CreatedDate.Value;
+                                DateTime myDate2 = DateTime.Now;
+                                TimeSpan difference = myDate2.Subtract(myDate1);
+                                if (difference.TotalHours >= 1)
+                                {
+                                    AuthResponse response = AuthResponse.refresh(this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleoAuthTokenURL"], this.Configuration.GetSection("Google")["GoogleClientSecret"], SMTPDetail.RefreshToken);
+
+                                    if (response.Access_token != null)
+                                    {
+                                        SMTPDetail.AccessToken = response.Access_token;
+                                        SMTPDetail.CreatedDate = response.created;
+                                        _dbContext.SaveChanges();
+                                        Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oUser.UserName, subject, body);
+                                    }
+                                }
+                                else
+                                {
+                                    Utility.SendMailAccessToken(SmtpUserName, SMTPDetail.AccessToken, oUser.UserName, subject, body);
+                                }
+                            }
 
                             ModelState.Clear();
                             //ViewBag.sucessMessage = "Forgot Password Mail has been sent successfully. Please check the mail and login again.";
@@ -400,30 +426,30 @@ namespace RealEstate.Controllers
                         }
                         else
                         {
-                            var resultForAgent = DB.TblAgents.Where(u => u.EmailAddress.Equals(model.Email.Trim()) &&
-                                                                  u.IsActive == true).FirstOrDefault();
-                            if (resultForAgent != null)
-                            {
-                                string SmtpUserName = this.Configuration.GetSection("MailSettings")["SmtpUserName"];
-                                string SmtpPassword = this.Configuration.GetSection("MailSettings")["SmtpPassword"];
-                                int SmtpPort = Convert.ToInt32(this.Configuration.GetSection("MailSettings")["SmtpPort"]);
-                                string SmtpServer = this.Configuration.GetSection("MailSettings")["SmtpServer"];
-                                string fromEmail = this.Configuration.GetSection("MailSettings")["fromEmail"];
-                                bool isSSL = Convert.ToBoolean(this.Configuration.GetSection("MailSettings")["isSSL"]);
-                                var password = Encryption.DecryptText(oUser.Password);
-                                var body = "<p>Hi,</p>" +
-                                            "<p>Your Email Address is:- " + resultForAgent.EmailAddress + "</p>" +
-                                            "<p>Your password is:- " + password + "</p><br/>" +
-                                            "Thank You.";
+                            //var resultForAgent = DB.TblAgents.Where(u => u.EmailAddress.Equals(model.Email.Trim()) &&
+                            //                                      u.IsActive == true).FirstOrDefault();
+                            //if (resultForAgent != null)
+                            //{
+                            //    string SmtpUserName = this.Configuration.GetSection("MailSettings")["SmtpUserName"];
+                            //    string SmtpPassword = this.Configuration.GetSection("MailSettings")["SmtpPassword"];
+                            //    int SmtpPort = Convert.ToInt32(this.Configuration.GetSection("MailSettings")["SmtpPort"]);
+                            //    string SmtpServer = this.Configuration.GetSection("MailSettings")["SmtpServer"];
+                            //    string fromEmail = this.Configuration.GetSection("MailSettings")["fromEmail"];
+                            //    bool isSSL = Convert.ToBoolean(this.Configuration.GetSection("MailSettings")["isSSL"]);
+                            //    var password = Encryption.DecryptText(oUser.Password);
+                            //    var body = "<p>Hi,</p>" +
+                            //                "<p>Your Email Address is:- " + resultForAgent.EmailAddress + "</p>" +
+                            //                "<p>Your password is:- " + password + "</p><br/>" +
+                            //                "Thank You.";
 
-                                var subject = "Estajo Agent - ForgotPassword Mail";
-                                Utility.sendMail(resultForAgent.EmailAddress, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
+                            //    var subject = "Estajo Agent - ForgotPassword Mail";
+                            //    Utility.sendMail(resultForAgent.EmailAddress, body, subject, fromEmail, SmtpUserName, SmtpPassword, SmtpPort, SmtpServer, isSSL);
 
-                                ModelState.Clear();
-                                //ViewBag.sucessMessage = "Forgot Password Mail has been sent successfully. Please check the mail and login again.";
-                                ShowSuccessMessage("Forgot Password Mail has been sent successfully. Please check the mail and login again.", true);
-                                return RedirectToAction("Login", "Account");
-                            }
+                            //    ModelState.Clear();
+                            //    //ViewBag.sucessMessage = "Forgot Password Mail has been sent successfully. Please check the mail and login again.";
+                            //    ShowSuccessMessage("Forgot Password Mail has been sent successfully. Please check the mail and login again.", true);
+                            //    return RedirectToAction("Login", "Account");
+                            //}
 
                             ShowErrorMessage("Sorry there is no account with this email address.", true);
                             return View(model);
@@ -627,7 +653,7 @@ namespace RealEstate.Controllers
                 ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, Environment.WebRootPath);
                 return RedirectToAction("Login", "Account");
             }
-        
+
         }
 
         public bool IsUserExist(string email)
@@ -654,7 +680,7 @@ namespace RealEstate.Controllers
             if (expireTimeInDays > 0)
                 option.Expires = DateTime.Now.AddMinutes(expireTimeInDays.Value);
             else
-                option.Expires = DateTime.Now.AddMinutes(15); //minimum 15 Minutes
+                option.Expires = DateTime.Now.AddMinutes(45); //minimum 15 Minutes
 
             Response.Cookies.Append(key, value, option);
         }
@@ -662,7 +688,7 @@ namespace RealEstate.Controllers
         #region AgentConnectWithGoogle
         public IActionResult ConnectWithGoogle()
         {
-            string url = AuthResponse.GetAutenticationURI(this.Configuration.GetSection("Google")["GoogleClientId"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/", this.Configuration.GetSection("Google")["Scope"]);
+            string url = AuthResponse.GetAutenticationURI(this.Configuration.GetSection("Google")["GoogleoAuthURL"], this.Configuration.GetSection("Google")["GoogleClientId"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/", this.Configuration.GetSection("Google")["Scope"]);
             return Redirect(url);
         }
 
@@ -674,7 +700,7 @@ namespace RealEstate.Controllers
 
                 if (code != null)
                 {
-                    AuthResponse access = AuthResponse.Exchange(code, this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleClientSecret"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/");
+                    AuthResponse access = AuthResponse.Exchange(code, this.Configuration.GetSection("Google")["GoogleoAuthTokenURL"], this.Configuration.GetSection("Google")["GoogleClientId"], this.Configuration.GetSection("Google")["GoogleClientSecret"], $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}" + "/Account/authorize/");
                     if (access != null)
                     {
                         //TblAccountIntegration oData = new TblAccountIntegration();
@@ -687,7 +713,7 @@ namespace RealEstate.Controllers
                         //_dbContext.SaveChanges();
 
 
-                       
+
                         var EmailRequest = "https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + access.Access_token;
                         // Create a request for the URL.
                         var webRequest = WebRequest.Create(EmailRequest);
@@ -795,7 +821,7 @@ namespace RealEstate.Controllers
 
                     if (access != null)
                     {
-                      
+
                         const string WEBSERVICE_URL = "https://graph.microsoft.com/v1.0/me";
                         try
                         {
@@ -930,5 +956,12 @@ namespace RealEstate.Controllers
             }
         }
         #endregion
+
+
+        [HttpGet]
+        public IActionResult Privacy()
+        {
+            return View();
+        }
     }
 }

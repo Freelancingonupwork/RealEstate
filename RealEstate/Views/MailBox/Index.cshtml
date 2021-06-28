@@ -1,4 +1,5 @@
-﻿@model IEnumerable<LeadEmailMessageViewModel>
+﻿@*@model IEnumerable<LeadEmailMessageViewModel>*@
+@model LeadEmailDetails
 @{
     ViewData["Title"] = "Index";
 }
@@ -33,198 +34,101 @@
         </svg>
     </div>
 </div>
-<div class="row">
-    <div class="col-12 col-lg-2">
-        <div class="content-bg">
-            <div class="mb-4">
-                <a class="btn btn-primary mr-2 btn-block" href="#"> My Inbox (0) </a>
-            </div>
-
-            <div class="mail-nav">
-                @*<h6 class="mb-3">Messages</h6>*@
-                <ul class="list-unstyled">
-                    <li class="active"><a href="#"> <i class="fa fa-inbox"></i> Inbox @*<span class="badge badge-pill badge-success float-right">12</span>*@ </a></li>
-                    <li><a href="#"> <i class="fa fa-user"></i> Assigned</a></li>
-                    @*<li><a href="#"> <i class="fa fa-paper-plane-o"></i> Sent</a></li>*@
-                    <li><a href="#"> <i class="fa fa-file-o"></i> Drafts @*<span class="badge badge-pill badge-danger float-right">20</span>*@</a> </li>
-                    @*<li><a href="#"> <i class="fa fa-trash-o"></i> Trash</a></li>
-                        <li><a href="#"> <i class="fa fa-info-circle"></i> Important <span class="badge badge-pill badge-warning float-right">50</span></a></li>
-                        <li><a href="#"> <i class="fa fa-envelope-o"></i> spam</a></li>
-                        <li><a href="#"> <i class="fa fa-star-o"></i> Starred</a></li>*@
-                </ul>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-4">
-        <div class="content-bg">
-            @*<div class="widget-search mb-4">
-            <i class="fa fa-search"></i>
-            <input type="search" class="form-control" placeholder="Search....">
-        </div>*@
-            @if (Model.Count() > 0)
-            {
-                var i = 0;
-                @foreach (var item in Model)
-                {
-                    i = i + 1;
-                    <div class="user-list" id="SubjectList">
-                        <ul class="list-unstyled">
-                            @{
-                                string FromName = string.Empty;
-                                string str = item.ToName;
-                                String[] s = str.Split(' ');
-                                foreach (String values in s)
-                                {
-                                    FromName += values[0] + " ";
-                                }
-                            }
-                            <li class="pt-3">
-                                <a id="showMailBodyClick" onclick="showMailBody(@item.LeadEmailMessageId)">
-                                    <div class="media px-2">
-                                        <div class="position-relative fileImg">
-                                            @*<img class="img-fluid mr-2 avatar-small" src="~/image/support-2.png" alt="">*@
-                                            @FromName
-                                        </div>
-                                        <div class="media-body">
-                                            <h6 class="mt-0 text-capitalize"> @item.ToName <small class="float-right"> @Convert.ToString(string.Format("{0:MMMM dd}", item.CreatedDate))</small> </h6>
-                                            <div class="float-right">
-                                                @*<span class="badge badge-pill badge-primary">Private</span>*@
-                                            </div>
-                                            <p class="text-muted"> @item.Subject </p>
-                                        </div>
-                                    </div>
-                                </a>
-                                <div class="divider mt-15"></div>
-                            </li>
-                        </ul>
+<div class="content-wrapper mailbox-wrapper">
+    <div class="container-fluid p-0">
+        <div class="row no-gutters">
+            <div class="col-12 col-lg-2 bg-white myinbox">
+                <div class="content-bg">
+                    <div class="mb-4">
+                        <a class="btn btn-primary mr-2 btn-block" href="#"> Compose <i class="fa fa-envelope-o"></i> </a>
                     </div>
-                }
-            }
-            else
-            {
-                <span style="text-align:center;color:#777">No Email Found.</span>
-            }
-        </div>
-    </div>
-
-    <div class="col-12 col-lg-6">
-        <div class="main-tab-wrapper" style="display:none">
-            <div class="content-bg">
-                <div class="row justify-content-between chat-listing-tab">
-                    <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="all-tab" data-toggle="pill" href="#all"
-                               role="tab" aria-controls="all" aria-selected="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-list">
-                                    <line x1="8" y1="6" x2="21" y2="6"></line>
-                                    <line x1="8" y1="12" x2="21" y2="12"></line>
-                                    <line x1="8" y1="18" x2="21" y2="18"></line>
-                                    <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                    <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                    <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                                </svg> All
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="send-email-tab" data-toggle="pill" href="#send-email"
-                               role="tab" aria-controls="send-email" aria-selected="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-mail">
-                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                    </path>
-                                    <polyline points="22,6 12,13 2,6"></polyline>
-                                </svg>
-                                <span>5</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
-                               aria-controls="text" aria-selected="false">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-message-square">
-                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
-                                    </path>
-                                </svg>
-                                <span>3</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                               role="tab" aria-controls="log-call" aria-selected="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-phone">
-                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                    </path>
-                                </svg>
-                                <span>0</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                               role="tab" aria-controls="log-call" aria-selected="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-bookmark">
-                                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                </svg><span>0</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                               role="tab" aria-controls="log-call" aria-selected="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-activity">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                </svg><span>0</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                               role="tab" aria-controls="log-call" aria-selected="true">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                     stroke-linecap="round" stroke-linejoin="round"
-                                     class="feather feather-gift">
-                                    <polyline points="20 12 20 22 4 22 4 12"></polyline>
-                                    <rect x="2" y="7" width="20" height="5"></rect>
-                                    <line x1="12" y1="22" x2="12" y2="7"></line>
-                                    <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
-                                    <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
-                                </svg>
-                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                </svg><span>0</span>
-                            </a>
-                        </li>
-                    </ul>
-                    <div class="list-button-wrapper mr-4">
-                        <button class="btn btn-primary mr-2">Filter</button>
+                    <div class="mail-nav">
+                        <h6 class="mb-3">Messages</h6>
+                        <ul class="list-unstyled">
+                            <li class="active"><a href="#"> <i class="fa fa-inbox"></i> Inbox @*<span class="badge badge-pill badge-success float-right">12</span>*@ </a></li>
+                            @*<li><a href="#"> <i class="fa fa-paper-plane-o"></i> Sent</a></li>
+                            <li><a href="#"> <i class="fa fa-file-o"></i> Drafts <span class="badge badge-pill badge-danger float-right">20</span></a></li>
+                            <li><a href="#"> <i class="fa fa-trash-o"></i> Trash</a></li>
+                            <li><a href="#"> <i class="fa fa-info-circle"></i> Important <span class="badge badge-pill badge-warning float-right">50</span></a></li>
+                            <li><a href="#"> <i class="fa fa-envelope-o"></i> spam</a></li>
+                            <li><a href="#"> <i class="fa fa-star-o"></i> Starred</a></li>*@
+                        </ul>
                     </div>
                 </div>
             </div>
+            <div class="col-12 col-lg-3 bg-white conversations">
+                <div class="content-bg">
+                    @*<div class="widget-search mb-4">
+                            <i class="fa fa-search"></i>
+                            <input type="search" class="form-control" placeholder="Search....">
+                        </div>*@
+
+                    <div class="user-list">
+                        <ul class="list-unstyled">
+                            @if (Model.LeadEmailMessageViewModel.Count() > 0)
+                            {
+                                @foreach (var item in Model.LeadEmailMessageViewModel)
+                                {
+
+                                    string FromName = string.Empty;
+                                    string str = item.ToName;
+                                    String[] s = str.Split(' ');
+                                    foreach (String values in s)
+                                    {
+                                        FromName += values[0] + " ";
+                                    }
+
+                                    <li class="pt-3" id="showMailBodyClick_@item.LeadEmailMessageId" onclick="showMailBody(@item.LeadEmailMessageId,@item.LeadId)">
+                                        <a href="#">
+                                            <div class="media px-2">
+                                                <div class="position-relative fileImg">
+                                                    @*<img class="img-fluid mr-2 avatar-small" src="~/image/support-2.png" alt="">*@
+                                                    @FromName
+                                                </div>
+                                                <div class="media-body">
+                                                    <h6 class="mt-0 "> @item.ToName <small class="float-right"> @Convert.ToString(string.Format("{0:MMMM dd}", item.CreatedDate))</small> </h6>
+                                                    <div class="float-right">
+                                                        @*<span class="badge badge-pill badge-primary">Private</span>*@
+                                                    </div>
+                                                    <p class="text-muted"> @item.Subject </p>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <div class="divider mt-15"></div>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li><span style="text-align:center;color:#777">No Email Found.</span></li>
+                            }
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+            <div class="col-12 col-lg-5 bg-white inbox-mailbox">
+                <div id="MailBodyList">
+                </div>
+            </div>
+            <div class="col-12 col-lg-2 bg-white mailbox-info">
+                <div id="MailBodyRight">
+                    </div>
+                @*<partial name="_MailBodyRight" />*@
+            </div>
         </div>
-        <div id="MailBodyList">
-        </div>
-        @*<partial name="_MailBody" />*@
     </div>
 </div>
 <script type="text/javascript">
-    function showMailBody(LeadEmailMessageId) {
+
+    var allButtons = jQuery('.pt-3');
+    jQuery('.pt-3').click(function (e) {
+        var $active = jQuery(this);
+        allButtons.removeClass('bg-light');
+        $active.addClass('bg-light');
+    });
+    function showMailBody(LeadEmailMessageId,LeadId) {
         $("#divLoader").show();
-        //alert(LeadEmailMessageId);
         $.ajax({
             type: "POST",
             contentType: "application/html; charset=utf-8",
@@ -235,8 +139,22 @@
             //data: JSON.stringify({ "subjectId": $('#subjectId').val(), "sortOrder": sortOrder }),
             async: true,
             success: function (result) {
-                //alert(result);
+                //console.log(result);
                 $('#MailBodyList').empty().html(result);
+                $(".custom-card-text img").each(function () {
+                    var altText = $(this).attr("src");
+                    $(this).addClass("img-fluid");
+                    $(this).removeAttr("style");
+                })
+                $(".pt-3").each(function () {
+                    var id = $(this).attr("id").replace("showMailBodyClick_", "");
+                    if (id == LeadEmailMessageId) {
+                        $("#showMailBodyClick_" + LeadEmailMessageId).addClass('bg-light');
+                    }
+                    else {
+                        $("#showMailBodyClick_" + id).removeClass('bg-light');
+                    }
+                })
                 $("#divLoader").hide();
             },
             error: function (xhr, ajaxOptions, thrownError) {
@@ -244,15 +162,27 @@
                 return false;
             }
         });
-
-        //var formData = new FormData();
-        //formData.append("LeadEmailMessageId", LeadEmailMessageId);
-        //var result = __glb_fnIUDOperation(formData, "/MailBox/LoadBodyById");
-        //console.log(result);
-        //alert(result);
+        $.ajax({
+            type: "POST",
+            contentType: "application/html; charset=utf-8",
+            url: '@Url.Action("LoadLeadDetailsById", "MailBox")?Id=' + LeadEmailMessageId + '&LeadId=' + LeadId,
+            dataType: "html",
+            async: true,
+            success: function (result) {
+                $('#MailBodyRight').empty().html(result);
+                $("#divLoader").hide();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#divLoader").hide();
+                return false;
+            }
+        });
     }
-    //window.onload = function () {
-    //    $('#showMailBodyClick').click();
-    //    $('.pt-3').addClass("bg-light");
-    //};
+    $("document").ready(function () {
+        setTimeout(function () {
+            /*$(".pt-3").trigger('click');*/
+            $(".pt-3").first().click();
+        }, 10);
+    });
+
 </script>

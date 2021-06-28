@@ -457,6 +457,7 @@ header {
             position: relative;
             margin-right: 15px;
         }
+
         .navbar ul li:last-child a {
             margin-right: 0px;
         }
@@ -1072,17 +1073,17 @@ border-bottom: 5px solid #BF0D1C;
     border-bottom: 1px solid rgb(255 255 255 / 21%);
 }
 
-.profile-detail-01 a {
-    font-size: 24px;
-    color: #fff;
-    margin-bottom: 10px;
-}
+    .profile-detail-01 a {
+        font-size: 24px;
+        color: #fff;
+        margin-bottom: 10px;
+    }
 
-.profile-detail-01 span {
-    font-size: 14px;
-    color: #fff;
-    margin-bottom: 10px;
-}
+    .profile-detail-01 span {
+        font-size: 14px;
+        color: #fff;
+        margin-bottom: 10px;
+    }
 
 .top-menu {
     background: #BF0D1C;
@@ -1332,6 +1333,29 @@ li.icon {
     margin-top: 30px;
     margin-bottom: 30px;
 }
+/*LOADER CSS*/
+/*.circle__spinner {
+    animation: 2s linear infinite svg-animation;
+    max-width: 100px;
+}
+
+.circle_loader {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 9999;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.circle__item {
+    width: 200px;
+    height: 200px;
+}*/
 
 /*Mail-box*/
 
@@ -1366,3 +1390,232 @@ li.icon {
     line-height: 6px;
     border-radius: 3px !important;
 }
+
+
+/*new 17-06*/
+.bg-white {
+    background-color: #ffffff;
+}
+
+.content-wrapper.mailbox-wrapper {
+    padding: 0px 0px;
+    border: 1px solid #dedede;
+    margin: 20px;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+
+    .content-wrapper.mailbox-wrapper .conversations,
+    .content-wrapper.mailbox-wrapper .inbox-mailbox,
+    .content-wrapper.mailbox-wrapper .mailbox-info,
+    .content-wrapper.mailbox-wrapper .myinbox {
+        border-right: 1px solid #dedede;
+    }
+
+/*.content-wrapper.mailbox-wrapper .myinbox {
+        border-right: 1px solid #dedede;
+        border-left: 1px solid #dedede;
+    }*/
+
+.mailbox-wrapper .content-bg {
+    box-shadow: none;
+}
+
+.user-list {
+    height: 670px;
+    overflow-y: auto;
+}
+
+    .user-list ul li {
+        border-left: 2px solid transparent;
+    }
+
+        .user-list ul li:hover {
+            border-left: 2px solid #BF0D1C;
+            background-color: #f8f9fa;
+        }
+
+.custom-card-mail {
+    border: 1px solid #dedede;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    /*width: 100%;*/
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-right: 15px;
+}
+
+    .custom-card-mail .custom-card-header {
+        padding: 0;
+        padding-bottom: 15px;
+    }
+
+        .custom-card-mail .custom-card-header .chat-action .btn {
+            padding: 5px 11px;
+            height: auto;
+            font-size: 10px;
+        }
+
+    .custom-card-mail .custom-card-text {
+        padding: 0;
+    }
+
+        .custom-card-mail .custom-card-text p:last-child {
+            margin-bottom: 0;
+        }
+
+.content-bg.inbox-mail {
+    padding-bottom: 80px;
+    position: relative;
+}
+
+.inbox-mail-reply {
+    margin-top: 30px;
+}
+
+    .inbox-mail-reply button i {
+        padding-right: 10px;
+    }
+
+.content-bg.inbox-mail .inbox-mail-body {
+    height: 550px;
+    overflow-y: auto;
+}
+
+.content-bg.inbox-mail .inbox-mail-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+
+.inbox-mailbox .inbox-mail-footer .form-group {
+    position: relative;
+}
+
+    .inbox-mailbox .inbox-mail-footer .form-group .form-control {
+        border-radius: 0;
+        height: 40px;
+        background-color: #f9dee0;
+        border: 1px solid #f9dee0;
+        color: #504747;
+    }
+
+    .inbox-mailbox .inbox-mail-footer .form-group .create-note-btn {
+        position: absolute;
+        right: 0;
+        top: 0;
+        border-radius: 0;
+        padding: 13px 40px;
+    }
+
+.mailbox-info-body .contact-info {
+    padding: 10px;
+}
+
+.mailbox-info .mailbox-info-body .accordion .card {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+}
+
+    .mailbox-info .mailbox-info-body .accordion .card .card-header {
+        padding: 0px;
+        background-color: inherit;
+    }
+
+        .mailbox-info .mailbox-info-body .accordion .card .card-header .btn.collapsed {
+            color: #504747;
+            background-color: #f8f9fa;
+        }
+
+        .mailbox-info .mailbox-info-body .accordion .card .card-header .btn {
+            color: #BF0D1C;
+            background-color: #ffffff;
+            border-radius: 0;
+            position: relative;
+        }
+
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn > i {
+                margin-right: 10px;
+            }
+
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn.collapsed span {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+                right: 10px;
+            }
+
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn span {
+                position: absolute;
+                writing-mode: vertical-rl;
+                right: 10px;
+                transform: rotate(90deg);
+            }
+
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn.btn-link:hover {
+                text-decoration: none;
+                color: #BF0D1C;
+                background-color: #ffffff;
+            }
+
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn.btn-link.focus,
+            .mailbox-info .mailbox-info-body .accordion .card .card-header .btn.btn-link:focus {
+                text-decoration: none;
+            }
+
+.mailbox-info .ditail-list li span {
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.mailbox-info .ditail-list li,
+.mailbox-info .recent-list li {
+    margin-bottom: 10px;
+}
+
+    .mailbox-info .recent-list li a {
+        color: #504747;
+    }
+
+        .mailbox-info .recent-list li a i {
+            margin-right: 10px;
+        }
+
+        .mailbox-info .recent-list li a:hover {
+            color: #BF0D1C;
+        }
+
+.content-wrapper.mailbox-wrapper .custom-card-header {
+    justify-content: flex-start;
+}
+
+.content-wrapper.mailbox-wrapper .inbox-mailbox .custom-card-header .user {
+    flex: 0 0 60px;
+}
+
+.content-wrapper.mailbox-wrapper .inbox-mailbox .custom-card-header .chat-header-detail {
+    flex: 0 0 180px;
+}
+
+.content-wrapper.mailbox-wrapper .inbox-mailbox .custom-card-header .chat-action {
+    margin-left: auto;
+}
+
+.content-wrapper.mailbox-wrapper .custom-card-header .btn-icon {
+    margin-left: 0;
+    flex: 0 0 24px;
+    font-size: 10px;
+}
+
+.mailbox-info .activity-body {
+    padding: 15px;
+}
+
+    .mailbox-info .activity-body .btn {
+        font-size: 12px;
+        padding: 10px 15px;
+    }

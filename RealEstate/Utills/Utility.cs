@@ -44,9 +44,7 @@ namespace RealEstate.Utills
             }
         }
 
-
-
-        public static void SendMailUsingGmail(string EmailAddress, string AccessToken, string ToMailAddress, string EmailSubject, string MailBody)
+        public static void SendMailUsingGmail(string EmailAddress, string AccessToken, string ToMailAddress, string EmailSubject, string MailBody , List<string> fileName)
         {
             // Gmail SMTP server address
             SmtpServer oServer = new SmtpServer("smtp.gmail.com");
@@ -71,11 +69,14 @@ namespace RealEstate.Utills
 
             oMail.Subject = EmailSubject;
             oMail.HtmlBody = MailBody;
+            foreach (var item in fileName)
+            {
+                oMail.AddAttachment(item);
+            }
 
             EASendMail.SmtpClient oSmtp = new EASendMail.SmtpClient();
             oSmtp.SendMail(oServer, oMail);
         }
-
 
         public static void SendMailUsingoffice365(string EmailAddress, string AccessToken, string ToMailAddress, string EmailSubject, string MailBody)
         {
@@ -109,5 +110,35 @@ namespace RealEstate.Utills
             EASendMail.SmtpClient oSmtp = new EASendMail.SmtpClient();
             oSmtp.SendMail(oServer, oMail);
         }
+
+        public static void SendMailAccessToken(string FromEmailAddress, string accessToken, string ToEmailAddress,string Subject,string Body)
+        {
+            // Gmail SMTP server address
+            SmtpServer oServer = new SmtpServer("smtp.gmail.com");
+            // enable SSL connection
+            oServer.ConnectType = SmtpConnectType.ConnectSSLAuto;
+            // Using 587 port, you can also use 465 port
+            oServer.Port = 587;
+
+            // use Gmail SMTP OAUTH 2.0 authentication
+            oServer.AuthType = SmtpAuthType.XOAUTH2;
+            // set user authentication
+            oServer.User = FromEmailAddress;
+            // use access token as password
+            oServer.Password = accessToken;
+
+            SmtpMail oMail = new SmtpMail("TryIt");
+            // Your gmail email address
+            oMail.From = FromEmailAddress;
+            oMail.To = ToEmailAddress;
+
+            oMail.Subject = Subject;
+            oMail.HtmlBody = Body;
+            //oMail.TextBody = Body;
+
+            EASendMail.SmtpClient oSmtp = new EASendMail.SmtpClient();
+            oSmtp.SendMail(oServer, oMail);
+        }
+
     }
 }
