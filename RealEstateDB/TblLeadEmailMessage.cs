@@ -21,6 +21,8 @@ namespace RealEstateDB
         public string Body { get; set; }
         public bool? IsReplay { get; set; }
         public int? EmailMessageId { get; set; }
+        public bool? IsRead { get; set; }
+        public int? IsType { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? UpdatedDate { get; set; }
 

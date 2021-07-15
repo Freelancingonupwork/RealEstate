@@ -34,6 +34,11 @@ namespace EstajoMailService.App_Code.BAL
         public string id_token { get; set; }
     }
 
+    public enum MessageType
+    {
+        EmailMessage = 1,
+        TextMessage = 2
+    }
 
     public class RootobjectMicrosoft
     {

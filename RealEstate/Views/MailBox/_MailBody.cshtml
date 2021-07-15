@@ -8,8 +8,171 @@
         ToName = Model.LeadEmailMessageViewModel.OrderBy(x => x.CreatedDate).FirstOrDefault().ToName;
     }
 }
+@if (Model.LeadEmailMessageViewModel.Count() >= 1)
+{
+    @foreach (var item in Model.LeadEmailMessageViewModel)
+    {
+        <div class="mail-box">
+            <ul class="back-btn mr-3" onclick="showhide()" data-toggle="tooltip" data-placement="top" title="Back">
+                <li><a href="#"><i class="fa fa-arrow-left"></i></a></li>
+            </ul>
+            <ul>
+                @*<li><a href="#"><i class="fa fa-download"></i></a></li>
+                    <li><a href="#"><i class="fa fa-info-circle"></i></a></li>*@
+                <li><a href="#" onclick="deleteSingleMail(@item.LeadEmailMessageId)" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash-o"></i></a></li>
+            </ul>
+            <ul>
+                <li><a onclick="return fnMarkasReadMail(@item.LeadEmailMessageId);" data-toggle="tooltip" data-placement="top" title="Mark as read"><i class="fa fa-envelope"></i></a></li>
+                <li><a onclick="return fnMarkAsUnReadMail(@item.LeadEmailMessageId);" data-toggle="tooltip" data-placement="top" title="Mark as unread"><i class="fa fa-envelope-open"></i></a></li>
+                @*<li><a href="#"><i class="fa fa-clock-o"></i></a></li>
+                    <li><a href="#"><i class="fa fa-check-circle"></i></a></li>*@
+            </ul>
+            <ul>
+                @*<li><a href="#"><i class="fa fa-arrow-circle-o-right"></i></a></li>
+                    <li><a href="#"><i class="fa fa-tag"></i></a></li>
+                    <li><a href="#"><i class="fa fa-ellipsis-v"></i></a></li>*@
+            </ul>
+        </div>
+        <div class="mail-text d-flex align-items-center">
+            <h5 class="mr-auto">@sub</h5>
+            <div class="mail-icon">
+                <ul class="d-flex align-items-center">
+                    <li><a href="#"><i class="fa fa-print"></i></a></li>
+                    <li><a href="#"><i class="fa fa-external-link"></i></a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="mail-user d-flex align-items-center">
+                <div class="mr-auto">
+                    <div class="mail-user-profile d-flex align-items-center">
+                        <img src="~/image/profile_mask2.png" alt="user">
+                        <div class="mail-user-description ml-3">
+                            <h6><span>@item.FromName</span></h6>
+                            <div class="dropdown show">
+                                to @item.ToName
+                                <a class="btn btn-secondary dropdown-toggle p-0" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <div class="to-me-details">
+                                        <table class="table">
+                                            <tr>
+                                                <th>from</th>
+                                                <td><b>@item.FromEmail</b></td>
+                                            </tr>
+                                            <tr>
+                                                <th>to:</th>
+                                                <td>@item.ToEmail</td>
+                                            </tr>
+                                            <tr>
+                                                <th>date:</th>
+                                                <td>@Convert.ToString(string.Format("{0:MMMM dd, yyyy, hh:mm tt}", item.CreatedDate))</td>
+                                            </tr>
+                                            <tr>
+                                                <th>subject:</th>
+                                                <td>@sub</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mail-icon d-flex align-items-center">
+                    <span>@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", item.CreatedDate))</span>
+                    <ul class="ml-3 d-flex">
+                        <li><a href="#"><i class="fa fa-star"></i></a></li>
+                        <li><a href="#"><i class="fa fa-reply"></i></a></li>
+                        <li><a href="#"><i class="fa fa-ellipsis-v"></i></a></li>
+                    </ul>
+                </div>
+            </div>
 
-<div class="content-bg inbox-mail">
+            <div class="mail-description">
+                @Html.Raw(item.Body)
+                @foreach (var itemAttachment in item.LeadEmailMessageattachement)
+                {
+                    <a target="_blank" class="custom-card-text" asp-controller="Mailbox" asp-action="DownloadMailAttachmentFile" asp-route-LeadId="@itemAttachment.LeadId" asp-route-fileName="@itemAttachment.FileName">
+                        <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemAttachment.FileName
+                    </a>
+                }
+            </div>
+            if (item.LeadEmailMessageReplayList.Count >= 1)
+            {
+                foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+                {
+                    <div class="mail-user d-flex align-items-center pt-5 border-top">
+                        <div class="mr-auto">
+                            <div class="mail-user-profile d-flex align-items-center">
+                                <img src="~/image/profile_mask2.png" alt="user">
+                                <div class="mail-user-description ml-3">
+                                    <h6><span>@itemReplayBody.FromName</span> </h6>
+                                    <div class="dropdown show">
+                                        to @itemReplayBody.ToName
+                                        <a class="btn btn-secondary dropdown-toggle p-0" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        </a>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                            <div class="to-me-details">
+                                                <table class="table">
+                                                    <tr>
+                                                        <th>from</th>
+                                                        <td><b>@itemReplayBody.FromEmail</b></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>to:</th>
+                                                        <td>@itemReplayBody.ToEmail</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>date:</th>
+                                                        <td>@Convert.ToString(string.Format("{0:MMMM dd, yyyy, hh:mm tt}", itemReplayBody.CreatedDate))</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>subject:</th>
+                                                        <td>@("RE:" + sub)</td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mail-icon d-flex align-items-center">
+                            <span>@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", itemReplayBody.CreatedDate))</span>
+                            <ul class="ml-3 d-flex">
+                                <li><a href="#"><i class="fa fa-star"></i></a></li>
+                                <li><a href="#"><i class="fa fa-reply"></i></a></li>
+                                <li><a href="#"><i class="fa fa-ellipsis-v"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mail-description ">
+                        @Html.Raw(itemReplayBody.Body)
+
+                        @foreach (var itemReplayAttachment in itemReplayBody.LeadEmailMessageReplayAttachement)
+                        {
+                            <a target="_blank" class="custom-card-text" asp-action="DownloadMailAttachmentFile" asp-controller="Mailbox" asp-route-LeadId="@itemReplayAttachment.LeadId" asp-route-fileName="@itemReplayAttachment.FileName">
+                                <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemReplayAttachment.FileName
+                            </a>
+                        }
+                    </div>
+
+                }
+            }
+        <div class="mail-btn d-flex mt-2">
+            <a class="rply-btn mr-2" href="#"> <i class="fa fa-reply pr-2"></i>  Reply </a>
+            <a class="frwd-btn mr-2" href="#"> <i class="fa fa-share pr-2"></i> Forward </a>
+        </div>
+
+    }
+}
+<script type="text/javascript">
+    $("document").ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>
+
+@*<div class="content-bg inbox-mail">
     <div class="inbox-mail-header">
         <div class="row no-gutters">
             <div class="col-12">
@@ -41,88 +204,88 @@
                                             <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
                                         </div>
                                         <div class="chat-header-detail ml-2">
-                                            <h6 class="mt-0 d-inline-block">@item.FromName, </h6>
-                                            @*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
-                                            <p class="text-dark mb-0"> To <b>@item.ToName</b> </p>
-                                        </div>
-                                        <div class="chat-action">
-                                            <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", item.CreatedDate))</a>
-                                            <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
-                                            <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
-                                        </div>
-                                    </div>
-                                    <div class="custom-card-text">
-                                        @Html.Raw(item.Body)
-                                    </div>
-                                    @foreach (var itemAttachment in item.LeadEmailMessageattachement)
-                                    {
-                                        <a target="_blank" class="custom-card-text" asp-controller="Lead" asp-action="DownloadMailAttachmentFile" asp-route-LeadId="@itemAttachment.LeadId" asp-route-fileName="@itemAttachment.FileName">
-                                            <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemAttachment.FileName
-                                        </a>
-                                    }
-                                </div>
-                            </div>
+                                            <h6 class="mt-0 d-inline-block">@item.FromName, </h6>*@
+@*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
+@*<p class="text-dark mb-0"> To <b>@item.ToName</b> </p>
+                        </div>
+                        <div class="chat-action">
+                            <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", item.CreatedDate))</a>
+                            <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
+                            <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
                         </div>
                     </div>
-                    if (item.LeadEmailMessageReplayList.Count >= 1)
+                    <div class="custom-card-text">
+                        @Html.Raw(item.Body)
+                    </div>
+                    @foreach (var itemAttachment in item.LeadEmailMessageattachement)
                     {
-                        foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
-                        {
-                            <div class="col-12">
-                                <div class="tab-content" id="pills-tabContent">
-                                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                                         aria-labelledby="create-note-tab">
-                                        <div class="custom-card-mail">
-                                            <div class="custom-card-header">
-                                                <div class="user">
-                                                    <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                        <a target="_blank" class="custom-card-text" asp-controller="Lead" asp-action="DownloadMailAttachmentFile" asp-route-LeadId="@itemAttachment.LeadId" asp-route-fileName="@itemAttachment.FileName">
+                            <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemAttachment.FileName
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    if (item.LeadEmailMessageReplayList.Count >= 1)
+    {
+        foreach (var itemReplayBody in item.LeadEmailMessageReplayList)
+        {
+            <div class="col-12">
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                         aria-labelledby="create-note-tab">
+                        <div class="custom-card-mail">
+                            <div class="custom-card-header">
+                                <div class="user">
+                                    <img class="img-fluid mr-3 avatar-small" src="~/image/support-1.png" alt="">
+                                </div>
+                                <div class="chat-header-detail ml-2">
+                                    <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6>*@
+@*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
+@*<p class="text-dark mb-0"> To <b>@itemReplayBody.ToName</b> </p>
+                                                    </div>
+                                                    <div class="chat-action">
+                                                        <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", itemReplayBody.CreatedDate))</a>
+                                                        <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
+                                                        <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
+                                                    </div>
                                                 </div>
-                                                <div class="chat-header-detail ml-2">
-                                                    <h6 class="mt-0 d-inline-block">@itemReplayBody.FromName, </h6>
-                                                    @*<a class="text-muted" href="#">Paulavius256@gmail.com</a>*@
-                                                    <p class="text-dark mb-0"> To <b>@itemReplayBody.ToName</b> </p>
+                                                <div class="custom-card-text">
+                                                    @Html.Raw(itemReplayBody.Body)
                                                 </div>
-                                                <div class="chat-action">
-                                                    <a class="" href="#">@Convert.ToString(string.Format("{0:MMMM dd, hh:mm tt}", itemReplayBody.CreatedDate))</a>
-                                                    <a class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i></a>
-                                                    <a class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i></a>
-                                                </div>
+                                                @foreach (var itemReplayAttachment in itemReplayBody.LeadEmailMessageReplayAttachement)
+                                                {
+                                                    <a target="_blank" class="custom-card-text" asp-action="DownloadMailAttachmentFile" asp-controller="Lead" asp-route-LeadId="@itemReplayAttachment.LeadId" asp-route-fileName="@itemReplayAttachment.FileName">
+                                                        <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemReplayAttachment.FileName
+                                                    </a>
+                                                }
                                             </div>
-                                            <div class="custom-card-text">
-                                                @Html.Raw(itemReplayBody.Body)
-                                            </div>
-                                            @foreach (var itemReplayAttachment in itemReplayBody.LeadEmailMessageReplayAttachement)
-                                            {
-                                                <a target="_blank" class="custom-card-text" asp-action="DownloadMailAttachmentFile" asp-controller="Lead" asp-route-LeadId="@itemReplayAttachment.LeadId" asp-route-fileName="@itemReplayAttachment.FileName">
-                                                    <i class="fa fa-paperclip" aria-hidden="true"></i>&nbsp;@itemReplayAttachment.FileName
-                                                </a>
-                                            }
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            }
                         }
                     }
                 }
-            }
-            <div class="col-12">
-                <div class="inbox-mail-reply" style="display:none">
-                    <button class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i>Reply</button>
-                    <button class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i>Reply All</button>
+                <div class="col-12">
+                    <div class="inbox-mail-reply" style="display:none">
+                        <button class="btn btn-secondary"><i class="fa fa-reply" aria-hidden="true"></i>Reply</button>
+                        <button class="btn btn-secondary"><i class="fa fa-reply-all" aria-hidden="true"></i>Reply All</button>
+                    </div>
                 </div>
-            </div>
 
+            </div>
         </div>
     </div>
-</div>
-<div class="inbox-mail-footer" style="display:none">
-    <form>
-        <div class="form-group mb-0">
-            <textarea class="form-control" id="exampleFormControlTextarea1" rows="1" placeholder="Write a note"></textarea>
-            <button type="submit" class="btn create-note-btn btn-primary">Create Note</button>
-        </div>
-    </form>
-</div>
+    <div class="inbox-mail-footer" style="display:none">
+        <form>
+            <div class="form-group mb-0">
+                <textarea class="form-control" id="exampleFormControlTextarea1" rows="1" placeholder="Write a note"></textarea>
+                <button type="submit" class="btn create-note-btn btn-primary">Create Note</button>
+            </div>
+        </form>
+    </div>*@
 
 @*<div class="content-bg mt-3">
         @if (Model.Count() >= 1)

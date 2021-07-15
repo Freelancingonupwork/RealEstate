@@ -29,7 +29,7 @@ namespace EstajoMailService.App_Code.DAL
         public virtual DbSet<tblAccountCompany> tblAccountCompanies { get; set; }
         public virtual DbSet<tblAccountIntegration> tblAccountIntegrations { get; set; }
         public virtual DbSet<tblLead> tblLeads { get; set; }
-        public virtual DbSet<tblLeadEmailMessage> tblLeadEmailMessages { get; set; }
         public virtual DbSet<tblLeadEmailMessageAttachment> tblLeadEmailMessageAttachments { get; set; }
+        public virtual DbSet<tblLeadEmailMessage> tblLeadEmailMessages { get; set; }
     }
 }

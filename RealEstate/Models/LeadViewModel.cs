@@ -44,11 +44,11 @@ namespace RealEstate.Models
         public string EmailAddress { get; set; }
         [Required(ErrorMessage = "Please enter a phone number")]
         [DataType(DataType.PhoneNumber)]
-        [RegularExpression(@"^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$", ErrorMessage = "Not a valid phone number")]
+        //[RegularExpression(@"/^\+?([0-9]{2})\)?[-]?([0-9]{3})?[-]?([0-9]{3})?[-]?([0-9]{4})$/", ErrorMessage = "Not a valid phone number")]
         public string PhoneNumber { get; set; }
         public string Fax { get; set; }
         [DataType(DataType.PhoneNumber)]
-        [RegularExpression(@"^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$", ErrorMessage = "Not a valid phone number")]
+        //[RegularExpression(@"/^\+?([0-9]{2})\)?[-]?([0-9]{3})?[-]?([0-9]{3})?[-]?([0-9]{4})$/", ErrorMessage = "Not a valid phone number")]
         public string MobileNumber { get; set; }
         [Url(ErrorMessage = "Please enter valid website link")]
         public string Website { get; set; }

@@ -88,8 +88,9 @@
                         <div class="form-row m-3">
                             <div class="form-group col-md-6">
                                 <label for="inputEmail4">Phone:</label>
-                                <input type="text" asp-for="PhoneNumber" onkeydown="javascript:backspacerDOWN(this,event);"
-                                       onkeyup="javascript:backspacerUP(this,event);" class="form-control" placeholder="Enter Phone" style="width:80%" />
+                                <input type="text" asp-for="PhoneNumber" class="form-control" placeholder="Enter Phone" style="width:80%" />
+                                @*onkeydown="javascript:backspacerDOWN(this,event);"
+                                onkeyup="javascript:backspacerUP(this,event);"*@
                                 <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                             </div>
                             <div class="form-group col-md-6">
@@ -100,8 +101,9 @@
                         <div class="form-row m-3">
                             <div class="form-group col-md-6">
                                 <label for="inputEmail4">Mobile:</label>
-                                <input type="text" asp-for="MobileNumber" onkeydown="javascript:backspacerDOWN(this,event);"
-                                       onkeyup="javascript:backspacerUP(this,event);" class="form-control" placeholder="Enter Mobile Number" style="width:80%" />
+                                <input type="text" asp-for="MobileNumber" class="form-control" placeholder="Enter Mobile Number" style="width:80%" />
+                                @*onkeydown="javascript:backspacerDOWN(this,event);"
+                                    onkeyup="javascript:backspacerUP(this,event);"*@
                                 <span asp-validation-for="MobileNumber" class="text-danger"></span>
                             </div>
                             <div class="form-group col-md-6">
@@ -314,5 +316,23 @@
         </div>
     </div>
 </div>
+<script>
+    //$(function () {
+    //    $("#PhoneNumber").blur(function () {
+    //        var value = $(this).val();
+    //        phonenumber(value);
+    //    })
+    //})
+    //function phonenumber(inputtxt) {
+    //    var phoneno = /^\+?([0-9]{2})\)?[-]?([0-9]{3})[-]?([0-9]{3})?[-]?([0-9]{4})$/;
+    //    if (inputtxt.match(phoneno)) {
+    //        return true;
+    //    }
+    //    else {
+    //        alert("Invalid Input");
+    //        return false;
+    //    }
+    //}
 
+</script>
 

@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="RealEstateModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="RealEstateModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="tblAccount">
           <Key>
             <PropertyRef Name="AccountId" />
@@ -18,6 +18,7 @@
           <Property Name="Status" Type="bit" />
           <Property Name="RoleId" Type="int" />
           <Property Name="IsEmailConfig" Type="bit" />
+          <Property Name="isTempPassword" Type="bit" />
           <Property Name="CreatedDate" Type="datetime" />
           <Property Name="UpdatedDate" Type="datetime" />
         </EntityType>
@@ -103,6 +104,8 @@
           <Property Name="Body" Type="nvarchar(max)" />
           <Property Name="IsReplay" Type="bit" />
           <Property Name="EmailMessageId" Type="int" />
+          <Property Name="IsRead" Type="bit" />
+          <Property Name="IsType" Type="int" />
           <Property Name="CreatedDate" Type="datetime" />
           <Property Name="UpdatedDate" Type="datetime" />
         </EntityType>
@@ -117,7 +120,9 @@
           <Property Name="UpdatedDate" Type="datetime" />
         </EntityType>
         <Association Name="FK_tblAccountIntegration_tblAccount">
-          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
+          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="tblAccountIntegration" Type="Self.tblAccountIntegration" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="tblAccount">
@@ -129,7 +134,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_tblCompany_tblCompany">
-          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
+          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="tblAccountCompany" Type="Self.tblAccountCompany" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="tblAccount">
@@ -141,7 +148,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_tblLead_tblAccount">
-          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
+          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="tblLead" Type="Self.tblLead" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="tblAccount">
@@ -165,7 +174,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_tblLeadEmailMessage_tblAccount">
-          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
+          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="tblAccount">
@@ -189,7 +200,9 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage">
-          <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="0..1" />
+          <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
           <End Role="tblLeadEmailMessageAttachment" Type="Self.tblLeadEmailMessageAttachment" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="tblLeadEmailMessage">
@@ -236,8 +249,7 @@
             <End Role="tblLeadEmailMessageAttachment" EntitySet="tblLeadEmailMessageAttachment" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="RealEstateModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -260,7 +272,8 @@
           <NavigationProperty Name="tblAccountCompanies" Relationship="Self.FK_tblCompany_tblCompany" FromRole="tblAccount" ToRole="tblAccountCompany" />
           <NavigationProperty Name="tblLeads" Relationship="Self.FK_tblLead_tblAccount" FromRole="tblAccount" ToRole="tblLead" />
           <NavigationProperty Name="tblLeads1" Relationship="Self.FK_tblLead_tblAccount1" FromRole="tblAccount" ToRole="tblLead" />
-          <NavigationProperty Name="tblLeadEmailMessages" Relationship="Self.FK_tblLeadEmailMessage_tblAccount" FromRole="tblAccount" ToRole="tblLeadEmailMessage" />
+          <Property Name="isTempPassword" Type="Boolean" />
+          <NavigationProperty Name="tblLeadEmailMessages" Relationship="RealEstateModel.FK_tblLeadEmailMessage_tblAccount" FromRole="tblAccount" ToRole="tblLeadEmailMessage" />
         </EntityType>
         <EntityType Name="tblAccountCompany">
           <Key>
@@ -334,26 +347,7 @@
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
           <NavigationProperty Name="tblAccount" Relationship="Self.FK_tblLead_tblAccount" FromRole="tblLead" ToRole="tblAccount" />
           <NavigationProperty Name="tblAccount1" Relationship="Self.FK_tblLead_tblAccount1" FromRole="tblLead" ToRole="tblAccount" />
-          <NavigationProperty Name="tblLeadEmailMessages" Relationship="Self.FK_tblLeadEmailMessage_tblLead" FromRole="tblLead" ToRole="tblLeadEmailMessage" />
-        </EntityType>
-        <EntityType Name="tblLeadEmailMessage">
-          <Key>
-            <PropertyRef Name="LeadEmailMessageId" />
-          </Key>
-          <Property Name="LeadEmailMessageId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="LeadId" Type="Int32" />
-          <Property Name="AccountId" Type="Int32" />
-          <Property Name="FromName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="ToName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="Subject" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Body" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="IsReplay" Type="Boolean" />
-          <Property Name="EmailMessageId" Type="Int32" />
-          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
-          <Property Name="UpdatedDate" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="tblAccount" Relationship="Self.FK_tblLeadEmailMessage_tblAccount" FromRole="tblLeadEmailMessage" ToRole="tblAccount" />
-          <NavigationProperty Name="tblLead" Relationship="Self.FK_tblLeadEmailMessage_tblLead" FromRole="tblLeadEmailMessage" ToRole="tblLead" />
-          <NavigationProperty Name="tblLeadEmailMessageAttachments" Relationship="Self.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" FromRole="tblLeadEmailMessage" ToRole="tblLeadEmailMessageAttachment" />
+          <NavigationProperty Name="tblLeadEmailMessages" Relationship="RealEstateModel.FK_tblLeadEmailMessage_tblLead" FromRole="tblLead" ToRole="tblLeadEmailMessage" />
         </EntityType>
         <EntityType Name="tblLeadEmailMessageAttachment">
           <Key>
@@ -364,7 +358,7 @@
           <Property Name="Attachement" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="CreatedDate" Type="DateTime" Precision="3" />
           <Property Name="UpdatedDate" Type="DateTime" Precision="3" />
-          <NavigationProperty Name="tblLeadEmailMessage" Relationship="Self.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" FromRole="tblLeadEmailMessageAttachment" ToRole="tblLeadEmailMessage" />
+          <NavigationProperty Name="tblLeadEmailMessage" Relationship="RealEstateModel.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" FromRole="tblLeadEmailMessageAttachment" ToRole="tblLeadEmailMessage" />
         </EntityType>
         <Association Name="FK_tblAccountIntegration_tblAccount">
           <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
@@ -414,48 +408,11 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <Association Name="FK_tblLeadEmailMessage_tblAccount">
-          <End Role="tblAccount" Type="Self.tblAccount" Multiplicity="0..1" />
-          <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="tblAccount">
-              <PropertyRef Name="AccountId" />
-            </Principal>
-            <Dependent Role="tblLeadEmailMessage">
-              <PropertyRef Name="AccountId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_tblLeadEmailMessage_tblLead">
-          <End Role="tblLead" Type="Self.tblLead" Multiplicity="0..1" />
-          <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="tblLead">
-              <PropertyRef Name="LeadId" />
-            </Principal>
-            <Dependent Role="tblLeadEmailMessage">
-              <PropertyRef Name="LeadId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
-        <Association Name="FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage">
-          <End Role="tblLeadEmailMessage" Type="Self.tblLeadEmailMessage" Multiplicity="0..1" />
-          <End Role="tblLeadEmailMessageAttachment" Type="Self.tblLeadEmailMessageAttachment" Multiplicity="*" />
-          <ReferentialConstraint>
-            <Principal Role="tblLeadEmailMessage">
-              <PropertyRef Name="LeadEmailMessageId" />
-            </Principal>
-            <Dependent Role="tblLeadEmailMessageAttachment">
-              <PropertyRef Name="LeadEmailMessageId" />
-            </Dependent>
-          </ReferentialConstraint>
-        </Association>
         <EntityContainer Name="RealEstateEntities" annotation:LazyLoadingEnabled="true">
           <EntitySet Name="tblAccounts" EntityType="Self.tblAccount" />
           <EntitySet Name="tblAccountCompanies" EntityType="Self.tblAccountCompany" />
           <EntitySet Name="tblAccountIntegrations" EntityType="Self.tblAccountIntegration" />
           <EntitySet Name="tblLeads" EntityType="Self.tblLead" />
-          <EntitySet Name="tblLeadEmailMessages" EntityType="Self.tblLeadEmailMessage" />
           <EntitySet Name="tblLeadEmailMessageAttachments" EntityType="Self.tblLeadEmailMessageAttachment" />
           <AssociationSet Name="FK_tblAccountIntegration_tblAccount" Association="Self.FK_tblAccountIntegration_tblAccount">
             <End Role="tblAccount" EntitySet="tblAccounts" />
@@ -473,19 +430,81 @@
             <End Role="tblAccount" EntitySet="tblAccounts" />
             <End Role="tblLead" EntitySet="tblLeads" />
           </AssociationSet>
-          <AssociationSet Name="FK_tblLeadEmailMessage_tblAccount" Association="Self.FK_tblLeadEmailMessage_tblAccount">
+          <EntitySet Name="tblLeadEmailMessages" EntityType="RealEstateModel.tblLeadEmailMessage" />
+          <AssociationSet Name="FK_tblLeadEmailMessage_tblAccount" Association="RealEstateModel.FK_tblLeadEmailMessage_tblAccount">
             <End Role="tblAccount" EntitySet="tblAccounts" />
             <End Role="tblLeadEmailMessage" EntitySet="tblLeadEmailMessages" />
           </AssociationSet>
-          <AssociationSet Name="FK_tblLeadEmailMessage_tblLead" Association="Self.FK_tblLeadEmailMessage_tblLead">
+          <AssociationSet Name="FK_tblLeadEmailMessage_tblLead" Association="RealEstateModel.FK_tblLeadEmailMessage_tblLead">
             <End Role="tblLead" EntitySet="tblLeads" />
             <End Role="tblLeadEmailMessage" EntitySet="tblLeadEmailMessages" />
           </AssociationSet>
-          <AssociationSet Name="FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" Association="Self.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage">
+          <AssociationSet Name="FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" Association="RealEstateModel.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage">
             <End Role="tblLeadEmailMessage" EntitySet="tblLeadEmailMessages" />
             <End Role="tblLeadEmailMessageAttachment" EntitySet="tblLeadEmailMessageAttachments" />
           </AssociationSet>
         </EntityContainer>
+        <EntityType Name="tblLeadEmailMessage">
+          <Key>
+            <PropertyRef Name="LeadEmailMessageId" />
+          </Key>
+          <Property Name="LeadEmailMessageId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="LeadId" Type="Int32" />
+          <Property Name="AccountId" Type="Int32" />
+          <Property Name="FromName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ToName" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Subject" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Body" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="IsReplay" Type="Boolean" />
+          <Property Name="EmailMessageId" Type="Int32" />
+          <Property Name="IsRead" Type="Boolean" />
+          <Property Name="IsType" Type="Int32" />
+          <Property Name="CreatedDate" Type="DateTime" Precision="3" />
+          <Property Name="UpdatedDate" Type="DateTime" Precision="3" />
+          <NavigationProperty Name="tblAccount" Relationship="RealEstateModel.FK_tblLeadEmailMessage_tblAccount" FromRole="tblLeadEmailMessage" ToRole="tblAccount" />
+          <NavigationProperty Name="tblLead" Relationship="RealEstateModel.FK_tblLeadEmailMessage_tblLead" FromRole="tblLeadEmailMessage" ToRole="tblLead" />
+          <NavigationProperty Name="tblLeadEmailMessageAttachments" Relationship="RealEstateModel.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" FromRole="tblLeadEmailMessage" ToRole="tblLeadEmailMessageAttachment" />
+        </EntityType>
+        <Association Name="FK_tblLeadEmailMessage_tblAccount">
+          <End Type="RealEstateModel.tblAccount" Role="tblAccount" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="RealEstateModel.tblLeadEmailMessage" Role="tblLeadEmailMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tblAccount">
+              <PropertyRef Name="AccountId" />
+            </Principal>
+            <Dependent Role="tblLeadEmailMessage">
+              <PropertyRef Name="AccountId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tblLeadEmailMessage_tblLead">
+          <End Type="RealEstateModel.tblLead" Role="tblLead" Multiplicity="0..1" />
+          <End Type="RealEstateModel.tblLeadEmailMessage" Role="tblLeadEmailMessage" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tblLead">
+              <PropertyRef Name="LeadId" />
+            </Principal>
+            <Dependent Role="tblLeadEmailMessage">
+              <PropertyRef Name="LeadId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage">
+          <End Type="RealEstateModel.tblLeadEmailMessage" Role="tblLeadEmailMessage" Multiplicity="0..1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Type="RealEstateModel.tblLeadEmailMessageAttachment" Role="tblLeadEmailMessageAttachment" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="tblLeadEmailMessage">
+              <PropertyRef Name="LeadEmailMessageId" />
+            </Principal>
+            <Dependent Role="tblLeadEmailMessageAttachment">
+              <PropertyRef Name="LeadEmailMessageId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -495,6 +514,7 @@
           <EntitySetMapping Name="tblAccounts">
             <EntityTypeMapping TypeName="RealEstateModel.tblAccount">
               <MappingFragment StoreEntitySet="tblAccount">
+                <ScalarProperty Name="isTempPassword" ColumnName="isTempPassword" />
                 <ScalarProperty Name="AccountId" ColumnName="AccountId" />
                 <ScalarProperty Name="FullName" ColumnName="FullName" />
                 <ScalarProperty Name="UserName" ColumnName="UserName" />
@@ -581,23 +601,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <EntitySetMapping Name="tblLeadEmailMessages">
-            <EntityTypeMapping TypeName="RealEstateModel.tblLeadEmailMessage">
-              <MappingFragment StoreEntitySet="tblLeadEmailMessage">
-                <ScalarProperty Name="LeadEmailMessageId" ColumnName="LeadEmailMessageId" />
-                <ScalarProperty Name="LeadId" ColumnName="LeadId" />
-                <ScalarProperty Name="AccountId" ColumnName="AccountId" />
-                <ScalarProperty Name="FromName" ColumnName="FromName" />
-                <ScalarProperty Name="ToName" ColumnName="ToName" />
-                <ScalarProperty Name="Subject" ColumnName="Subject" />
-                <ScalarProperty Name="Body" ColumnName="Body" />
-                <ScalarProperty Name="IsReplay" ColumnName="IsReplay" />
-                <ScalarProperty Name="EmailMessageId" ColumnName="EmailMessageId" />
-                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
-                <ScalarProperty Name="UpdatedDate" ColumnName="UpdatedDate" />
-              </MappingFragment>
-            </EntityTypeMapping>
-          </EntitySetMapping>
           <EntitySetMapping Name="tblLeadEmailMessageAttachments">
             <EntityTypeMapping TypeName="RealEstateModel.tblLeadEmailMessageAttachment">
               <MappingFragment StoreEntitySet="tblLeadEmailMessageAttachment">
@@ -606,6 +609,25 @@
                 <ScalarProperty Name="Attachement" ColumnName="Attachement" />
                 <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
                 <ScalarProperty Name="UpdatedDate" ColumnName="UpdatedDate" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="tblLeadEmailMessages">
+            <EntityTypeMapping TypeName="RealEstateModel.tblLeadEmailMessage">
+              <MappingFragment StoreEntitySet="tblLeadEmailMessage">
+                <ScalarProperty Name="UpdatedDate" ColumnName="UpdatedDate" />
+                <ScalarProperty Name="CreatedDate" ColumnName="CreatedDate" />
+                <ScalarProperty Name="IsType" ColumnName="IsType" />
+                <ScalarProperty Name="IsRead" ColumnName="IsRead" />
+                <ScalarProperty Name="EmailMessageId" ColumnName="EmailMessageId" />
+                <ScalarProperty Name="IsReplay" ColumnName="IsReplay" />
+                <ScalarProperty Name="Body" ColumnName="Body" />
+                <ScalarProperty Name="Subject" ColumnName="Subject" />
+                <ScalarProperty Name="ToName" ColumnName="ToName" />
+                <ScalarProperty Name="FromName" ColumnName="FromName" />
+                <ScalarProperty Name="AccountId" ColumnName="AccountId" />
+                <ScalarProperty Name="LeadId" ColumnName="LeadId" />
+                <ScalarProperty Name="LeadEmailMessageId" ColumnName="LeadEmailMessageId" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

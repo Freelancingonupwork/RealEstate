@@ -14,10 +14,17 @@ namespace RealEstate.Models
         public string Body { get; set; }
         public string FromName { get; set; }
         public string ToName { get; set; }
+        public string FromEmail { get; set; }
+        public string ToEmail { get; set; }
         public bool? IsReplay { get; set; }
+        public bool? IsRead { get; set; }
         public List<LeadEmailMessageReplayAttachement> LeadEmailMessageReplayAttachement { get; set; }
         public int? EmailMessageId { get; set; }
         public DateTime? CreatedDate { get; set; }
+
+        public List<string> imgcontain { get; set; }
+
+        public List<string> isAttachmentcontain { get; set; }
 
         //public List<LeadEmailMessageMainList> LeadEmailMessageMainList { get; set; }
         public List<LeadEmailMessageViewModel> LeadEmailMessageReplayList { get; set; }

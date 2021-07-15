@@ -34,6 +34,7 @@
         </svg>
     </div>
 </div>
+<div role="alert" id="divAlertMessage" style="display:none"></div>
 <div class="content-wrapper mailbox-wrapper">
     <div class="container-fluid p-0">
         <div class="row no-gutters">
@@ -45,88 +46,189 @@
                     <div class="mail-nav">
                         <h6 class="mb-3">Messages</h6>
                         <ul class="list-unstyled">
-                            <li class="active"><a href="#"> <i class="fa fa-inbox"></i> Inbox @*<span class="badge badge-pill badge-success float-right">12</span>*@ </a></li>
-                            @*<li><a href="#"> <i class="fa fa-paper-plane-o"></i> Sent</a></li>
-                            <li><a href="#"> <i class="fa fa-file-o"></i> Drafts <span class="badge badge-pill badge-danger float-right">20</span></a></li>
-                            <li><a href="#"> <i class="fa fa-trash-o"></i> Trash</a></li>
-                            <li><a href="#"> <i class="fa fa-info-circle"></i> Important <span class="badge badge-pill badge-warning float-right">50</span></a></li>
-                            <li><a href="#"> <i class="fa fa-envelope-o"></i> spam</a></li>
-                            <li><a href="#"> <i class="fa fa-star-o"></i> Starred</a></li>*@
+                            <li class="active"><a style="color:#BF0D1C" id="pills-home-tab-leftside" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true"> <i class="fa fa-inbox"></i> Inbox @*<span class="badge badge-pill badge-success float-right">12</span>*@ </a></li>
+                            <li><a id="pills-text-tab-leftside" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false"> <i class="fa fa-comment"></i> Text</a></li>
+                            <li><a id="pills-contact-tab-leftside" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"> <i class="fa fa-phone"></i> Call</a></li>
+                            @*<li><a href="#"> <i class="fa fa-paper-plane-o"></i> Sent</a></li>*@
+                            @*<li><a href="#"> <i class="fa fa-file-o"></i> Drafts <span class="badge badge-pill badge-danger float-right">20</span></a></li>*@
+                            @*<li><a href="#"> <i class="fa fa-trash-o"></i> Trash</a></li>*@
+                            @*<li><a href="#"> <i class="fa fa-info-circle"></i> Important <span class="badge badge-pill badge-warning float-right">50</span></a></li>
+                              <li><a href="#"> <i class="fa fa-envelope-o"></i> spam</a></li>*@
+                            @*<li><a href="#"> <i class="fa fa-star-o"></i> Starred</a></li>*@
                         </ul>
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-lg-3 bg-white conversations">
-                <div class="content-bg">
-                    @*<div class="widget-search mb-4">
-                            <i class="fa fa-search"></i>
-                            <input type="search" class="form-control" placeholder="Search....">
-                        </div>*@
+            <div class="col-12 col-lg-8 bg-white conversations" id="divMailList">
+                <div class="main-social" id="idmain-social">
+                    <ul class="d-flex align-items-center">
+                        <li>
+                            <div class="dropdown show">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="customCheck1" name="select-all">
+                                    <label class="custom-control-label" for="customCheck1"></label>
+                                </div>
+                                <a class="btn btn-secondary dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item" href="#">All</a>
+                                    <a class="dropdown-item" href="#">None</a>
+                                    <a class="dropdown-item" href="#">Read</a>
+                                    <a class="dropdown-item" href="#">Unread</a>
+                                    <a class="dropdown-item" href="#">starred</a>
+                                    <a class="dropdown-item" href="#">Unstarred</a>
+                                </div>
+                            </div>
 
-                    <div class="user-list">
-                        <ul class="list-unstyled">
+                        </li>
+                        <li><a onclick="return fnRefreshMail();" data-toggle="tooltip" data-placement="top" title="Refresh"><i class="fa fa-refresh"></i></a></li>
+                        @*<li><a href="#"><i class="fa fa-ellipsis-v"></i></a></li>*@
+
+                        @*<li><a href="#" data-toggle="tooltip" data-placement="top" title="Refresh"><i class="fa fa-download"></i></a></li>
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Report Spam"><i class="fa fa-info-circle"></i></a></li>*@
+                        <li><a onclick="return fndeleteBulkMail();" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash-o"></i></a></li>
+
+                        <li><a onclick="return fnMarkasReadMail();" data-toggle="tooltip" data-placement="top" title="Mark as read"><i class="fa fa-envelope"></i></a></li>
+                        <li><a onclick="return fnMarkAsUnReadMail();" data-toggle="tooltip" data-placement="top" title="Mark as unread"><i class="fa fa-envelope-open"></i></a></li>
+                        @*<li><a href="#" data-toggle="tooltip" data-placement="top" title="Snooze"><i class="fa fa-clock-o"></i></a></li>
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Add to tasks"><i class="fa fa-check-circle"></i></a></li>
+
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Move To"><i class="fa fa-arrow-circle-o-right"></i></a></li>
+                            <li><a href="#" data-toggle="tooltip" data-placement="top" title="Refresh"><i class="fa fa-tag"></i></a></li>*@
+                        @*<li><a href="#"><i class="fa fa-ellipsis-v"></i></a></li>*@
+                    </ul>
+                </div>
+                <div class="mail-tab">
+                    <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-home" role="tab" aria-controls="pills-home" aria-selected="true"><i class="fa fa-envelope"></i> Emails</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-profile" role="tab" aria-controls="pills-profile" aria-selected="false"><i class="fa fa-comment"></i> Texts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false"><i class="fa fa-phone"></i> Calls</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="pills-tabContent">
+                        <div class="tab-pane fade show active" id="pills-home" role="tabpanel" aria-labelledby="pills-home-tab">
                             @if (Model.LeadEmailMessageViewModel.Count() > 0)
                             {
+
                                 @foreach (var item in Model.LeadEmailMessageViewModel)
                                 {
-
-                                    string FromName = string.Empty;
-                                    string str = item.ToName;
-                                    String[] s = str.Split(' ');
-                                    foreach (String values in s)
-                                    {
-                                        FromName += values[0] + " ";
-                                    }
-
-                                    <li class="pt-3" id="showMailBodyClick_@item.LeadEmailMessageId" onclick="showMailBody(@item.LeadEmailMessageId,@item.LeadId)">
-                                        <a href="#">
-                                            <div class="media px-2">
-                                                <div class="position-relative fileImg">
-                                                    @*<img class="img-fluid mr-2 avatar-small" src="~/image/support-2.png" alt="">*@
-                                                    @FromName
-                                                </div>
-                                                <div class="media-body">
-                                                    <h6 class="mt-0 "> @item.ToName <small class="float-right"> @Convert.ToString(string.Format("{0:MMMM dd}", item.CreatedDate))</small> </h6>
-                                                    <div class="float-right">
-                                                        @*<span class="badge badge-pill badge-primary">Private</span>*@
-                                                    </div>
-                                                    <p class="text-muted"> @item.Subject </p>
-                                                </div>
+                                    <div class="@(item.IsRead == true ? "new-mail d-flex" : "new-mail d-flex bg-white")">
+                                        <div class="mail-icon d-flex">
+                                            <div class="custom-control custom-checkbox">
+                                                <input type="checkbox" class="custom-control-input" id="customCheck_@item.LeadEmailMessageId" value="@item.LeadEmailMessageId">
+                                                <label class="custom-control-label" for="customCheck_@item.LeadEmailMessageId"></label>
                                             </div>
-                                        </a>
-                                        <div class="divider mt-15"></div>
-                                    </li>
+                                            <div class="star">
+                                                <i class="fa fa-star"></i>
+                                            </div>
+                                        </div>
+                                        <div class="mail-content pt-31" attLeadEmailMessageId="@item.LeadEmailMessageId" attLeadId="@item.LeadId" onclick="fnRightSideDetails(@item.LeadEmailMessageId,@item.LeadId); fnMiddleSideDetails(@item.LeadEmailMessageId)">
+                                            <div class="mail-title">
+                                                <div class="mail-name"><b>@item.ToName</b></div>
+                                            </div>
+                                            <div class="mail-des">
+                                                <div class="mail-sort-des">
+                                                    @*<span>@item.Subject</span>*@
+                                                    @item.Subject
+                                                </div>
+                                                @foreach (var itemimgcontain in item.imgcontain)
+                                                {
+                                                    <a class="mail-pdf">
+                                                        <i class="fa fa-image"></i>
+                                                    </a>
+                                                }
+                                                @foreach (var itemAttachmentcontain in item.isAttachmentcontain)
+                                                {
+                                                    <a class="mail-pdf">
+                                                        <i class="fa fa-paperclip fa-4"></i>
+                                                    </a>
+                                                }
+                                            </div>
+                                            <div class="mail-time">
+                                                <div class="mail-icon d-flex">
+                                                    <a onclick="return deleteSingleMail(@item.LeadEmailMessageId);" data-toggle="tooltip" data-placement="top" title="Delete"><i class="fa fa-trash-o"></i></a>
+                                                    @if (item.IsRead == true)
+                                                    {
+                                                        <a onclick="return fnMarkAsUnReadMail(@item.LeadEmailMessageId);" data-toggle="tooltip" data-placement="top" title="Mark as unread"><i class="fa fa-envelope-open"></i></a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a onclick="return fnMarkasReadMail(@item.LeadEmailMessageId);" data-toggle="tooltip" data-placement="top" title="Mark as read"><i class="fa fa-envelope"></i></a>
+                                                    }
+
+                                                </div>
+                                                <span>@Convert.ToString(string.Format("{0:MMMM dd}", item.CreatedDate))</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 }
                             }
                             else
                             {
-                                <li><span style="text-align:center;color:#777">No Email Found.</span></li>
+                                <div class="new-mail p-3" style="text-align:center;color:#777">
+                                    No Mail Message Found.
+                                </div>
                             }
-                        </ul>
-                    </div>
+                        </div>
 
+                        <div class="tab-pane fade" id="pills-profile" role="tabpanel" aria-labelledby="pills-profile-tab">
+                            <div id="divTextMessageList">
+
+                            </div>
+                            
+                        </div>
+
+                        <div class="tab-pane fade" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">
+                            <table class="table table-hover">
+                                <!--  <thead>
+                                  <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">First</th>
+                                    <th scope="col">Last</th>
+                                    <th scope="col">Handle</th>
+                                  </tr>
+                                </thead> -->
+                                <tbody>
+                                    <tr style="text-align:center;color:#777">
+                                        <td colspan="5">No Call Log Found.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="col-12 col-lg-5 bg-white inbox-mailbox">
+            <div class="col-12 col-lg-8 bg-white conversations" id="divMailDetails">
                 <div id="MailBodyList">
                 </div>
             </div>
+            @*<div class="col-12 col-lg-5 bg-white inbox-mailbox">
+                    <div id="MailBodyList">
+                    </div>
+                </div>*@
             <div class="col-12 col-lg-2 bg-white mailbox-info">
                 <div id="MailBodyRight">
-                    </div>
+                </div>
                 @*<partial name="_MailBodyRight" />*@
             </div>
         </div>
     </div>
 </div>
+
+<script type="text/javascript" src="~/SiteJavascripts/MailBox.js"></script>
 <script type="text/javascript">
 
-    var allButtons = jQuery('.pt-3');
-    jQuery('.pt-3').click(function (e) {
-        var $active = jQuery(this);
-        allButtons.removeClass('bg-light');
-        $active.addClass('bg-light');
-    });
+    //var allButtons = jQuery('.pt-3');
+    //jQuery('.pt-3').click(function (e) {
+    //    var $active = jQuery(this);
+    //    allButtons.removeClass('bg-light');
+    //    $active.addClass('bg-light');
+    //});
     function showMailBody(LeadEmailMessageId,LeadId) {
         $("#divLoader").show();
         $.ajax({
@@ -140,21 +242,30 @@
             async: true,
             success: function (result) {
                 //console.log(result);
+                $('#divMailList').hide();
+                $('#divMailDetails').show();
+                //$("#divMailDetails").css({ display: "block" });
+                //$("#divMailList").css({ display: "none" });
                 $('#MailBodyList').empty().html(result);
                 $(".custom-card-text img").each(function () {
                     var altText = $(this).attr("src");
                     $(this).addClass("img-fluid");
                     $(this).removeAttr("style");
                 })
-                $(".pt-3").each(function () {
-                    var id = $(this).attr("id").replace("showMailBodyClick_", "");
-                    if (id == LeadEmailMessageId) {
-                        $("#showMailBodyClick_" + LeadEmailMessageId).addClass('bg-light');
-                    }
-                    else {
-                        $("#showMailBodyClick_" + id).removeClass('bg-light');
-                    }
+                $(".mail-description img").each(function () {
+                    var altText = $(this).attr("src");
+                    $(this).addClass("img-fluid");
+                    $(this).removeAttr("style");
                 })
+                //$(".pt-3").each(function () {
+                //    var id = $(this).attr("id").replace("showMailBodyClick_", "");
+                //    if (id == LeadEmailMessageId) {
+                //        $("#showMailBodyClick_" + LeadEmailMessageId).addClass('bg-light');
+                //    }
+                //    else {
+                //        $("#showMailBodyClick_" + id).removeClass('bg-light');
+                //    }
+                //})
                 $("#divLoader").hide();
             },
             error: function (xhr, ajaxOptions, thrownError) {
@@ -162,10 +273,97 @@
                 return false;
             }
         });
+
+    }
+
+    function fnRightSideDetails(LeadEmailMessageId, LeadId) {
+        $("#divLoader").show();
         $.ajax({
             type: "POST",
             contentType: "application/html; charset=utf-8",
             url: '@Url.Action("LoadLeadDetailsById", "MailBox")?Id=' + LeadEmailMessageId + '&LeadId=' + LeadId,
+            dataType: "html",
+            async: true,
+            success: function (result) {
+                $('#MailBodyRight').empty().html(result);
+                $("#divLoader").hide();
+                //$('#divMailList').show();
+                //$('#divMailDetails').hide();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#divLoader").hide();
+                return false;
+            }
+        });
+    }
+
+    function fnMiddleSideDetails(LeadEmailMessageId) {
+        $("#divLoader").show();
+        $.ajax({
+            type: "POST",
+            contentType: "application/html; charset=utf-8",
+            //url: "/MailBox/LoadBodyById",
+            url: '@Url.Action("LoadBodyById", "MailBox")?Id=' + LeadEmailMessageId,
+            dataType: "html",
+            //data: JSON.stringify({ "Id": LeadEmailMessageId }),
+            //data: JSON.stringify({ "subjectId": $('#subjectId').val(), "sortOrder": sortOrder }),
+            async: true,
+            success: function (result) {
+                //console.log(result);
+               /* alert(IsBack);*/
+
+                $('#divMailList').hide();
+                $('#divMailDetails').show();
+
+                //$("#divMailDetails").css({ display: "block" });
+                //$("#divMailList").css({ display: "none" });
+                $('#MailBodyList').empty().html(result);
+                $(".custom-card-text img").each(function () {
+                    var altText = $(this).attr("src");
+                    $(this).addClass("img-fluid");
+                    $(this).removeAttr("style");
+                })
+                $(".mail-description img").each(function () {
+                    var altText = $(this).attr("src");
+                    $(this).addClass("img-fluid");
+                    $(this).removeAttr("style");
+                })
+                //$(".pt-3").each(function () {
+                //    var id = $(this).attr("id").replace("showMailBodyClick_", "");
+                //    if (id == LeadEmailMessageId) {
+                //        $("#showMailBodyClick_" + LeadEmailMessageId).addClass('bg-light');
+                //    }
+                //    else {
+                //        $("#showMailBodyClick_" + id).removeClass('bg-light');
+                //    }
+                //})
+                $("#divLoader").hide();
+            },
+            error: function (xhr, ajaxOptions, thrownError) {
+                $("#divLoader").hide();
+                return false;
+            }
+        });
+    }
+    $("document").ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+        $('#divMailDetails').hide();
+        setTimeout(function () {
+            /*$(".pt-3").trigger('click');*/
+            //$(".pt-3").first().click();
+            var LeadEmailMessageId = $(".pt-31").first().attr("attLeadEmailMessageId");
+            var LeadId = $(".pt-31").first().attr("attLeadId");
+            if (LeadEmailMessageId != undefined && LeadId != undefined) {
+                fnRightSideDetails(LeadEmailMessageId, LeadId);
+            }
+            else {
+                $('#MailBodyRight').empty().html("No Data Available.").addClass("p-3");
+            }
+        }, 10);
+         @*$.ajax({
+            type: "POST",
+            contentType: "application/html; charset=utf-8",
+            url: '@Url.Action("LoadLeadDetailsById", "MailBox")', //?Id=' + LeadEmailMessageId + '&LeadId=' + LeadId
             dataType: "html",
             async: true,
             success: function (result) {
@@ -176,13 +374,16 @@
                 $("#divLoader").hide();
                 return false;
             }
-        });
-    }
-    $("document").ready(function () {
-        setTimeout(function () {
-            /*$(".pt-3").trigger('click');*/
-            $(".pt-3").first().click();
-        }, 10);
+        });*@
     });
+    function showhide() {
+       /* alert(IsBack);*/
+        //$('#divMailDetails').hide();
+        //$('#divMailList').show();
+        //var LeadEmailMessageId = $(".pt-3").first().attr("attLeadEmailMessageId");
+        //var LeadId = $(".pt-3").first().attr("attLeadId");
+        //fnRightSideDetails(LeadEmailMessageId, LeadId);
+        location.reload();
+    }
 
 </script>

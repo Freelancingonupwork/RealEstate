@@ -29,6 +29,8 @@ namespace EstajoMailService.App_Code.DAL
         public string Body { get; set; }
         public Nullable<bool> IsReplay { get; set; }
         public Nullable<int> EmailMessageId { get; set; }
+        public Nullable<bool> IsRead { get; set; }
+        public Nullable<int> IsType { get; set; }
         public Nullable<System.DateTime> CreatedDate { get; set; }
         public Nullable<System.DateTime> UpdatedDate { get; set; }
     

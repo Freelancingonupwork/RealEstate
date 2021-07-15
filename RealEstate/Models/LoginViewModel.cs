@@ -53,4 +53,10 @@ namespace RealEstate.Models
         GoogleAuth = 2,
         MicrosoftAuth = 3
     }
+
+    public enum MessageType
+    {
+        EmailMessage = 1,
+        TextMessage = 2
+    }
 }

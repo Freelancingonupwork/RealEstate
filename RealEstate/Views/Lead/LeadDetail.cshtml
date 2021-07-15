@@ -1,4 +1,6 @@
 ﻿@using System.IO;
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
 @model LeadViewModel
 @{
     ViewData["Title"] = "LeadDetail";
@@ -13,6 +15,9 @@
 
     int AccountId = Convert.ToInt32(Context.Request.Cookies["LoginAccountId"].ToString());
 
+    string FullName = Context.Request.Cookies["FullName"].ToString();
+
+    var TwilloPhoneNumber = @Configuration.GetSection("twilio")["twilioCompanyNumber"];
 }
 <style type="text/css">
     .circle__spinner {
@@ -705,7 +710,7 @@
                         </div>
                         <div class="col-12 col-lg-8">
                             <div class="row justify-content-between profile-detail-text">
-                                <div class="profile-name">
+                                <div class="profile-name" style="flex-basis:150px;">
                                     <h4>@Model.FirstName @Model.LastName</h4>
                                     <p>Last communication one week ago</p>
                                     <button onclick="return ConfirmationDialog(@Model.LeadId)" class="btn btn-primary">Delete Person</button>
@@ -787,9 +792,9 @@
                                         @if (Convert.ToInt32(Model.StageId) <= 0)
                                         {
                                             @*<p>
-                                                    <strong>Stage</strong>
-                                                    <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(0)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
-                                                </p>*@
+                                        <strong>Stage</strong>
+                                        <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(0)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Stage</strong>
                                                 <div class="follow-us-inner"><span>Not Assigned</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(0)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></div>
@@ -798,9 +803,9 @@
                                         else
                                         {
                                             @*<p>
-                                                    <strong>Stage</strong>
-                                                    <span>@Model.Stage.StageName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(@Model.StageId)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
-                                                </p>*@
+                                        <strong>Stage</strong>
+                                        <span>@Model.Stage.StageName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(@Model.StageId)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Stage</strong>
                                                 <div class="follow-us-inner"><span>@Model.Stage.StageName</span>&nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setStageValue(@Model.StageId)" data-toggle="modal" data-target="#divAssignStageModal"><i class="fa fa-pencil"></i></a></div>
@@ -812,9 +817,9 @@
                                         @if (Convert.ToInt32(Model.StageId) <= 0)
                                         {
                                             @*<p>
-                                                    <strong>Stage</strong>
-                                                    <span><font color="red">Not Assigned</font> </span>
-                                                </p>*@
+                                        <strong>Stage</strong>
+                                        <span><font color="red">Not Assigned</font> </span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Stage</strong>
                                                 <div class="follow-us-inner"><span>Not Assigned</span></div>
@@ -823,9 +828,9 @@
                                         else
                                         {
                                             @*<p>
-                                                    <strong>Stage</strong>
-                                                    <span>@Model.Stage.StageName </span>
-                                                </p>*@
+                                        <strong>Stage</strong>
+                                        <span>@Model.Stage.StageName </span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Stage</strong>
                                                 <div class="follow-us-inner"><span>@Model.Stage.StageName</span></div>
@@ -839,9 +844,9 @@
                                         @if (Convert.ToInt32(Model.AgentId) <= 0)
                                         {
                                             @*<p>
-                                                    <strong>Agent</strong>
-                                                    <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                                </p>*@
+                                        <strong>Agent</strong>
+                                        <span><font color="red">Not Assigned</font> &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(0)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Agent</strong>
                                                 <div class="follow-us-inner">
@@ -852,9 +857,9 @@
                                         else
                                         {
                                             @*<p>
-                                                    <strong>Agent</strong>
-                                                    <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
-                                                </p>*@
+                                        <strong>Agent</strong>
+                                        <span>@Model.Agent.FullName &nbsp;&nbsp;<a href="#" style="color:#ffffff" onclick="setAgentValue(@Model.AgentId)" data-toggle="modal" data-target="#divAssignAgent"><i class="fa fa-pencil"></i></a></span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Agent</strong>
                                                 <div class="follow-us-inner">
@@ -868,9 +873,9 @@
                                         @if (Convert.ToInt32(Model.AgentId) <= 0)
                                         {
                                             @*<p>
-                                                    <strong>Agent</strong>
-                                                    <span><font color="red">Not Assigned</font> </span>
-                                                </p>*@
+                                        <strong>Agent</strong>
+                                        <span><font color="red">Not Assigned</font> </span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Agent</strong>
                                                 <div class="follow-us-inner">
@@ -881,9 +886,9 @@
                                         else
                                         {
                                             @*<p>
-                                                    <strong>Agent</strong>
-                                                    <span>@Model.Agent.FullName </span>
-                                                </p>*@
+                                        <strong>Agent</strong>
+                                        <span>@Model.Agent.FullName </span>
+                                    </p>*@
                                             <div class="follow-us">
                                                 <strong>Agent</strong>
                                                 <div class="follow-us-inner">
@@ -893,7 +898,7 @@
                                         }
                                     }
                                     @*<p><strong>Lender</strong><span></span></p>
-                                        <p><strong>Price</strong><span></span></p>*@
+                            <p><strong>Price</strong><span></span></p>*@
                                     @if (userTypeAdmin == RoleType.Admin.GetHashCode())
                                     {
 
@@ -1028,8 +1033,8 @@
                                     <p><strong>Skype</strong><span>@(Model.SkypeId != null ? Model.SkypeId : "N/A")</span></p>
                                     <p><strong>Twitter</strong><span>@(Model.TwitterId != null ? Model.TwitterId : "N/A")</span></p>
                                     @*<p><strong>Google</strong><span>Search Dan Corkill</span></p>
-                                        <p><strong>Name</strong><span>Estajo</span></p>
-                                        <p><strong>Location</strong><span>San Francisco</span></p>*@
+                            <p><strong>Name</strong><span>Estajo</span></p>
+                            <p><strong>Location</strong><span>San Francisco</span></p>*@
                                 </div>
                             </div>
                         </div>
@@ -1122,303 +1127,1025 @@
                                     }
                                     @*<p><strong>Website</strong> @(Model.Website != null ? Model.Website : "N/A")</p>*@
                                     @*<p><strong>Birthday</strong><span></span></p>
-                                        <p><strong>Close Date</strong><span></span></p>
-                                        <p><strong>Commission</strong><span></span></p>
-                                        <p><strong>Spouse Name</strong><span></span></p>*@
+                            <p><strong>Close Date</strong><span></span></p>
+                            <p><strong>Commission</strong><span></span></p>
+                            <p><strong>Spouse Name</strong><span></span></p>*@
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="main-tab-wrapper mt-3">
+                <div class="main-tab-wrapper lead-detail-tab mt-3">
                     <div class="content-bg">
                         <div class="row justify-content-between">
-                            <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" id="send-email-tab" data-toggle="pill" href="#send-email"
-                                       role="tab" aria-controls="send-email" aria-selected="false">Send Email</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="create-note-tab" data-toggle="pill"
-                                       href="#create-note" role="tab" aria-controls="create-note"
-                                       aria-selected="true">Create Note</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
-                                       aria-controls="text" aria-selected="false">Text</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                                       role="tab" aria-controls="log-call" aria-selected="true">Log Call</a>
-                                </li>
-                            </ul>
-                            @*<div class="list-button-wrapper mr-4">
-                                    <button class="btn btn-primary mr-2">How it work</button>
-                                </div>*@
-                        </div>
-                    </div>
-                </div>
-                <div class="content-bg mt-3">
-                    <div class="row">
-                        <div class="tab-content" id="pills-tabContent">
-                            @*<div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                                     aria-labelledby="create-note-tab">
-                                    <div class="custom-card-text create-note-wrapper">
+                            <div class="col-lg-12">
+                                <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" id="create-note-tab" data-toggle="pill" href="#create-note" role="tab" aria-controls="create-note" aria-selected="true"><i class="fa fa-thumb-tack"></i>Create Note</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="send-email-tab" data-toggle="pill" href="#send-email" role="tab" aria-controls="send-email" aria-selected="false"><i class="fa fa-envelope"></i>Send Email</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab" aria-controls="text" aria-selected="false"><i class="fa fa-file"></i>Text</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call" role="tab" aria-controls="log-call" aria-selected="true"><i class="fa fa-phone"></i>Log Call</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="pills-tabContent">
+                                    <!-- Create Note -->
+                                    <div class="tab-pane fade show active" id="create-note" role="tabpanel"
+                                         aria-labelledby="create-note-tab">
+                                        <div class="custom-card-text create-note-wrapper">
 
-                                        <textarea>Add note and mentions here</textarea>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <button class="btn btn-primary mr-2">
-                                                    Try Team
-                                                    Mentions
-                                                </button>
-                                            </div>
-                                            <div class="col-6 text-right">
-                                                <button class="btn btn-primary mr-2">
-                                                    Creat
-                                                    Note
-                                                </button>
+                                            <textarea>Add note and mentions here</textarea>
+                                            <div class="row">
+                                                <div class="col-6"></div>
+                                                <div class="col-6 text-right">
+                                                    <button class="btn creat-note-btn">Creat Note</button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>*@
-                            <input type="hidden" id="hdnLeadEmailMsgId" />
-                            <input type="hidden" id="hdnEmailMessageId" />
-                            <input type="hidden" id="hdnFromName" />
-                            <input type="hidden" id="hdnToName" />
-                            <input type="hidden" id="hdnIsReplay" />
-                            <div class="tab-pane fade show active" id="send-email" role="tabpanel"
-                                 aria-labelledby="send-email-tab">
-                                <div class="custom-card-text create-note-wrapper">
-                                    <label>To:</label>
+                                    <!-- Create Note END -->
+                                    <!-- Send Email -->
+                                    <div class="tab-pane fade" id="send-email" role="tabpanel"
+                                         aria-labelledby="send-email-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <div class="tab-pane-body">
+                                                <div class="send-email-to">
+                                                    <form class="form-inline">
+                                                        <label class="my-1 mr-2" for="inlineFormCustomSelectPref">To:</label>
+                                                        <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="">
+                                                    </form>
+                                                    <div class="send-email-to-add">
+                                                        <a class="" href="#">Add CC</a>
+                                                        <a class="" href="#">Add BCC</a>
+                                                    </div>
+                                                </div>
+                                                <div class="send-email-subject">
+                                                    <form class="form-inline">
+                                                        <label class="my-1 mr-2" for="inlineFormCustomSelectPref">subject:</label>
+                                                        <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="">
+                                                    </form>
+                                                </div>
+                                                @*<textarea>Write your text...</textarea>*@
+                                                <textarea id="txtMailBodyLeadDetails" class="form-control mb-3" rows="200"></textarea>
+                                            </div>
+
+                                            <div class="tab-pane-footer">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="attach-btn">
+                                                            <a class="attach-file" href="#" data-toggle="tooltip" data-placement="top" title="Attach file(s)"><i class="fa fa-paperclip"></i>Attachments<input type="file" class="form-control-file" id="exampleFormControlFile1"></a>
+                                                            <a href="#" data-toggle="tooltip" data-placement="top" title="Shortcut type /templatename to use templates"><i class="fa fa-file"></i>Templates</a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <a href="#" data-toggle="tooltip" data-placement="top" title="Discard email draft"><i class="fa fa-trash"></i></a>
+                                                        <button class="btn send-email-btn"><span data-toggle="tooltip" data-placement="top" title="Shortcut, press ctrl+enter to send the email">Send Email</span> <i class="fa fa-clock-o" data-toggle="tooltip" data-placement="top" title="Schedule Email"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Send Email -->
+                                    <!-- text -->
+                                    <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
+                                        <div class="custom-card-text create-note-wrapper ">
+                                            <div class="tab-pane-body">
+                                                <div class="send-email-to">
+                                                    <form class="form-inline">
+                                                        <label class="my-1 mr-2" for="inlineFormCustomSelectPref">To:</label>
+                                                        <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="">
+                                                    </form>
+                                                </div>
+                                                <div class="text-textarea">
+                                                    <textarea>Write your text...</textarea>
+                                                    <div class="attachments-area">
+                                                        <a href="javascript:void(0)" class="img-attach"><i class="fa fa-image"></i><input type="file" class="form-control-file" id="exampleFormControlFile1"></a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane-footer">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <a href="#" class="templates-btn"><i class="fa fa-copy"></i>Templates</a>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <button class="btn send-text-btn">Send Text</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- text END -->
+                                    <!-- Log Call -->
+                                    <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+
+                                            <div class="tab-pane-body">
+                                                <div class="log-call-notes">
+                                                    <textarea>Add call notes...</textarea>
+                                                    <div class="log-call-footer">
+                                                        <a href="#" class="log-info-btn btn">No Answer</a>
+                                                        <a href="#" class="log-info-btn btn">Left Voicemail</a>
+                                                        <a href="#" class="log-info-btn btn">Bad Number</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="tab-pane-footer">
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <form>
+                                                            <div class="form-group">
+                                                                <select class="form-control" id="exampleFormControlSelect1">
+                                                                    <option>(888) 888-8888(mobile)</option>
+                                                                </select>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="col-6 text-right">
+                                                        <button class="btn log-call-btn">Log Call</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Log Call END -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="content-bg mt-3 lead-detail-list-tab">
+                        <div class="row justify-content-between">
+                            <div class="col-lg-12">
+                                <ul class="nav nav-pills" id="myTab" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link active" id="All-tab" data-toggle="tab" href="#All" role="tab" aria-controls="All" aria-selected="true"><i class="fa fa-list-ul"></i><span>All</span></a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="Emails-list-tab" data-toggle="tab" href="#Emails-list" role="tab" aria-controls="Emails-list" aria-selected="false"><i class="fa fa-envelope"></i><span>32</span></a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="Texts-list-tab" data-toggle="tab" href="#Texts-list" role="tab" aria-controls="Texts-list" aria-selected="false"><i class="fa fa-file"></i><span>02</span></a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="Calls-list-tab" data-toggle="tab" href="#Calls-list" role="tab" aria-controls="Calls-list" aria-selected="false"><i class="fa fa-phone"></i><span>05</span></a>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <a class="nav-link" id="Notes-list-tab" data-toggle="tab" href="#Notes-list" role="tab" aria-controls="Notes-list" aria-selected="false"><i class="fa fa-thumb-tack"></i><span>08</span></a>
+                                    </li>
+                                    <li class="nav-item filter-item" role="presentation">
+                                        <a href="#">Filters</a>
+                                    </li>
+                                </ul>
+                                <div class="tab-content" id="myTabContent">
+
+
+                                    <div class="tab-pane fade show active" id="All" role="tabpanel" aria-labelledby="All-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <ul class="all-list">
+                                                <li class="call-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-phone"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Ifiok Charles</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 5:16:29 pm</span>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>hi</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>SSSSS</p>
+                                                            <div class="mail-content-info">
+                                                                <a class="content-info-icon" href="javascript:void(0)"><i class="fa fa-ellipsis-h"></i></a>
+                                                                <div class="content-info-text">
+                                                                    <div class="mail-signature">Samarth Pathak</div>
+                                                                    <div class="mail-quote">
+                                                                        <p class="date-mailid">On Mon, Jun 7, 2021 at 07:34 PM, Samarth Pathak samarth@estajo.com wrote:</p>
+                                                                        <blockquote>
+                                                                            <p>Test attachment</p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p class="mail-signature">Samarth Pathak</p>
+                                                                        </blockquote>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mail-thread">
+                                                                    <a href="javascript:void(0)" class="mail-thread-num">
+                                                                        1 more emails in thread
+                                                                    </a>
+                                                                    <div class="thread-info">
+                                                                        <div class="mail-oth">Samarth Pathak</div>
+                                                                        <div class="mail-icon"><i class="fa fa-envelope-open"></i></div>
+                                                                        <div class="mail-content">Test attachment</div>
+                                                                        <div class="thread-info-right">
+                                                                            <span><i class="fa fa-paperclip"></i></span>
+                                                                            <div class="mail-date-time">Jun 7th 2021, 7:34:12 pm</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>Hi,</p>
+                                                            <p>Your Agent Email Address is:- samarth@estajo.com</p>
+                                                            <p>Your Temporary Agent Password is:- Estajo@123</p>
+                                                            <p>Please login with the above details and set your own password.</p>
+                                                            <p>Thank You.</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>SSSSS</p>
+                                                            <div class="mail-content-info">
+                                                                <a class="content-info-icon" href="javascript:void(0)"><i class="fa fa-ellipsis-h"></i></a>
+                                                                <div class="content-info-text">
+                                                                    <div class="mail-signature">Samarth Pathak</div>
+                                                                    <div class="mail-quote">
+                                                                        <p class="date-mailid">On Mon, Jun 7, 2021 at 07:34 PM, Samarth Pathak samarth@estajo.com wrote:</p>
+                                                                        <blockquote>
+                                                                            <p>Test attachment</p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p class="mail-signature">Samarth Pathak</p>
+                                                                        </blockquote>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mail-thread">
+                                                                    <a href="javascript:void(0)" class="mail-thread-num"> 3 more emails in thread</a>
+                                                                    <div class="thread-info">
+                                                                        <div class="thread-info-01">
+                                                                            <div class="mail-oth">Samarth Pathak</div>
+                                                                            <div class="mail-icon"></div>
+                                                                            <div class="mail-content">Realllly????</div>
+                                                                            <div class="thread-info-right">
+                                                                                <div class="mail-date-time">Jun 12th 2021, 12:51:29 pm</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="thread-info-02">
+                                                                            <div class="thread-info-heder">
+                                                                                <div class="mail-oth">
+                                                                                    <ul class="bread-co">
+                                                                                        <li>Samarth Pathak</li>
+                                                                                        <li><i class="fa fa-chevron-right"></i></li>
+                                                                                        <li>Constro Umbraco</li>
+                                                                                    </ul>
+                                                                                    <div class="chat-action">
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="mail-date-time">Jun 12th 2021, 12:51:29 pm</div>
+                                                                                <p><strong>Re:Test Mail</strong></p>
+                                                                            </div>
+                                                                            <div class="thread-info-body">
+                                                                                <p>Test Mail 2</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div class="thread-info">
+                                                                        <div class="thread-info-01">
+                                                                            <div class="mail-oth">Constro Umbraco</div>
+                                                                            <div class="mail-icon"></div>
+                                                                            <div class="mail-content">It's working!</div>
+                                                                            <div class="thread-info-right">
+                                                                                <div class="mail-date-time">Jun 12th 2021, 12:27:59 pm</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="thread-info-02">
+                                                                            <div class="thread-info-heder">
+                                                                                <div class="mail-oth">
+                                                                                    <ul class="bread-co">
+                                                                                        <li>Constro Umbraco</li>
+                                                                                        <li><i class="fa fa-chevron-right"></i></li>
+                                                                                        <li>Samarth Pathak</li>
+                                                                                    </ul>
+                                                                                    <div class="chat-action">
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="mail-date-time">Jun 12th 2021, 1:29:28 pm</div>
+                                                                                <p><strong>Re:Test Mail</strong></p>
+                                                                            </div>
+                                                                            <div class="thread-info-body">
+                                                                                <p>Test Mail 1</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+
+                                                                    <div class="thread-info">
+                                                                        <div class="thread-info-01">
+                                                                            <div class="mail-oth">Samarth Pathak</div>
+                                                                            <div class="mail-icon"></div>
+                                                                            <div class="mail-content">Test Mail</div>
+                                                                            <div class="thread-info-right">
+                                                                                <div class="mail-date-time">Jun 12th 2021, 12:51:29 pm</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="thread-info-02">
+                                                                            <div class="thread-info-heder">
+                                                                                <div class="mail-oth">
+                                                                                    <ul class="bread-co">
+                                                                                        <li>Samarth Pathak</li>
+                                                                                        <li><i class="fa fa-chevron-right"></i></li>
+                                                                                        <li>Constro Umbraco</li>
+                                                                                    </ul>
+                                                                                    <div class="chat-action">
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                                        <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div class="mail-date-time">Jun 12th 2021, 12:51:29 pm</div>
+                                                                                <p><strong>Test Mail</strong></p>
+                                                                            </div>
+                                                                            <div class="thread-info-body">
+                                                                                <p>Test Mail</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                                <li class="call-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-phone"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Ifiok Charles</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">May 21st 2021, 7:02:01 pm</span>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="tab-pane fade" id="Emails-list" role="tabpanel" aria-labelledby="Emails-list-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <ul class="all-list">
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>SSSSS</p>
+                                                            <div class="mail-content-info">
+                                                                <a class="content-info-icon" href="javascript:void(0)"><i class="fa fa-ellipsis-h"></i></a>
+                                                                <div class="content-info-text">
+                                                                    <div class="mail-signature">Samarth Pathak</div>
+                                                                    <div class="mail-quote">
+                                                                        <p class="date-mailid">On Mon, Jun 7, 2021 at 07:34 PM, Samarth Pathak samarth@estajo.com wrote:</p>
+                                                                        <blockquote>
+                                                                            <p>Test attachment</p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p class="mail-signature">Samarth Pathak</p>
+                                                                        </blockquote>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mail-thread">
+                                                                    <a href="javascript:void(0)" class="mail-thread-num">
+                                                                        1 more emails in thread
+                                                                    </a>
+                                                                    <div class="thread-info">
+                                                                        <div class="mail-oth">Samarth Pathak</div>
+                                                                        <div class="mail-icon"><i class="fa fa-envelope-open"></i></div>
+                                                                        <div class="mail-content">Test attachment</div>
+                                                                        <div class="thread-info-right">
+                                                                            <span><i class="fa fa-paperclip"></i></span>
+                                                                            <div class="mail-date-time">Jun 7th 2021, 7:34:12 pm</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>Hi,</p>
+                                                            <p>Your Agent Email Address is:- samarth@estajo.com</p>
+                                                            <p>Your Temporary Agent Password is:- Estajo@123</p>
+                                                            <p>Please login with the above details and set your own password.</p>
+                                                            <p>Thank You.</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="mail-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-envelope"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Samarth Pathak</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 12:51:28 pm</span>
+                                                                <p class="info-text">Attachment Mail</p>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply"></i><span>Reply</span></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-reply-all"></i></button>
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>SSSSS</p>
+                                                            <div class="mail-content-info">
+                                                                <a class="content-info-icon" href="javascript:void(0)"><i class="fa fa-ellipsis-h"></i></a>
+                                                                <div class="content-info-text">
+                                                                    <div class="mail-signature">Samarth Pathak</div>
+                                                                    <div class="mail-quote">
+                                                                        <p class="date-mailid">On Mon, Jun 7, 2021 at 07:34 PM, Samarth Pathak samarth@estajo.com wrote:</p>
+                                                                        <blockquote>
+                                                                            <p>Test attachment</p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p></p>
+                                                                            <p class="mail-signature">Samarth Pathak</p>
+                                                                        </blockquote>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="mail-thread">
+                                                                    <a href="javascript:void(0)" class="mail-thread-num">
+                                                                        3 more emails in thread
+                                                                    </a>
+                                                                    <div class="thread-info">
+                                                                        <div class="mail-oth">Samarth Pathak.....</div>
+                                                                        <div class="mail-icon"></div>
+                                                                        <div class="mail-content">Realllly????</div>
+                                                                        <div class="thread-info-right">
+                                                                            <div class="mail-date-time">Jun 12th 2021, 12:51:29 pm</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="thread-info">
+                                                                        <div class="mail-oth">Constro Umbraco</div>
+                                                                        <div class="mail-icon"></div>
+                                                                        <div class="mail-content">It's working! </div>
+                                                                        <div class="thread-info-right">
+                                                                            <span></span>
+                                                                            <div class="mail-date-time">Jun 12th 2021, 12:27:59 pm</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="thread-info">
+                                                                        <div class="mail-oth">Samarth Pathak</div>
+                                                                        <div class="mail-icon"><i class="fa fa-envelope-open"></i></div>
+                                                                        <div class="mail-content">Test attachment</div>
+                                                                        <div class="thread-info-right">
+                                                                            <span></span>
+                                                                            <div class="mail-date-time">Live Mail Testing Body</div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+
+                                    <div class="tab-pane fade" id="Texts-list" role="tabpanel" aria-labelledby="Texts-list-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <p class="text-center"><i class="fa fa-heartbeat"></i></p>
+                                            <p class="text-center">No notes yet</p>
+                                        </div>
+
+                                    </div>
+
+
+                                    <div class="tab-pane fade" id="Calls-list" role="tabpanel" aria-labelledby="Calls-list-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <ul class="all-list">
+                                                <li class="call-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-phone"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Ifiok Charles</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">Jun 14th 2021, 5:16:29 pm</span>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                            <p>hi</p>
+                                                        </div>
+                                                    </div>
+                                                </li>
+
+                                                <li class="call-list-box">
+                                                    <a href="#" class="list-btn"><i class="fa fa-phone"></i></a>
+                                                    <div class="all-list-info">
+                                                        <div class="all-info-header">
+                                                            <div class="info-header-left">
+                                                                <ul class="bread-co">
+                                                                    <li>Ifiok Charles</li>
+                                                                    <li><i class="fa fa-chevron-right"></i></li>
+                                                                    <li>Constro Umbraco</li>
+                                                                </ul>
+                                                                <span class="date-time">May 21st 2021, 7:02:01 pm</span>
+                                                            </div>
+                                                            <div class="chat-action">
+                                                                <button class="btn btn-secondary"><i class="fa fa-ellipsis-h"></i></button>
+                                                            </div>
+
+                                                        </div>
+                                                        <div class="all-info-body">
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="Notes-list" role="tabpanel" aria-labelledby="Notes-list-tab">
+                                        <div class="custom-card-text create-note-wrapper">
+                                            <p class="text-center"><i class="fa fa-heartbeat"></i></p>
+                                            <p class="text-center">No notes yet</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="main-tab-wrapper mt-3">
+        <div class="content-bg">
+            <div class="row justify-content-between">
+                <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="send-email-tab" data-toggle="pill" href="#send-email"
+                           role="tab" aria-controls="send-email" aria-selected="false">Send Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
+                           aria-controls="text" aria-selected="false">Text</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
+                           role="tab" aria-controls="log-call" aria-selected="true">Log Call</a>
+                    </li>
+                </ul>-->
+                @*<div class="list-button-wrapper mr-4">
+            <button class="btn btn-primary mr-2">How it work</button>
+        </div>*@
+                <!--</div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade  show active" id="send-email" role="tabpanel"
+                         aria-labelledby="send-email-tab">
+                        <input type="hidden" id="hdnLeadEmailMsgId" />
+                        <input type="hidden" id="hdnEmailMessageId" />
+                        <input type="hidden" id="hdnFromName" />
+                        <input type="hidden" id="hdnToName" />
+                        <input type="hidden" id="hdnIsReplay" />
+                        <div class="custom-card-text create-note-wrapper content-bg p-3">
+                            <label>To:</label>
+                            <b>
+                                @Model.EmailAddress
+                                <input type="hidden" id="hdnToMailAddress" value="@Model.EmailAddress" />
+                            </b>
+                            <p>
+                                Subject: <input type="text" id="txtMailSubject" class="form-control mb-3" />
+                            </p>
+                            <textarea id="txtMailBodyLeadDetails" class="form-control mb-3" rows="200"></textarea>
+                            <p>
+                                Attachments:<input type="file" id="fileInputMail" multiple class="form-control mb-3" />
+                            </p>
+                            <div class="row">
+                                <div class="col-6">
+                                </div>
+                                <div class="col-6 text-right mt-3">
+                                    <button type="submit" class="btn btn-primary mr-2" onclick="fnSendEmail(@Model.LeadId)">Send Email</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-bg mt-3 p-3">
+                            <div id="divMailList">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
+                        <div class="custom-card-text create-note-wrapper content-bg p-3">
+                            <div>
+                                <label>To:</label>
+                                <b>
+                                    @(Model.PhoneNumber == null ? "N/A" : Model.PhoneNumber)
+                                    <input type="hidden" id="hdnPhoneNumber" value="@Model.PhoneNumber" />
+
+                                    <input type="hidden" id="hdnToName" value="@Model.EmailAddress" />
+                                </b>
+                            </div>
+                            @if (userTypeAdmin == RoleType.Admin.GetHashCode())
+                            {
+                                <div>
+                                    <label>From:</label>
                                     <b>
-                                        @Model.EmailAddress
-                                        <input type="hidden" id="hdnToMailAddress" value="@Model.EmailAddress" />
+                                        @TwilloPhoneNumber
+                                        <input type="hidden" id="hdnFromPhoneNumber" value="@TwilloPhoneNumber" />
                                     </b>
-                                    <p>
-                                        Subject: <input type="text" id="txtMailSubject" class="form-control mb-3" />
-                                    </p>
-                                    <textarea id="txtMailBody" class="form-control mb-3" rows="200"></textarea>
-                                    <p>
-                                        Attachments:<input type="file" id="fileInputMail" multiple class="form-control mb-3" />
-                                    </p>
-                                    <div class="row">
-                                        <div class="col-6">
-                                        </div>
-                                        <div class="col-6 text-right mt-3">
-                                            <button type="submit" class="btn btn-primary mr-2" onclick="fnSendEmail(@Model.LeadId)">Send Email</button>
-                                        </div>
-                                    </div>
+                                </div>
+                                <input type="hidden" id="hdnAgentName" value="@FullName" />
+                            }
+                            else
+                            {
+                                @if (Model.Agent != null)
+                                {
+                                    <input type="hidden" id="hdnAgentName" value="@Model.Agent.FullName" />
+                                }
+                            }
+                            <textarea id="txtTextBodyMessage" class="form-control mb-3" rows="5" placeholder="Write your text..."></textarea>
+                            <div class="row">
+                                <div class="col-6">
+                                </div>
+                                <div class="col-6 text-right mt-3">
+                                    <button type="submit" class="btn btn-primary mr-2" onclick="fnSendTextMessage(@Model.LeadId)">Send Text</button>
                                 </div>
                             </div>
-                            @*<div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
-                                    <div class="custom-card-text create-note-wrapper">
+                        </div>
+                        <div class="content-bg mt-3 p-3">
+                            <div id="divTextMessageList">
 
-                                        <textarea>Add note and mentions here</textarea>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <button class="btn btn-primary mr-2">
-                                                    Try Team
-                                                    Mentions
-                                                </button>
-                                            </div>
-                                            <div class="col-6 text-right">
-                                                <button class="btn btn-primary mr-2">
-                                                    Creat
-                                                    Note
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
-                                    <div class="custom-card-text create-note-wrapper">
-
-                                        <textarea>Add note and mentions here</textarea>
-                                        <div class="row">
-                                            <div class="col-6">
-                                                <button class="btn btn-primary mr-2">
-                                                    Try Team
-                                                    Mentions
-                                                </button>
-                                            </div>
-                                            <div class="col-6 text-right">
-                                                <button class="btn btn-primary mr-2">
-                                                    Creat
-                                                    Note
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>*@
+                            </div>
                         </div>
                     </div>
-                </div>
+                    <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
+                        <div class="custom-card-text create-note-wrapper content-bg p-3">
 
-                <div class="main-tab-wrapper mt-3" style="display:none">
-                    <div class="content-bg">
-                        <div class="row justify-content-between chat-listing-tab">
-                            <ul class="nav nav-pills" id="pills-tab" role="tablist">
-                                <li class="nav-item">
-                                    <a class="nav-link active" id="all-tab" data-toggle="pill" href="#all"
-                                       role="tab" aria-controls="all" aria-selected="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-list">
-                                            <line x1="8" y1="6" x2="21" y2="6"></line>
-                                            <line x1="8" y1="12" x2="21" y2="12"></line>
-                                            <line x1="8" y1="18" x2="21" y2="18"></line>
-                                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                                        </svg> All
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="send-email-tab" data-toggle="pill" href="#send-email"
-                                       role="tab" aria-controls="send-email" aria-selected="false">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-mail">
-                                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                            </path>
-                                            <polyline points="22,6 12,13 2,6"></polyline>
-                                        </svg>
-                                        <span>5</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
-                                       aria-controls="text" aria-selected="false">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-message-square">
-                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z">
-                                            </path>
-                                        </svg>
-                                        <span>3</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                                       role="tab" aria-controls="log-call" aria-selected="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-phone">
-                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-                                            </path>
-                                        </svg>
-                                        <span>0</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                                       role="tab" aria-controls="log-call" aria-selected="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-bookmark">
-                                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                        </svg><span>0</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                                       role="tab" aria-controls="log-call" aria-selected="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-activity">
-                                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                        </svg><span>0</span>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
-                                       role="tab" aria-controls="log-call" aria-selected="true">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                             viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                             stroke-linecap="round" stroke-linejoin="round"
-                                             class="feather feather-gift">
-                                            <polyline points="20 12 20 22 4 22 4 12"></polyline>
-                                            <rect x="2" y="7" width="20" height="5"></rect>
-                                            <line x1="12" y1="22" x2="12" y2="7"></line>
-                                            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
-                                            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
-                                        </svg>
-                                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                                        <span>0</span>
-                                    </a>
-                                </li>
-                            </ul>
-                            <div class="list-button-wrapper mr-4">
-                                <button class="btn btn-primary mr-2">Filter</button>
+                            <textarea>Add note and mentions here</textarea>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-primary mr-2">
+                                        Try Team
+                                        Mentions
+                                    </button>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <button class="btn btn-primary mr-2">
+                                        Creat
+                                        Note
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="content-bg mt-3 p-3">
+                            <div class="custom-card-header">
+                                <div class="chat-icon btn-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         class="feather feather-mail">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="chat-header-detail flex-grow-1 ml-3">
+                                    <h5>
+                                        Dan Corkill
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                        Ifiok Charles
+                                    </h5>
+                                    <span>8 days ago</span>
+                                    <h5>Automate your lead engagement</h5>
+                                </div>
+                                <div class="chat-action">
+                                    <button class="btn btn-secondary">Reply</button>
+                                    <button class="btn btn-secondary">Reply All</button>
+                                    <button class="btn btn-secondary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="custom-card-text ml-5">
+                                <p> Hi Ifiok,</p>
+                                <p>Follow Up Boss can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Follow Up Boss so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
+                                <p>Need help? Just hit reply.</p>
+                                <p>Regards, <br>The Follow Up Boss Team</p>
+                                <p><br></p>
+                            </div>
+                            <div class="divider my-5"></div>
+                            <div class="custom-card-header">
+                                <div class="chat-icon btn-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                         stroke-linecap="round" stroke-linejoin="round"
+                                         class="feather feather-mail">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                        </path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                </div>
+                                <div class="chat-header-detail flex-grow-1 ml-3">
+                                    <h5>
+                                        Dan Corkill
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                        Ifiok Charles
+                                    </h5>
+                                    <span>8 days ago</span>
+                                    <h5>Automate your lead engagement</h5>
+                                </div>
+                                <div class="chat-action">
+                                    <button class="btn btn-secondary">Reply</button>
+                                    <button class="btn btn-secondary">Reply All</button>
+                                    <button class="btn btn-secondary">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="custom-card-text ml-5">
+                                <p> Hi Ifiok,</p>
+                                <p>Follow Up Boss can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Follow Up Boss so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
+                                <p>Need help? Just hit reply.</p>
+                                <p>Regards, <br>The Follow Up Boss Team</p>
+                                <p><br></p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="content-bg mt-3">
-                    <div class="row">
-                        <div class="tab-content" id="pills-tabContent">
-                            <div class="tab-pane fade show active" id="create-note" role="tabpanel"
-                                 aria-labelledby="create-note-tab">
-                                <div id="divMailList">
-
+            </div>
+        </div>
+    </div>-->
+                <!--<div class="main-tab-wrapper mt-3">
+    <div class="content-bg">
+        <div class="row justify-content-between">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="send-email-tab" data-toggle="pill" href="#send-email"
+                       role="tab" aria-controls="send-email" aria-selected="false">Send Email</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="text-tab" data-toggle="pill" href="#text" role="tab"
+                       aria-controls="text" aria-selected="false">Text</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="log-call-tab" data-toggle="pill" href="#log-call"
+                       role="tab" aria-controls="log-call" aria-selected="true">Log Call</a>
+                </li>
+            </ul>-->
+                @*<div class="list-button-wrapper mr-4">
+            <button class="btn btn-primary mr-2">How it work</button>
+        </div>*@
+                <!--</div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="tab-content" id="pills-tabContent">
+                    <input type="hidden" id="hdnLeadEmailMsgId" />
+                    <input type="hidden" id="hdnEmailMessageId" />
+                    <input type="hidden" id="hdnFromName" />
+                    <input type="hidden" id="hdnToName" />
+                    <input type="hidden" id="hdnIsReplay" />
+                    <div class="tab-pane fade show active" id="send-email" role="tabpanel"
+                         aria-labelledby="send-email-tab">
+                        <div class="custom-card-text create-note-wrapper">
+                            <label>To:</label>
+                            <b>
+                                @Model.EmailAddress
+                                <input type="hidden" id="hdnToMailAddress" value="@Model.EmailAddress" />
+                            </b>
+                            <p>
+                                Subject: <input type="text" id="txtMailSubject" class="form-control mb-3" />
+                            </p>
+                            <textarea id="txtMailBodyLeadDetails" class="form-control mb-3" rows="200"></textarea>
+                            <p>
+                                Attachments:<input type="file" id="fileInputMail" multiple class="form-control mb-3" />
+                            </p>
+                            <div class="row">
+                                <div class="col-6">
                                 </div>
-
-                                @*<div class="custom-card-header">
-                                        <div class="chat-icon btn-icon">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                 stroke-linecap="round" stroke-linejoin="round"
-                                                 class="feather feather-mail">
-                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-                                                </path>
-                                                <polyline points="22,6 12,13 2,6"></polyline>
-                                            </svg>
-                                        </div>
-                                        <div class="chat-header-detail flex-grow-1 ml-3">
-                                            <h5>
-                                                Dan Corkill
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                                                Ifiok Charles
-                                            </h5>
-                                            <span>8 days ago</span>
-                                            <h5>Automate your lead engagement</h5>
-                                        </div>
-                                        <div class="chat-action">
-                                            <button class="btn btn-secondary">Reply</button>
-                                            <button class="btn btn-secondary">Reply All</button>
-                                            <button class="btn btn-secondary">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-more-vertical"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="custom-card-text ml-5">
-                                        <p> Hi Ifiok,</p>
-                                        <p>Estajo can automatically pull in leads from <b>over 200 lead sources</b>. If you get online leads, you’ll want to send those directly to Estajo so we can start following up for you right away. <a href="https://follow-up-boss-2.intercom-clicks.com/via/e?ob=o3r2oUIXPQ1gyogPn4FZAfHEuMTIIB%2BLTBJahwMpfZEt0AEB8tR35N%2FQXljGWBBp6%2BqNZ2puZ8iMCEDJCl9Rolw26gZ12wurnqHYYSVgzHo%3D&amp;h=bf340fe87a517d1e77e872ccbf91cbedb5ee6556-mfhsavoz_3906303709776&amp;l=15cd337cccd2bcb041e6cbc220662e8b893ba130-2285611" style="border:none;color:#1251ba;text-decoration:underline;" target="_blank" rel="noreferrer noopener">Here is how you can send in leads</a>.</p>
-                                        <p>Need help? Just hit reply.</p>
-                                        <p>Regards, <br>The Estajo Team</p>
-                                        <p><br></p>
-                                    </div>*@
-                            </div>
-                            <div class="tab-pane fade" id="send-email" role="tabpanel"
-                                 aria-labelledby="send-email-tab">
-                                2...
-                            </div>
-                            <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
-                                3...
-                            </div>
-                            <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
-                                4...
+                                <div class="col-6 text-right mt-3">
+                                    <button type="submit" class="btn btn-primary mr-2" onclick="fnSendEmail(@Model.LeadId)">Send Email</button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
+                        <div class="custom-card-text create-note-wrapper content-bg p-3">
+                            <textarea>Add note and mentions here</textarea>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-primary mr-2">
+                                        Try Team
+                                        Mentions
+                                    </button>
+                                </div>
+                                <div class="col-6 text-right">
+                                    <button class="btn btn-primary mr-2">
+                                        Creat
+                                        Note
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>-->
+                @*<div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
+            <div class="custom-card-text create-note-wrapper">
+
+                <textarea>Add note and mentions here</textarea>
+                <div class="row">
+                    <div class="col-6">
+                        <button class="btn btn-primary mr-2">
+                            Try Team
+                            Mentions
+                        </button>
+                    </div>
+                    <div class="col-6 text-right">
+                        <button class="btn btn-primary mr-2">
+                            Creat
+                            Note
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>*@
+                <!--</div>
+            </div>
+        </div>
+    </div>
+    <div class="content-bg mt-3">
+        <div class="row">
+            <div class="tab-content" id="pills-tabContent">
+                <div class="tab-pane fade show active" id="send-email" role="tabpanel"
+                     aria-labelledby="send-email-tab">
+                    <div id="divMailList">
+
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="create-note" role="tabpanel"
+                     aria-labelledby="create-note-tab">
+                    2...
+                </div>
+                <div class="tab-pane fade" id="text" role="tabpanel" aria-labelledby="text-tab">
+                    3...
+                </div>
+                <div class="tab-pane fade" id="log-call" role="tabpanel" aria-labelledby="log-call-tab">
+                    4...
+                </div>
+            </div>
+        </div>
+    </div>-->
             </div>
         </div>
     </div>
@@ -1429,7 +2156,7 @@
 <script type="text/javascript">
 
     $(document).ready(function () {
-
+     
         $('[data-toggle="tooltip"]').tooltip();
 
         $("#cmbtag").select2({
@@ -1531,11 +2258,23 @@
 
         });
 
-        CKEDITOR.replace('txtMailBody', {
+        //CKEDITOR.replace('txtMailBodyLeadDetails', {
+        //    filebrowserImageBrowseUrl: '/Lead/uploadPartial',
+        //    filebrowserImageUploadUrl: '/Lead/UploadImage'
+        //});
+
+        CKEDITOR.replace('txtMailBodyLeadDetails', {
+            //extraPlugins: 'tokens',
             filebrowserImageBrowseUrl: '/Lead/uploadPartial',
             filebrowserImageUploadUrl: '/Lead/UploadImage'
-        })
+        });
     });
+    function updateValue(id, value) {
+        // this gets called from the popup window and updates the field with a new value
+        //document.getElementById(id).value = value1;
+        var jqueryObjectByClass = $(".cke_dialog_ui_input_text")[1];
+        jqueryObjectByClass.value = value;
+    }
     function chkatchtbl() {
         if ($('#FilesList tr').length > 1) {
             $("#FilesList").css("display", "inline-table");
@@ -1569,4 +2308,22 @@
     //    window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?fileName=' + fileName + "&LeadId=" + LeadID;
     //});
     /*});*/
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".content-info-icon").click(function () {
+            $(".content-info-text").toggleClass("show");
+        })
+    });
+
+    $(document).ready(function () {
+        $(".mail-thread-num").click(function () {
+            $(".mail-thread").toggleClass("show");
+        })
+    });
+    $(document).ready(function () {
+        $(".thread-info").click(function () {
+            $(this).toggleClass("open");
+        })
+    });
 </script>

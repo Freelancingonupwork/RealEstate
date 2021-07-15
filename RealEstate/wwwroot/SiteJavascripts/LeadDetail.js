@@ -8,6 +8,10 @@ function ConfirmationDialog(ID) {
         return false;
 }
 
+$("#text-tab").click(function () {
+    fnGetLeadDetailTextMessage();
+});
+
 function fnDeleteLead(ID) {
     var formData = new FormData();
     formData.append("leadID", ID);
@@ -644,7 +648,7 @@ function changeDateFormat(inputDate) {  // expects Y-m-d
 function fnSendEmail(LeadId) {
     var ToMailAddress = document.getElementById('hdnToMailAddress');
     var MailSubject = document.getElementById("txtMailSubject");
-    var MailBody = CKEDITOR.instances['txtMailBody'].getData()
+    var MailBody = CKEDITOR.instances['txtMailBodyLeadDetails'].getData()
     var fileInputMail = document.getElementById('fileInputMail');
 
     if (MailSubject.value == '' && MailBody == '') {
@@ -683,6 +687,7 @@ function fnSendEmail(LeadId) {
             return;
         }
     }
+    $("#divLoader").show();
     var formData = new FormData(); //FormData object
     formData.append("EmailSubject", MailSubject.value);
     formData.append("MailBody", MailBody);
@@ -703,7 +708,7 @@ function fnSendEmail(LeadId) {
         fnGetLeadDetailMails();
         $('#txtMailSubject').val('');
         $('#fileInputMail').val('');
-        CKEDITOR.instances.txtMailBody.setData('');
+        CKEDITOR.instances.txtMailBodyLeadDetails.setData('');
         $('html, body').animate({
             scrollTop: $("#divMailList").offset().top
         }, 2000, function () {
@@ -735,7 +740,7 @@ function fnGetLeadDetailMails() {
             console.log(result);
             console.log(result.accountname);
             console.log(result.data.length);
-            var AccountName = result.accountname;
+            var AccountId = result.accountname;
             for (i = 0; i < result.data.length; i++) {
                 var html;
                 if (result.data[i].leadEmailMessageReplayList.length > 0) {
@@ -755,9 +760,9 @@ function fnGetLeadDetailMails() {
                         "<h5>" + result.data[i].leadEmailMessageReplayList[0].subject + "</h5> " +
                         "</div> " +
                         "<div class=\"chat-action\"> " +
-                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageReplayList[0].leadEmailMessageId + "," + result.data[i].leadEmailMessageReplayList[0].leadId + ");\">Reply</button> " +
+                        "<button style='" + (result.data[i].leadEmailMessageReplayList[0].accountId == AccountId ? "display:block" : "display:none")  +"' class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageReplayList[0].leadEmailMessageId + "," + result.data[i].leadEmailMessageReplayList[0].leadId + ");\">Reply</button> " +
                         "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button> " +
-                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +
+                        /*"<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +*/
                         "</div>" +
                         "</div>" +
                         "<div class=\"custom-card-text ml-5\"> " +
@@ -783,9 +788,9 @@ function fnGetLeadDetailMails() {
                         "<h5> SUBJECTVAR </h5 > " +
                         "</div> " +
                         "<div class=\"chat-action\"> " +
-                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(LEADMSGIDVAR,LEADIDVAR);\"> Reply</button > " +
+                        "<button STYLEVAR class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(LEADMSGIDVAR,LEADIDVAR);\"> Reply</button > " +
                         "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button > " +
-                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button> " +
+                        /*"<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button> " +*/
                         "</div> " +
                         "</div> " +
                         "<div class=\"custom-card-text\"> " +
@@ -797,27 +802,27 @@ function fnGetLeadDetailMails() {
                     for (j = 1; j < result.data[i].leadEmailMessageReplayList.length; j++) {
                         //html = row += NestedRow.replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
                         if (result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement.length > 0) {
-                            for (k = 0; k < result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement.length; k = j) {
+                            for (k = j; k < result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement.length; k++) {
                                 //alert(NestedRow);
                                 //alert(result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName);
                                 //html = row += NestedRow.replace("ATTACHMENTVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName);
-                                html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src =\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "'," + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].leadId + ");\"><i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                                html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src =\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "'," + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].leadId + ");\"><i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body).replace("STYLEVAR",  "style = '" + (result.data[i].leadEmailMessageReplayList[j].accountId == AccountId ? "display:block" : "display:none")  +"'");
                                 //html = html + NestedRow.replace("ATTACHMENTVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageReplayAttachement[k].fileName).replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body)
                             }
                         }
                         else {
                             //html = row += NestedRow.replace(" ATTACHMENTVAR ","1111");
-                            html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body);
+                            html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadEmailMessageReplayList[j].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageReplayList[j].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].toName)).replace("FROMADDRESSVAR", (result.data[i].leadEmailMessageReplayList[j].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].leadEmailMessageReplayList[j].createdDate)).replace("SUBJECTVAR", result.data[i].leadEmailMessageReplayList[j].subject).replace("BODYVAR", result.data[i].leadEmailMessageReplayList[j].body).replace("STYLEVAR", "style = '" + (result.data[i].leadEmailMessageReplayList[j].accountId == AccountId ? "display:block" : "display:none") + "'");
                         }
                     }
-                 
+
                     if (result.data[i].leadEmailMessageattachement.length > 0) {
                         for (ji = 0; ji < result.data[i].leadEmailMessageattachement.length; ji++) {
-                            html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src=\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageattachement[ji].fileName + "'," + result.data[i].leadEmailMessageattachement[ji].leadId + ");\">&nbsp;<i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageattachement[ji].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                            html = row += NestedRow.replace("ATTACHMENTVAR", "<a style=\"color:#BF0D1C\" src=\"javascript:void(0)\" onclick=\"fnDownloadMailAttachment('" + result.data[i].leadEmailMessageattachement[ji].fileName + "'," + result.data[i].leadEmailMessageattachement[ji].leadId + ");\">&nbsp;<i class=\"fa fa-paperclip\" aria-hidden=\"true\"></i>&nbsp;" + result.data[i].leadEmailMessageattachement[ji].fileName + "</a>").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body).replace("STYLEVAR", "style = '" + (result.data[i].accountId == AccountId ? "display:block" : "display:none") + "'");
                         }
                     }
                     else {
-                        html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body);
+                        html = row += NestedRow.replace("ATTACHMENTVAR", "").replace("LEADIDVAR", result.data[i].leadId).replace("LEADMSGIDVAR", result.data[i].leadEmailMessageId).replace("TOADDRESSVAR", (result.data[i].toName)).replace("FROMADDRESSVAR", (result.data[i].fromName)).replace("TIMEAGOVAR", fromNow(result.data[i].createdDate)).replace("SUBJECTVAR", result.data[i].subject).replace("BODYVAR", result.data[i].body).replace("STYLEVAR", "style = '" + (result.data[i].accountId == AccountId ? "display:block" : "display:none") + "'");
                     }
                     html = html + "</div>";
                 }
@@ -836,9 +841,9 @@ function fnGetLeadDetailMails() {
                         "<h5>" + result.data[i].subject + "</h5> " +
                         "</div> " +
                         "<div class=\"chat-action\"> " +
-                        "<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageId + "," + result.data[i].leadId + ");\">Reply</button> " +
+                        "<button style='" + (result.data[i].accountId == AccountId ? "display:block" : "display:none") +"' class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageId + "," + result.data[i].leadId + ");\">Reply</button> " +
                         "<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button> " +
-                        "<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +
+                        /*"<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +*/
                         "</div>" +
                         "</div>" +
                         "<div class=\"custom-card-text ml-5\"> " +
@@ -854,6 +859,13 @@ function fnGetLeadDetailMails() {
                 }
                 var divider = html + "<div class=\"divider my-5\"></div>";
                 $("#divMailList").append(divider);
+                $(".custom-card-text img").each(function () {
+                    var altText = $(this).attr("src");
+                    $(this).addClass("img-fluid");
+                    $(this).removeAttr("style");
+                    $(this).css('height', '500px');
+                    //$(this).css('text-align', 'center');
+                })
             }
         }
         else {
@@ -879,23 +891,24 @@ function fnGetEmailSubject(leadEmailMessageId, LeadId) {
     formData.append("LeadEmailMessageId", leadEmailMessageId);
     formData.append("LeadId", LeadId);
     var result = __glb_fnIUDOperation(formData, "/Lead/GetMessageSubjecyByLeadMessageId");
-    if (result.success === true) {
-        console.log(result);
-        document.getElementById("txtMailSubject").value = "Re:" + result.subject;
-        document.getElementById("hdnLeadEmailMsgId").value = result.leadEmailMessageId;
-        document.getElementById("hdnEmailMessageId").value = result.emailMessageId;
-        document.getElementById("hdnFromName").value = result.fromName;
-        document.getElementById("hdnToName").value = result.toName;
-        document.getElementById("hdnIsReplay").value = true;
-        //alert(document.getElementById("hdnIsReplay").value);
-        $('html, body').animate({
-            scrollTop: $("#send-email").offset().top
-        }, 500);
+    if (result != null) {
+        if (result.success === true) {
+            console.log(result);
+            document.getElementById("txtMailSubject").value = "Re:" + result.subject;
+            document.getElementById("hdnLeadEmailMsgId").value = result.leadEmailMessageId;
+            document.getElementById("hdnEmailMessageId").value = result.emailMessageId;
+            document.getElementById("hdnFromName").value = result.fromName;
+            document.getElementById("hdnToName").value = result.toName;
+            document.getElementById("hdnIsReplay").value = true;
+            //alert(document.getElementById("hdnIsReplay").value);
+            $('html, body').animate({
+                scrollTop: $("#send-email").offset().top
+            }, 500);
+        }
+        else if (result.success === false) {
+            window.location = "/";
+        }
     }
-    else if (result.success === false) {
-        window.location = "/";
-    }
-
 }
 
 function fnDownloadMailAttachment(fileName, LeadID) {
@@ -904,6 +917,118 @@ function fnDownloadMailAttachment(fileName, LeadID) {
     //window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?fileName=' + fileName + "&LeadId=" + LeadID;
     window.location = window.location.origin + '/Lead/DownloadMailAttachmentFile?LeadId=' + LeadID + "&fileName=" + fileName;
 }
+
+function fnSendTextMessage(LeadId) {
+    var PhoneNumber = document.getElementById('hdnPhoneNumber');
+    //alert(PhoneNumber.value);
+    if (PhoneNumber.value == '') {
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $("#divAlertMessage").html("Invalid number.");
+        $('#divAlertMessage').show();
+        $("#divAlertMessage").addClass("alert alert-danger");
+        setTimeout(function () {
+            $("#divAlertMessage").fadeOut();
+            //loading.hide().delay(90000);
+            $('html, body').animate({
+                scrollTop: $("#pills-tabContent").offset().top
+            }, 500);
+        }, 5000);
+        return;
+    }
+    var TextBodyMessage = document.getElementById("txtTextBodyMessage");
+    $("#divLoader").show();
+    var formData = new FormData(); //FormData object
+    formData.append("TextBodyMessage", TextBodyMessage.value);
+    formData.append("AgentName", document.getElementById("hdnAgentName").value);
+    formData.append("ToName", document.getElementById("hdnToName").value);
+    formData.append("leadID", LeadId);
+    formData.append("PhoneNumber", PhoneNumber.value);
+    var result = __glb_fnIUDOperation(formData, "/Lead/LeadSendTextMessageByLeadID");
+    if (result.success === true) {
+        console.log(result.data);
+        fnGetLeadDetailTextMessage();
+        $('#txtTextBodyMessage').val('');
+        $('html, body').animate({
+            scrollTop: $("#divTextMessageList").offset().top
+        }, 2000, function () {
+            $("#divLoader").hide();
+        });
+    }
+    else {
+        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $("#divLoader").hide();
+        setTimeout(function () {
+            $("#divAlertMessage").fadeOut();
+            //loading.hide().delay(90000);
+            $('html, body').animate({
+                scrollTop: $("#pills-tabContent").offset().top
+            }, 500);
+        }, 5000);
+        $('#txtTextBodyMessage').val('');
+        //$(function () {
+        //    $("#divAlertMessage").fadeOut(2500);
+        //}, 3000);
+        return;
+    }
+}
+
+function fnGetLeadDetailTextMessage() {
+
+    var LeadId = document.getElementById("hdnLeadID").value;
+    var formData = new FormData(); //FormData object
+    formData.append("leadID", LeadId);
+    var result = __glb_fnIUDOperation(formData, "/Lead/GetLeadDetailsTextMessageByLeadID");
+    if (result.success === true) {
+        $("#divTextMessageList").html('');
+        $("#divTextMessageList").removeAttr("style");
+        if (result.data.length > 0) {
+            console.log(result);
+            for (i = 0; i < result.data.length; i++) {
+                var html;
+                html = "<div class=\"custom-card-header\">" +
+                    "<div class=\"chat-icon btn-icon\">" +
+                    "<i class=\"fa fa-comment\" aria-hidden=\"true\"></i>" +
+                    "</div > " +
+                    " <div class=\"chat-header-detail flex-grow-1 ml-3\"> " +
+                    "<h5 style=\"text-transform:capitalize\">" +
+                    (result.data[i].fromName) +
+                    " <i class=\"fa fa-chevron-right\"></i> " +
+                    (result.data[i].toName) +
+                    "</h5> " +
+                    fromNow(result.data[i].createdDate) +
+                    /*"<h5>" + result.data[i].subject + "</h5> " +*/
+                    "</div> " +
+                    //"<div class=\"chat-action\"> " +
+                    //"<button class=\"btn btn-secondary\" onclick=\"fnGetEmailSubject(" + result.data[i].leadEmailMessageId + "," + result.data[i].leadId + ");\">Reply</button> " +
+                    //"<button class=\"btn btn-secondary\" style=\"display:none\"> Reply All</button> " +
+                    //"<button class=\"btn btn-secondary\"><i class=\"fa fa-ellipsis-v\" aria-hidden=\"true\"></i></button>" +
+                    //"</div>" +
+                    "</div>" +
+                    "<div class=\"custom-card-text ml-5\"> " +
+                    result.data[i].body +
+                    "</div>";
+                var divider = html + "<div class=\"divider my-5\"></div>";
+                $("#divTextMessageList").append(divider);
+            }
+        }
+        else {
+            $("#divTextMessageList").css('text-align', 'center').css('color', '#777').append("No Text Message Found.");
+        }
+    }
+    else {
+        $("#divAlertMessage").html(result.message);
+        $('#divAlertMessage').show();
+        document.getElementById("divAlertMessage").classList.add("alert", "alert-danger");
+        $(function () {
+            $("#divAlertMessage").fadeOut(2500);
+        }, 3000);
+        return;
+    }
+}
+
 function fromNow(date) {
     const SECOND = 1000;
     const MINUTE = 60 * SECOND;

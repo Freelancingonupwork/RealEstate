@@ -69,6 +69,49 @@ namespace RealEstate.Utills
 
             oMail.Subject = EmailSubject;
             oMail.HtmlBody = MailBody;
+
+            foreach (var item in fileName)
+            {
+                oMail.AddAttachment(item);
+            }
+
+            EASendMail.SmtpClient oSmtp = new EASendMail.SmtpClient();
+            oSmtp.SendMail(oServer, oMail);
+        }
+
+
+        public static void SendMailUsingGmailImage(string EmailAddress, string AccessToken, string ToMailAddress, string EmailSubject, string MailBody, List<string> fileName, string Path)
+        {
+            // Gmail SMTP server address
+            SmtpServer oServer = new SmtpServer("smtp.gmail.com");
+            // enable SSL connection
+            oServer.ConnectType = SmtpConnectType.ConnectSSLAuto;
+            // Using 587 port, you can also use 465 port
+            oServer.Port = 587;
+
+            // use Gmail SMTP OAUTH 2.0 authentication
+            oServer.AuthType = SmtpAuthType.XOAUTH2;
+            // set user authentication
+            oServer.User = EmailAddress;// oAccountIntegration.EmailAddress;
+            // use access token as password
+            oServer.Password = AccessToken;// oAccountIntegration.AccessToken;
+
+            SmtpMail oMail = new SmtpMail("TryIt");
+            // Your Gmail email address
+            oMail.From = EmailAddress;// oAccountIntegration.EmailAddress;
+
+            // Please change recipient address to yours for test
+            oMail.To = ToMailAddress;
+
+            oMail.Subject = EmailSubject;
+            oMail.HtmlBody = MailBody;
+
+            // Import html body and also import linked image as embedded images.
+            oMail.ImportHtml(MailBody,
+                 Path, //test.gif is in c:\\my picture
+                 ImportHtmlBodyOptions.ImportLocalPictures | ImportHtmlBodyOptions.ImportCss);
+
+
             foreach (var item in fileName)
             {
                 oMail.AddAttachment(item);

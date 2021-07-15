@@ -9,15 +9,15 @@
         <EntityTypeShape EntityType="RealEstateModel.tblAccountCompany" Width="1.5" PointX="3" PointY="1.625" IsExpanded="true" />
         <EntityTypeShape EntityType="RealEstateModel.tblAccountIntegration" Width="1.5" PointX="3" PointY="5.5" IsExpanded="true" />
         <EntityTypeShape EntityType="RealEstateModel.tblLead" Width="1.5" PointX="3" PointY="9.375" IsExpanded="true" />
-        <EntityTypeShape EntityType="RealEstateModel.tblLeadEmailMessage" Width="1.5" PointX="5.25" PointY="10.625" IsExpanded="true" />
         <EntityTypeShape EntityType="RealEstateModel.tblLeadEmailMessageAttachment" Width="1.5" PointX="7.5" PointY="11.375" IsExpanded="true" />
         <AssociationConnector Association="RealEstateModel.FK_tblAccountIntegration_tblAccount" ManuallyRouted="false" />
         <AssociationConnector Association="RealEstateModel.FK_tblCompany_tblCompany" ManuallyRouted="false" />
         <AssociationConnector Association="RealEstateModel.FK_tblLead_tblAccount" ManuallyRouted="false" />
         <AssociationConnector Association="RealEstateModel.FK_tblLead_tblAccount1" ManuallyRouted="false" />
-        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessage_tblAccount" ManuallyRouted="false" />
-        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessage_tblLead" ManuallyRouted="false" />
-        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="RealEstateModel.tblLeadEmailMessage" Width="1.5" PointX="5.25" PointY="10.5" />
+        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessage_tblAccount" />
+        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessage_tblLead" />
+        <AssociationConnector Association="RealEstateModel.FK_tblLeadEmailMessageAttachment_tblLeadEmailMessage" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

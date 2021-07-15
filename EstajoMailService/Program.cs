@@ -12,6 +12,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace EstajoMailService
@@ -36,6 +37,7 @@ namespace EstajoMailService
         static readonly string MicrosofttokenUri = ConfigurationManager.AppSettings["MicrosofttokenUri"].ToString();
 
         static readonly string ImagePath = ConfigurationManager.AppSettings["AttachmentImagePath"].ToString();
+        static readonly string MailReadImgPath = ConfigurationManager.AppSettings["MailReadImgPath"].ToString();
         static async Task Main(string[] args)
         {
             try
@@ -102,10 +104,10 @@ namespace EstajoMailService
                                                     {
                                                         foreach (var itemUserList in item.tblLeads1)
                                                         {
-                                                            var oLeadEmailMessage = item.tblLeadEmailMessages.Where(x => x.LeadId == itemUserList.LeadId && x.AccountId == itemUserList.AgentId).FirstOrDefault();
+                                                            var oLeadEmailMessage = item.tblLeadEmailMessages.Where(x => x.LeadId == itemUserList.LeadId && x.AccountId == itemUserList.AgentId && x.IsType == MessageType.EmailMessage.GetHashCode()).FirstOrDefault();
                                                             if (oLeadEmailMessage != null)
                                                             {
-                                                                RetrieveMailWithXOAUTH(itemAccountIntegrations.EmailAddress, itemAccountIntegrations.AccessToken /*result.access_token*/, itemUserList.EmailAddress, (int)itemAccountIntegrations.AccountId);
+                                                                //RetrieveMailWithXOAUTH(itemAccountIntegrations.EmailAddress, itemAccountIntegrations.AccessToken /*result.access_token*/, itemUserList.EmailAddress, (int)itemAccountIntegrations.AccountId, oLeadEmailMessage.LeadEmailMessageId);
                                                             }
                                                         }
                                                     }
@@ -131,10 +133,11 @@ namespace EstajoMailService
                                                     {
                                                         foreach (var itemUserList in item.tblLeads1)
                                                         {
-                                                            var oLeadEmailMessage = item.tblLeadEmailMessages.Where(x => x.LeadId == itemUserList.LeadId && x.AccountId == itemUserList.AgentId).FirstOrDefault();
-                                                            if (oLeadEmailMessage != null)
+                                                            var oLeadEmailMessage = item.tblLeadEmailMessages.Where(x => x.LeadId == itemUserList.LeadId && x.AccountId == itemUserList.AgentId && x.IsReplay == false && x.EmailMessageId == 0 && x.IsType == MessageType.EmailMessage.GetHashCode()).ToList();
+                                                            //if (oLeadEmailMessage != null)
+                                                            foreach (var itemLeadEmailMessage in oLeadEmailMessage)
                                                             {
-                                                                RetrieveMailWithXOAUTH(itemAccountIntegrations.EmailAddress, itemAccountIntegrations.AccessToken /*result.access_token*/, itemUserList.EmailAddress, (int)itemAccountIntegrations.AccountId);
+                                                                RetrieveMailWithXOAUTH(itemAccountIntegrations.EmailAddress, itemAccountIntegrations.AccessToken /*result.access_token*/, itemUserList.EmailAddress, (int)itemAccountIntegrations.AccountId, /*itemLeadEmailMessage.LeadEmailMessageId*/ itemLeadEmailMessage);
                                                             }
                                                         }
                                                     }
@@ -183,7 +186,7 @@ namespace EstajoMailService
                                             }
                                         }
                                     }
-                                   
+
                                 }
                                 else
                                 {
@@ -297,7 +300,7 @@ namespace EstajoMailService
         }
 
 
-        static void RetrieveMailWithXOAUTH(string userEmail, string accessToken, string SenderContainsEmail, int AccountId)
+        static void RetrieveMailWithXOAUTH(string userEmail, string accessToken, string SenderContainsEmail, int AccountId, /*int LeadEmailMessageId*/ tblLeadEmailMessage itemLeadEmailMessage)
         {
             try
             {
@@ -326,7 +329,7 @@ namespace EstajoMailService
                 // Get new email only, if you want to get all emails, please remove this line
                 oClient.GetMailInfosParam.GetMailInfosOptions = GetMailInfosOptionType.NewOnly;
                 oClient.GetMailInfosParam.SenderContains = SenderContainsEmail;
-                
+
 
                 Console.WriteLine("Connecting {0} ...", oServer.Server);
                 utility.log("Connecting Gmail {0} ..." + oServer.Server);
@@ -339,53 +342,85 @@ namespace EstajoMailService
 
                 using (var db = new RealEstateEntities())
                 {
-                    var oLeadEmailMessage = db.tblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.EmailMessageId == 0).ToList();
-                    foreach (var item in oLeadEmailMessage)
+                    //var oLeadEmailMessage = db.tblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.EmailMessageId == 0).ToList();
+                    //foreach (var item in itemLeadEmailMessage)
+                    //{
+                    for (int i = 0; i < infos.Length; i++)
                     {
-                        for (int i = 0; i < infos.Length; i++)
+                        MailInfo info = infos[i];
+                        Console.WriteLine("Index: {0}; Size: {1}; UIDL: {2}; Flags: {3}",
+                            info.Index, info.Size, info.UIDL, info.Flags);
+
+
+                        // Receive email from email server
+                        Mail oMail = oClient.GetMail(info);
+
+                        Console.WriteLine("From: {0}", oMail.From.ToString());
+                        Console.WriteLine("To: {0}", oMail.To.ToString());
+                        Console.WriteLine("Subject: {0}\r\n", oMail.Subject);
+
+                        utility.log("From:-" + oMail.From.ToString());
+                        utility.log("To:-" + oMail.To[0].ToString());
+                        utility.log("Subject:-" + oMail.Subject);
+                        utility.log("Subject1:-" + oMail.Subject.Replace("Re:", "").Replace("(Trial Version)", "").Trim());
+                        //Console.WriteLine("Body: {0}\r\n", oMail.HtmlBody);
+                        //Console.WriteLine("Text Body: {0}\r\n", oMail.TextBody);
+                        string oRepSubj = oMail.Subject.Replace("Re:", "").Replace("(Trial Version)", "").Trim();
+                        if (itemLeadEmailMessage.Subject.Equals(oRepSubj)) // && LeadEmailMessageId == item.LeadEmailMessageId
                         {
-                            MailInfo info = infos[i];
-                            Console.WriteLine("Index: {0}; Size: {1}; UIDL: {2}; Flags: {3}",
-                                info.Index, info.Size, info.UIDL, info.Flags);
+                            utility.log(itemLeadEmailMessage.Subject + "----" + oMail.Subject + "---Matched");
 
-
-                            // Receive email from email server
-                            Mail oMail = oClient.GetMail(info);
-
-                            Console.WriteLine("From: {0}", oMail.From.ToString());
-                            Console.WriteLine("To: {0}", oMail.To.ToString());
-                            Console.WriteLine("Subject: {0}\r\n", oMail.Subject);
-
-                            utility.log("From:-" + oMail.From.ToString());
-                            utility.log("To:-" + oMail.To[0].ToString());
-                            utility.log("Subject:-" + oMail.Subject);
-                            //Console.WriteLine("Body: {0}\r\n", oMail.HtmlBody);
-                            //Console.WriteLine("Text Body: {0}\r\n", oMail.TextBody);
-
-                            if (item.Subject.Equals(oMail.Subject.Replace("Re:", "").Replace("(Trial Version)", "").Trim()))
+                            foreach (var itemAttachment in oMail.Attachments)
                             {
-                                utility.log(item.Subject + "----" + oMail.Subject + "---Matched");
-
-                                tblLeadEmailMessage obj = new tblLeadEmailMessage();
-                                obj.AccountId = AccountId;
-                                obj.LeadId = item.LeadId;
-                                foreach (var itemTo in oMail.To)
+                                if (itemAttachment.ContentID != "")
                                 {
-                                    obj.ToName = itemTo.Name == "" ? itemTo.Address.Split('@')[0] : itemTo.Name;
+                                    string matchString = Regex.Match(oMail.HtmlBody, "<img.+?src=[\"'](.+?)[\"'].+?>", RegexOptions.IgnoreCase).Groups[0].Value;
+                                    if (matchString != "")
+                                    {
+                                        if (matchString.Contains(itemAttachment.ContentID))
+                                        {
+                                            if (!Directory.Exists(MailReadImgPath))
+                                            {
+                                                Directory.CreateDirectory(MailReadImgPath);
+                                            }
+                                            string fileName = Guid.NewGuid().ToString("N").Substring(0, 8) + Path.GetExtension(itemAttachment.Name);
+                                            File.WriteAllBytes(MailReadImgPath + "\\" + fileName, itemAttachment.Content); // Requires System.IO
+
+                                            oMail.HtmlBody = Regex.Replace(oMail.HtmlBody, matchString, @"<img src='../../mail-read-img/" + fileName + @"'/>");
+                                        }
+                                    }
                                 }
-                                obj.FromName = oMail.From.Name;
-                                obj.Subject = item.Subject;
-                                obj.Body = oMail.HtmlBody;
-                                obj.IsReplay = true;
-                                obj.EmailMessageId = item.LeadEmailMessageId;
-                                obj.CreatedDate = oMail.ReceivedDate;
-                                db.tblLeadEmailMessages.Add(obj);
+                            }
+
+                            tblLeadEmailMessage obj = new tblLeadEmailMessage();
+                            obj.AccountId = AccountId;
+                            obj.LeadId = itemLeadEmailMessage.LeadId;
+                            foreach (var itemTo in oMail.To)
+                            {
+                                obj.ToName = itemTo.Name == "" ? itemTo.Address.Split('@')[0] : itemTo.Name;
+                            }
+                            obj.FromName = oMail.From.Name;
+                            obj.Subject = itemLeadEmailMessage.Subject;
+                            obj.Body = oMail.HtmlBody;
+                            obj.IsReplay = true;
+                            obj.IsRead = false;
+                            obj.EmailMessageId = itemLeadEmailMessage.LeadEmailMessageId;
+                            obj.CreatedDate = oMail.ReceivedDate;
+                            db.tblLeadEmailMessages.Add(obj);
+                            db.SaveChanges();
+
+
+                            var oLeadEmailMessage = db.tblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadEmailMessageId == itemLeadEmailMessage.LeadEmailMessageId && x.IsType == MessageType.EmailMessage.GetHashCode()).FirstOrDefault();
+                            if (oLeadEmailMessage != null)
+                            {
+                                oLeadEmailMessage.IsRead = false;
                                 db.SaveChanges();
+                            }
 
-                                foreach (var itemAttachment in oMail.Attachments)
+                            foreach (var itemAttachment in oMail.Attachments)
+                            {
+                                if (itemAttachment.ContentID == "")
                                 {
-                                    
-
                                     string fileName = Guid.NewGuid().ToString("N").Substring(0, 8) + Path.GetExtension(itemAttachment.Name);
                                     //FileStream filestream = new FileStream(ImagePath + "\\" + item.AccountId + "\\" + item.LeadId + "\\" + fileName, FileMode.Create);
                                     //var streamwriter = new StreamWriter(filestream);
@@ -393,7 +428,7 @@ namespace EstajoMailService
                                     //Console.SetOut(streamwriter);
                                     //Console.SetError(streamwriter);
 
-                                    File.WriteAllBytes(ImagePath + "\\" + item.AccountId + "\\" + item.LeadId + "\\" + fileName, itemAttachment.Content); // Requires System.IO
+                                    File.WriteAllBytes(ImagePath + "\\" + itemLeadEmailMessage.AccountId + "\\" + itemLeadEmailMessage.LeadId + "\\" + fileName, itemAttachment.Content); // Requires System.IO
 
                                     tblLeadEmailMessageAttachment oData = new tblLeadEmailMessageAttachment();
                                     //oData.LeadEmailMessageId = item.LeadEmailMessageId;
@@ -403,16 +438,17 @@ namespace EstajoMailService
                                     db.tblLeadEmailMessageAttachments.Add(oData);
                                     db.SaveChanges();
                                 }
-
-                                // Mark email as read to prevent retrieving this email again.
-                                oClient.MarkAsRead(info, true);
-
                             }
 
-                            // If you want to delete current email, please use Delete method instead of MarkAsRead
-                            // oClient.Delete(info);
+                            // Mark email as read to prevent retrieving this email again.
+                            oClient.MarkAsRead(info, true);
+
                         }
+
+                        // If you want to delete current email, please use Delete method instead of MarkAsRead
+                        // oClient.Delete(info);
                     }
+                    //}
                 }
                 // Quit and expunge emails marked as deleted from server.
                 oClient.Quit();

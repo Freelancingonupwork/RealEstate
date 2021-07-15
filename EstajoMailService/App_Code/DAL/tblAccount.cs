@@ -35,6 +35,7 @@ namespace EstajoMailService.App_Code.DAL
         public Nullable<bool> IsEmailConfig { get; set; }
         public Nullable<System.DateTime> CreatedDate { get; set; }
         public Nullable<System.DateTime> UpdatedDate { get; set; }
+        public Nullable<bool> isTempPassword { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<tblAccountIntegration> tblAccountIntegrations { get; set; }

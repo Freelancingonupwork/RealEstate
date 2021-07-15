@@ -24,6 +24,11 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Net.Http.Headers;
 using EASendMail;
+using System.Text.RegularExpressions;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio;
+using Twilio.Exceptions;
+using Twilio.Types;
 
 namespace RealEstate.Controllers
 {
@@ -460,13 +465,13 @@ namespace RealEstate.Controllers
                                   select A).ToList();
 
                     var agentsId = (from A in _dbContext.TblAccounts // outer sequence
-                                  join AC in _dbContext.TblAccountCompanies //inner sequence 
-                                  on A.AccountId equals AC.AccountId // key selector 
-                                  where AC.AccountId == AccountId
-                                  select AC.AddedBy).FirstOrDefault();
+                                    join AC in _dbContext.TblAccountCompanies //inner sequence 
+                                    on A.AccountId equals AC.AccountId // key selector 
+                                    where AC.AccountId == AccountId
+                                    select AC.AddedBy).FirstOrDefault();
 
                     var oMainAgentName = _dbContext.TblAccounts.Where(x => x.AccountId == agentsId).FirstOrDefault();
-                    if(oMainAgentName != null)
+                    if (oMainAgentName != null)
                     {
                         oAgentlist.Add(oMainAgentName.AccountId, oMainAgentName.FullName);
                     }
@@ -1546,16 +1551,16 @@ namespace RealEstate.Controllers
                 int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
 
                 var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
-                if(oAccountIntegration != null)
+                if (oAccountIntegration != null)
                 {
 
-                    return Json(new { success = true , emailAddres = oAccountIntegration.EmailAddress });
+                    return Json(new { success = true, emailAddres = oAccountIntegration.EmailAddress });
                 }
                 else
                 {
                     return Json(new { success = false });
                 }
-               
+
             }
             catch (Exception ex)
             {
@@ -2045,6 +2050,11 @@ namespace RealEstate.Controllers
             return $"{_webHostEnvironment.WebRootPath}\\MailAttachment\\{AccountId}\\{LeadId}";
         }
 
+        private string GetMailBodyImgPath()
+        {
+            return $"{_webHostEnvironment.WebRootPath}";
+        }
+
         public FileResult DownloadFile(int id, string fileName)
         {
             try
@@ -2121,11 +2131,21 @@ namespace RealEstate.Controllers
                     string TONAME = Request.Form["ToName"].ToString();
                     string IsReplay = Request.Form["IsReplay"].ToString();
 
+                    //string matchString = Regex.Match(MailBody, "<img.+?src=[\"'](.+?)[\"'].+?>", RegexOptions.IgnoreCase).Groups[1].Value;
+                    //if (matchString != "")
+                    //{
+                    //    string oFullImgPath = GetMailBodyImgPath() + matchString;
+                    //    MailBody.Replace(matchString, oFullImgPath);
+
+                    //    MailBody = Regex.Replace(MailBody, "<img.+?src=[\"'](.+?)[\"'].*?>", @"<img src='" + oFullImgPath + @"'/>");
+                    //}
+
+                    string oFullImgPath = GetMailBodyImgPath();
 
                     var TOName = _dbContext.TblLeads.Where(x => x.LeadId == LeadId).FirstOrDefault();
                     var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
 
-                    var fName = Request.Cookies["FullName"].ToString();
+                    var fName = Request.Cookies["EmailAddress"].ToString();// Request.Cookies["FullName"].ToString();
                     List<string> AttachmentFiles = new List<string>();
                     if (IsReplay != "")
                     {
@@ -2137,12 +2157,14 @@ namespace RealEstate.Controllers
                             oLeadEmailMessage.AccountId = AccountId;
                             //oLeadEmailMessage.FromName = TONAME;// FROMNAME;
                             //oLeadEmailMessage.ToName = FROMNAME;// TONAME;
-                            oLeadEmailMessage.FromName = oAccountIntegration == null ? fName : oAccountIntegration.Name;
+                            oLeadEmailMessage.FromName = oAccountIntegration == null ? fName.Split('@')[0] : oAccountIntegration.EmailAddress.Split('@')[0];
                             oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
                             oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
                             oLeadEmailMessage.Body = MailBody;
                             oLeadEmailMessage.EmailMessageId = EmailMessageId != "" ? Convert.ToInt32(EmailMessageId) == 0 ? Convert.ToInt32(LeadEmailMsgId) : Convert.ToInt32(EmailMessageId) : 0;
                             oLeadEmailMessage.IsReplay = true;
+                            oLeadEmailMessage.IsRead = false;
+                            oLeadEmailMessage.IsType = MessageType.EmailMessage.GetHashCode();
                             oLeadEmailMessage.CreatedDate = DateTime.Now;
                             _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
                             _dbContext.SaveChanges();
@@ -2196,10 +2218,12 @@ namespace RealEstate.Controllers
                         TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
                         oLeadEmailMessage.LeadId = LeadId;
                         oLeadEmailMessage.AccountId = AccountId;
-                        oLeadEmailMessage.FromName = oAccountIntegration == null ? fName : oAccountIntegration.Name;
+                        oLeadEmailMessage.FromName = oAccountIntegration == null ? fName.Split('@')[0] : oAccountIntegration.EmailAddress.Split('@')[0];
                         oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
                         oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
                         oLeadEmailMessage.Body = MailBody;
+                        oLeadEmailMessage.IsRead = false;
+                        oLeadEmailMessage.IsType = MessageType.EmailMessage.GetHashCode();
                         oLeadEmailMessage.CreatedDate = DateTime.Now;
                         _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
                         _dbContext.SaveChanges();
@@ -2262,7 +2286,7 @@ namespace RealEstate.Controllers
                                     oAccountIntegration.CreatedDate = response.created;
                                     _dbContext.SaveChanges();
 
-                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles);
+                                    Utility.SendMailUsingGmailImage(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles, oFullImgPath);
 
                                 }
                             }
@@ -2301,7 +2325,7 @@ namespace RealEstate.Controllers
                                 //Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody);
                                 if (oAccountIntegration.AuthAccountType == AuthAccountType.GoogleAuth.GetHashCode())
                                 {
-                                    Utility.SendMailUsingGmail(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles);
+                                    Utility.SendMailUsingGmailImage(oAccountIntegration.EmailAddress, oAccountIntegration.AccessToken, ToMailAddress, EmailSubject, MailBody, AttachmentFiles, oFullImgPath);
                                 }
 
                                 if (oAccountIntegration.AuthAccountType == AuthAccountType.MicrosoftAuth.GetHashCode())
@@ -2360,79 +2384,161 @@ namespace RealEstate.Controllers
                     int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                     int LeadId = Convert.ToInt32(Request.Form["leadID"]);
 
-                    string accountName;
-                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
-                    if (oAccountIntegration != null)
+                    if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) == RoleType.Admin.GetHashCode())
                     {
-                        accountName = oAccountIntegration.Name;
-                    }
-                    else
-                    {
-                        accountName = "N/A";
-                    }
 
-                    var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId).Include(x => x.Lead).ToList();
-                    if (oLeadEmailMessageList.Count > 0)
-                    {
-                        var oMainMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == false).ToList();
-                        var oReplayMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == true).ToList();
-
-                        //LeadEmailMessage model = new LeadEmailMessage();
-                        List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
-                        foreach (var item in oMainMsgList.OrderByDescending(x => x.CreatedDate))
+                        string accountName;
+                        var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                        if (oAccountIntegration != null)
                         {
-                            var MainMessageList = new LeadEmailMessageViewModel();
-                            MainMessageList.AccountId = (int)item.AccountId;
-                            MainMessageList.Body = item.Body;
-                            MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
-                            MainMessageList.EmailMessageId = item.EmailMessageId;
-                            MainMessageList.IsReplay = item.IsReplay;
-                            MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
-                            MainMessageList.LeadId = item.LeadId;
-                            MainMessageList.Subject = item.Subject;
-                            MainMessageList.ToName = item.ToName;
-                            MainMessageList.FromName = item.FromName;
-                            MainMessageList.LeadEmailMessageReplayList = new List<LeadEmailMessageViewModel>();
-                            MainMessageList.LeadEmailMessageattachement = new List<LeadEmailMessageAttachement>();
-                            foreach (var itemReplay in oReplayMsgList.Where(x => x.EmailMessageId == item.LeadEmailMessageId).OrderByDescending(x => x.CreatedDate))
+                            accountName = oAccountIntegration.Name;
+                        }
+                        else
+                        {
+                            accountName = "N/A";
+                        }
+
+                        var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.LeadId == LeadId && x.IsType == MessageType.EmailMessage.GetHashCode()).Include(x => x.Lead).ToList();
+                        if (oLeadEmailMessageList.Count > 0)
+                        {
+                            var oMainMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == false).ToList();
+                            var oReplayMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == true).ToList();
+
+                            //LeadEmailMessage model = new LeadEmailMessage();
+                            List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
+                            foreach (var item in oMainMsgList.OrderByDescending(x => x.CreatedDate))
                             {
-                                var ReplayMessageList = new LeadEmailMessageViewModel();
-                                ReplayMessageList.AccountId = (int)itemReplay.AccountId;
-                                ReplayMessageList.Body = itemReplay.Body;
-                                ReplayMessageList.CreatedDate = (DateTime)itemReplay.CreatedDate;
-                                ReplayMessageList.EmailMessageId = itemReplay.EmailMessageId;
-                                ReplayMessageList.IsReplay = itemReplay.IsReplay;
-                                ReplayMessageList.LeadEmailMessageId = itemReplay.LeadEmailMessageId;
-                                ReplayMessageList.LeadId = itemReplay.LeadId;
-                                ReplayMessageList.Subject = itemReplay.Subject;
-                                ReplayMessageList.ToName = itemReplay.ToName;
-                                ReplayMessageList.FromName = itemReplay.FromName;
-                                ReplayMessageList.LeadEmailMessageReplayAttachement = new List<LeadEmailMessageReplayAttachement>();
-                                foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == itemReplay.LeadEmailMessageId).ToList())
+                                var MainMessageList = new LeadEmailMessageViewModel();
+                                MainMessageList.AccountId = (int)item.AccountId;
+                                MainMessageList.Body = item.Body;
+                                MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
+                                MainMessageList.EmailMessageId = item.EmailMessageId;
+                                MainMessageList.IsReplay = item.IsReplay;
+                                MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
+                                MainMessageList.LeadId = item.LeadId;
+                                MainMessageList.Subject = item.Subject;
+                                MainMessageList.ToName = item.ToName;
+                                MainMessageList.FromName = item.FromName;
+                                MainMessageList.LeadEmailMessageReplayList = new List<LeadEmailMessageViewModel>();
+                                MainMessageList.LeadEmailMessageattachement = new List<LeadEmailMessageAttachement>();
+                                foreach (var itemReplay in oReplayMsgList.Where(x => x.EmailMessageId == item.LeadEmailMessageId).OrderByDescending(x => x.CreatedDate))
                                 {
-                                    var MessageAttachmentList = new LeadEmailMessageReplayAttachement();
+                                    var ReplayMessageList = new LeadEmailMessageViewModel();
+                                    ReplayMessageList.AccountId = (int)itemReplay.AccountId;
+                                    ReplayMessageList.Body = itemReplay.Body;
+                                    ReplayMessageList.CreatedDate = (DateTime)itemReplay.CreatedDate;
+                                    ReplayMessageList.EmailMessageId = itemReplay.EmailMessageId;
+                                    ReplayMessageList.IsReplay = itemReplay.IsReplay;
+                                    ReplayMessageList.LeadEmailMessageId = itemReplay.LeadEmailMessageId;
+                                    ReplayMessageList.LeadId = itemReplay.LeadId;
+                                    ReplayMessageList.Subject = itemReplay.Subject;
+                                    ReplayMessageList.ToName = itemReplay.ToName;
+                                    ReplayMessageList.FromName = itemReplay.FromName;
+                                    ReplayMessageList.LeadEmailMessageReplayAttachement = new List<LeadEmailMessageReplayAttachement>();
+                                    foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == itemReplay.LeadEmailMessageId).ToList())
+                                    {
+                                        var MessageAttachmentList = new LeadEmailMessageReplayAttachement();
+                                        MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
+                                        MessageAttachmentList.LeadId = (int)LeadId;
+                                        MessageAttachmentList.FileName = itemAttachment.Attachement;
+                                        ReplayMessageList.LeadEmailMessageReplayAttachement.Add(MessageAttachmentList);
+                                    }
+                                    MainMessageList.LeadEmailMessageReplayList.Add(ReplayMessageList);
+                                }
+                                foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == item.LeadEmailMessageId).ToList())
+                                {
+                                    var MessageAttachmentList = new LeadEmailMessageAttachement();
                                     MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
                                     MessageAttachmentList.LeadId = (int)LeadId;
                                     MessageAttachmentList.FileName = itemAttachment.Attachement;
-                                    ReplayMessageList.LeadEmailMessageReplayAttachement.Add(MessageAttachmentList);
+                                    MainMessageList.LeadEmailMessageattachement.Add(MessageAttachmentList);
                                 }
-                                MainMessageList.LeadEmailMessageReplayList.Add(ReplayMessageList);
+                                model.Add(MainMessageList);
                             }
-                            foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == item.LeadEmailMessageId).ToList())
-                            {
-                                var MessageAttachmentList = new LeadEmailMessageAttachement();
-                                MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
-                                MessageAttachmentList.LeadId = (int)LeadId;
-                                MessageAttachmentList.FileName = itemAttachment.Attachement;
-                                MainMessageList.LeadEmailMessageattachement.Add(MessageAttachmentList);
-                            }
-                            model.Add(MainMessageList);
+                            return Json(new { success = true, data = model, accountname = AccountId });
                         }
-                        return Json(new { success = true, data = model, accountname = accountName });
+                        else
+                        {
+                            return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = AccountId });
+                        }
                     }
                     else
                     {
-                        return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = accountName });
+
+                        string accountName;
+                        var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId).FirstOrDefault();
+                        if (oAccountIntegration != null)
+                        {
+                            accountName = oAccountIntegration.Name;
+                        }
+                        else
+                        {
+                            accountName = "N/A";
+                        }
+
+                        var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId && x.IsType == MessageType.EmailMessage.GetHashCode()).Include(x => x.Lead).ToList();
+                        if (oLeadEmailMessageList.Count > 0)
+                        {
+                            var oMainMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == false).ToList();
+                            var oReplayMsgList = oLeadEmailMessageList.Where(x => x.IsReplay == true).ToList();
+
+                            //LeadEmailMessage model = new LeadEmailMessage();
+                            List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
+                            foreach (var item in oMainMsgList.OrderByDescending(x => x.CreatedDate))
+                            {
+                                var MainMessageList = new LeadEmailMessageViewModel();
+                                MainMessageList.AccountId = (int)item.AccountId;
+                                MainMessageList.Body = item.Body;
+                                MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
+                                MainMessageList.EmailMessageId = item.EmailMessageId;
+                                MainMessageList.IsReplay = item.IsReplay;
+                                MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
+                                MainMessageList.LeadId = item.LeadId;
+                                MainMessageList.Subject = item.Subject;
+                                MainMessageList.ToName = item.ToName;
+                                MainMessageList.FromName = item.FromName;
+                                MainMessageList.LeadEmailMessageReplayList = new List<LeadEmailMessageViewModel>();
+                                MainMessageList.LeadEmailMessageattachement = new List<LeadEmailMessageAttachement>();
+                                foreach (var itemReplay in oReplayMsgList.Where(x => x.EmailMessageId == item.LeadEmailMessageId).OrderByDescending(x => x.CreatedDate))
+                                {
+                                    var ReplayMessageList = new LeadEmailMessageViewModel();
+                                    ReplayMessageList.AccountId = (int)itemReplay.AccountId;
+                                    ReplayMessageList.Body = itemReplay.Body;
+                                    ReplayMessageList.CreatedDate = (DateTime)itemReplay.CreatedDate;
+                                    ReplayMessageList.EmailMessageId = itemReplay.EmailMessageId;
+                                    ReplayMessageList.IsReplay = itemReplay.IsReplay;
+                                    ReplayMessageList.LeadEmailMessageId = itemReplay.LeadEmailMessageId;
+                                    ReplayMessageList.LeadId = itemReplay.LeadId;
+                                    ReplayMessageList.Subject = itemReplay.Subject;
+                                    ReplayMessageList.ToName = itemReplay.ToName;
+                                    ReplayMessageList.FromName = itemReplay.FromName;
+                                    ReplayMessageList.LeadEmailMessageReplayAttachement = new List<LeadEmailMessageReplayAttachement>();
+                                    foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == itemReplay.LeadEmailMessageId).ToList())
+                                    {
+                                        var MessageAttachmentList = new LeadEmailMessageReplayAttachement();
+                                        MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
+                                        MessageAttachmentList.LeadId = (int)LeadId;
+                                        MessageAttachmentList.FileName = itemAttachment.Attachement;
+                                        ReplayMessageList.LeadEmailMessageReplayAttachement.Add(MessageAttachmentList);
+                                    }
+                                    MainMessageList.LeadEmailMessageReplayList.Add(ReplayMessageList);
+                                }
+                                foreach (var itemAttachment in _dbContext.TblLeadEmailMessageAttachments.Where(x => x.LeadEmailMessageId == item.LeadEmailMessageId).ToList())
+                                {
+                                    var MessageAttachmentList = new LeadEmailMessageAttachement();
+                                    MessageAttachmentList.LeadEmailMessageId = (int)itemAttachment.LeadEmailMessageId;
+                                    MessageAttachmentList.LeadId = (int)LeadId;
+                                    MessageAttachmentList.FileName = itemAttachment.Attachement;
+                                    MainMessageList.LeadEmailMessageattachement.Add(MessageAttachmentList);
+                                }
+                                model.Add(MainMessageList);
+                            }
+                            return Json(new { success = true, data = model, accountname = AccountId });
+                        }
+                        else
+                        {
+                            return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate), accountname = AccountId });
+                        }
                     }
                 }
                 else
@@ -2458,7 +2564,7 @@ namespace RealEstate.Controllers
                     int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
                     int LeadId = Convert.ToInt32(Request.Form["LeadId"]);
                     int LeadEmailMessageId = Convert.ToInt32(Request.Form["LeadEmailMessageId"]);
-                    return Json(_dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadEmailMessageId == LeadEmailMessageId && x.LeadId == LeadId).Select(x => new
+                    return Json(_dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadEmailMessageId == LeadEmailMessageId && x.LeadId == LeadId && x.IsType == MessageType.EmailMessage.GetHashCode()).Select(x => new
                     {
                         success = true,
                         //IsReplay = x.IsReplay,
@@ -2543,6 +2649,156 @@ namespace RealEstate.Controllers
 
         }
 
+
+        #endregion
+
+        #region LeadTextMessage
+        public IActionResult LeadSendTextMessageByLeadID()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int LeadId = Convert.ToInt32(Request.Form["leadID"]);
+                    string TextBodyMessage = Request.Form["TextBodyMessage"].ToString();
+                    string AgentName = Request.Form["AgentName"].ToString();
+                    string ToName = Request.Form["ToName"].ToString();
+                    string PhoneNumber = Request.Form["PhoneNumber"].ToString();
+
+                    var TOName = _dbContext.TblLeads.Where(x => x.LeadId == LeadId).FirstOrDefault();
+                    var oAccountIntegration = _dbContext.TblAccountIntegrations.Where(x => x.AccountId == AccountId && (x.AuthAccountType != AuthAccountType.HubSportAuth.GetHashCode())).FirstOrDefault();
+
+                    var fName = Request.Cookies["EmailAddress"].ToString();// Request.Cookies["FullName"].ToString();
+
+                    TblLeadEmailMessage oLeadEmailMessage = new TblLeadEmailMessage();
+                    oLeadEmailMessage.LeadId = LeadId;
+                    oLeadEmailMessage.AccountId = AccountId;
+                    oLeadEmailMessage.FromName = AgentName.Split('@')[0];
+                    oLeadEmailMessage.ToName = TOName == null ? "N/A" : TOName.FirstName + " " + TOName.LastName;
+                    //oLeadEmailMessage.Subject = EmailSubject.Replace("Re:", "");
+                    oLeadEmailMessage.Body = TextBodyMessage;
+                    oLeadEmailMessage.IsRead = false;
+                    oLeadEmailMessage.IsType = MessageType.TextMessage.GetHashCode();
+                    oLeadEmailMessage.CreatedDate = DateTime.Now;
+                    _dbContext.TblLeadEmailMessages.Add(oLeadEmailMessage);
+                    _dbContext.SaveChanges();
+
+                    try
+                    {
+                        string accountSid = this._config.GetSection("twilio")["accountSid"];
+                        string authToken = this._config.GetSection("twilio")["authToken"];
+
+                        TwilioClient.Init(accountSid, authToken);
+
+                        var to = new PhoneNumber(PhoneNumber);
+
+                        var message = MessageResource.Create(
+                            to,
+                            from: new PhoneNumber(this._config.GetSection("twilio")["twilioCompanyNumber"]), //  From number, must be an SMS-enabled Twilio number ( This will send sms from ur "To" numbers ). 
+                            body: TextBodyMessage);
+                    }
+                    catch (ApiException e)
+                    {
+                        return Json(new { success = false, message= e.Message });
+                        //ErrorLog.log(e.InnerException);
+                    }
+
+                    return Json(new { success = true });
+
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
+
+        public IActionResult GetLeadDetailsTextMessageByLeadID()
+        {
+            try
+            {
+                if (Request.Cookies.ContainsKey("FullName") && Request.Cookies.ContainsKey("EmailAddress"))
+                {
+                    int AccountId = Convert.ToInt32(Request.Cookies["LoginAccountId"]);
+                    int LeadId = Convert.ToInt32(Request.Form["leadID"]);
+                    if (Convert.ToInt32(Request.Cookies["UserLoginTypeId"]) == RoleType.Admin.GetHashCode())
+                    {
+                        var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.LeadId == LeadId && x.IsType == MessageType.TextMessage.GetHashCode()).Include(x => x.Lead).ToList();
+                        if (oLeadEmailMessageList.Count > 0)
+                        {
+                            List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
+                            foreach (var item in oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate))
+                            {
+                                var MainMessageList = new LeadEmailMessageViewModel();
+                                MainMessageList.AccountId = (int)item.AccountId;
+                                MainMessageList.Body = item.Body;
+                                MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
+                                MainMessageList.EmailMessageId = item.EmailMessageId;
+                                MainMessageList.IsReplay = item.IsReplay;
+                                MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
+                                MainMessageList.LeadId = item.LeadId;
+                                MainMessageList.Subject = item.Subject;
+                                MainMessageList.ToName = item.ToName;
+                                MainMessageList.FromName = item.FromName;
+                                model.Add(MainMessageList);
+                            }
+                            return Json(new { success = true, data = model });
+                        }
+                        else
+                        {
+                            return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate) });
+                        }
+                    }
+                    else
+                    {
+                        var oLeadEmailMessageList = _dbContext.TblLeadEmailMessages.Where(x => x.AccountId == AccountId && x.LeadId == LeadId && x.IsType == MessageType.TextMessage.GetHashCode()).Include(x => x.Lead).ToList();
+                        if (oLeadEmailMessageList.Count > 0)
+                        {
+                            List<LeadEmailMessageViewModel> model = new List<LeadEmailMessageViewModel>();
+                            foreach (var item in oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate))
+                            {
+                                var MainMessageList = new LeadEmailMessageViewModel();
+                                MainMessageList.AccountId = (int)item.AccountId;
+                                MainMessageList.Body = item.Body;
+                                MainMessageList.CreatedDate = (DateTime)item.CreatedDate;
+                                MainMessageList.EmailMessageId = item.EmailMessageId;
+                                MainMessageList.IsReplay = item.IsReplay;
+                                MainMessageList.LeadEmailMessageId = item.LeadEmailMessageId;
+                                MainMessageList.LeadId = item.LeadId;
+                                MainMessageList.Subject = item.Subject;
+                                MainMessageList.ToName = item.ToName;
+                                MainMessageList.FromName = item.FromName;
+                                model.Add(MainMessageList);
+                            }
+                            return Json(new { success = true, data = model });
+                        }
+                        else
+                        {
+                            return Json(new { success = true, data = oLeadEmailMessageList.OrderByDescending(x => x.CreatedDate) });
+                        }
+                    }
+                }
+                else
+                {
+                    return Json(new { success = false });
+                }
+            }
+            catch (Exception ex)
+            {
+                string actionName = this.ControllerContext.RouteData.Values["action"].ToString();
+                string controllerName = this.ControllerContext.RouteData.Values["controller"].ToString();
+                ErrorLog.logError(DateTime.Now + "--" + actionName + "--" + controllerName + "--\n" + ex, _webHostEnvironment.WebRootPath);
+                return Json(new { success = false, message = "Opps! Something went wrong!" });
+            }
+        }
         #endregion
     }
 
